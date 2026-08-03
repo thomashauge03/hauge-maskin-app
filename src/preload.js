@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld('hm', {
   saveData: (data) => ipcRenderer.invoke('data:save', data),
   exportData: () => ipcRenderer.invoke('data:export'),
   importData: () => ipcRenderer.invoke('data:import'),
+  pickImage: () => ipcRenderer.invoke('image:pick'),
+  syncShared: () => ipcRenderer.invoke('shared:sync'),
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
   minimize: () => ipcRenderer.invoke('window:minimize'),
   toggleMaximize: () => ipcRenderer.invoke('window:maximize'),

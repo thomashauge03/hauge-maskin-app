@@ -44,9 +44,10 @@
           Legg til side
         </button>
         <div class="footer-row">
-          <button id="btnImport" class="btn btn-ghost btn-sm" title="Importer sider frå fil">Importer</button>
-          <button id="btnExport" class="btn btn-ghost btn-sm" title="Eksporter sider til fil">Eksporter</button>
+          <button id="btnSettings" class="btn btn-ghost btn-sm" title="Innstillingar og delt sideliste">Innstillingar</button>
+          <button id="btnSync" class="btn btn-ghost btn-sm" title="Hent delte sider på nytt">Synk</button>
         </div>
+        <div class="sync-status" id="syncStatus"></div>
       </div>
     </aside>
 
@@ -96,7 +97,18 @@
         <input id="fGroup" type="text" list="groupList" placeholder="T.d. Verktøy" />
         <datalist id="groupList"></datalist>
       </label>
-      <label>Farge
+      <label>Bilde / ikon
+        <div class="icon-row">
+          <div class="icon-preview" id="iconPreview"></div>
+          <div class="icon-buttons">
+            <button id="fPickImage" class="btn btn-ghost btn-sm" type="button">Vel bilde…</button>
+            <button id="fAutoIcon" class="btn btn-ghost btn-sm" type="button" title="Hent ikonet frå nettsida">Hent frå nettsida</button>
+            <button id="fClearImage" class="btn btn-ghost btn-sm" type="button">Fjern</button>
+          </div>
+        </div>
+        <input id="fImageUrl" type="text" placeholder="…eller lim inn ei bildeadresse (https://…)" />
+      </label>
+      <label>Farge (blir brukt når det ikkje er bilde)
         <div class="colors" id="colors"></div>
       </label>
       <div class="modal-actions">
@@ -104,6 +116,36 @@
         <span class="spacer"></span>
         <button id="fCancel" class="btn btn-ghost">Avbryt</button>
         <button id="fSave" class="btn btn-primary">Lagre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialog: innstillingar -->
+  <div class="modal-backdrop" id="settingsModal" hidden>
+    <div class="modal">
+      <h2>Innstillingar</h2>
+      <p class="hint">
+        Legg inn adressa til ei delt sideliste (JSON). Alle som har appen får dei same
+        sidene automatisk, og nye sider dukkar opp av seg sjølv når lista blir oppdatert.
+      </p>
+      <label>Adresse til delt sideliste
+        <input id="sSharedUrl" type="text" placeholder="https://…/sider.json" />
+      </label>
+      <label>Hent på nytt kvart
+        <select id="sInterval">
+          <option value="0">Berre ved oppstart</option>
+          <option value="5">5. minutt</option>
+          <option value="15">15. minutt</option>
+          <option value="60">Kvar time</option>
+        </select>
+      </label>
+      <div class="settings-info" id="sInfo"></div>
+      <div class="modal-actions">
+        <button id="sImport" class="btn btn-ghost">Importer fil</button>
+        <button id="sExport" class="btn btn-ghost">Eksporter</button>
+        <span class="spacer"></span>
+        <button id="sCancel" class="btn btn-ghost">Avbryt</button>
+        <button id="sSave" class="btn btn-primary">Lagre</button>
       </div>
     </div>
   </div>

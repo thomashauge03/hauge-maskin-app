@@ -1,0 +1,47 @@
+{
+  "_om": "Felles sideliste for Hauge Maskin-appen. Rediger denne fila, push til GitHub, så får alle dei nye sidene automatisk. Felt: id (unik tekst), name, url, group, color, image (valfri bildeadresse).",
+  "pages": [
+    {
+      "id": "hm-web",
+      "name": "Hauge Maskin",
+      "url": "https://www.haugemaskin.no",
+      "group": "Hauge Maskin",
+      "color": "#e2001a"
+    },
+    {
+      "id": "altinn",
+      "name": "Altinn",
+      "url": "https://www.altinn.no",
+      "group": "Offentleg",
+      "color": "#0062ba"
+    },
+    {
+      "id": "brreg",
+      "name": "Brønnøysundregistera",
+      "url": "https://www.brreg.no",
+      "group": "Offentleg",
+      "color": "#1a7f5a"
+    },
+    {
+      "id": "vegvesen",
+      "name": "Statens vegvesen",
+      "url": "https://www.vegvesen.no",
+      "group": "Offentleg",
+      "color": "#f7941e"
+    },
+    {
+      "id": "yr",
+      "name": "Yr – vêrmelding",
+      "url": "https://www.yr.no",
+      "group": "Verktøy",
+      "color": "#00b9f1"
+    },
+    {
+      "id": "kart",
+      "name": "Norgeskart",
+      "url": "https://norgeskart.no",
+      "group": "Verktøy",
+      "color": "#22c55e"
+    }
+  ]
+}
