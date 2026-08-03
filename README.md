@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge Maskin Setup 1.0.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge.Maskin.Setup.1.0.0.exe) | Vanleg installasjon. Lagar snarveg på skrivebordet og i startmenyen. |
-| [**Hauge Maskin 1.0.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge.Maskin.1.0.0.exe) | Portabel. Kan køyrast rett frå ein minnepinne, utan installasjon. |
+| [**Hauge Maskin Setup 1.1.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge.Maskin.Setup.1.1.0.exe) | Vanleg installasjon. Lagar snarveg på skrivebordet og i startmenyen. |
+| [**Hauge Maskin 1.1.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge.Maskin.1.1.0.exe) | Portabel. Kan køyrast rett frå ein minnepinne, utan installasjon. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -35,8 +35,18 @@ Slik legg du til ei ny felles side:
 3. Appane hentar lista på nytt ved oppstart og kvart 15. minutt (kan endrast i
    Innstillingar). Knappen **Synk** hentar med ein gong.
 
-Felles sider kan ikkje endrast eller slettast lokalt – dei blir styrte av lista.
-Sidene kvar enkelt legg til sjølv ligg ved sida av, og blir ikkje rørte.
+### Endre ei felles side på eiga maskin
+
+Felles sider kan òg endrast lokalt – høgreklikk på sida, eller bruk blyanten i
+verktøylinja. Namn, adresse, gruppe, farge og bilde kan overstyrast, og
+endringane gjeld berre den maskina. Sida får ein raud prikk i menyen.
+
+- **Tilbakestill** i dialogen fjernar overstyringa, så sida følgjer den delte
+  lista igjen.
+- **Skjul** tek sida vekk frå menyen utan å slette ho. Skjulte sider kan hentast
+  fram igjen under Innstillingar.
+- Nye sider i den delte lista dukkar opp uansett, og overstyringane overlever
+  synkroniseringa.
 
 ## Funksjonar
 

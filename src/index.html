@@ -87,6 +87,10 @@
   <div class="modal-backdrop" id="modal" hidden>
     <div class="modal">
       <h2 id="modalTitle">Legg til side</h2>
+      <p class="shared-note" id="sharedNote" hidden>
+        Dette er ei <strong>felles side</strong>. Endringane du gjer her gjeld berre
+        denne maskina – den delte lista blir ikkje rørt.
+      </p>
       <label>Namn
         <input id="fName" type="text" placeholder="T.d. Ordrar" />
       </label>
@@ -113,6 +117,7 @@
       </label>
       <div class="modal-actions">
         <button id="fDelete" class="btn btn-danger">Slett</button>
+        <button id="fReset" class="btn btn-ghost" hidden title="Fjern dei lokale endringane">Tilbakestill</button>
         <span class="spacer"></span>
         <button id="fCancel" class="btn btn-ghost">Avbryt</button>
         <button id="fSave" class="btn btn-primary">Lagre</button>
@@ -140,6 +145,7 @@
         </select>
       </label>
       <div class="settings-info" id="sInfo"></div>
+      <div class="hidden-list" id="hiddenList" hidden></div>
       <div class="modal-actions">
         <button id="sImport" class="btn btn-ghost">Importer fil</button>
         <button id="sExport" class="btn btn-ghost">Eksporter</button>

@@ -229,6 +229,26 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 }
 .settings-info { font-size: 12px; color: var(--muted); padding: 4px 0; }
 
+.shared-note {
+  font-size: 12.5px; line-height: 1.5; color: #c9c9d3;
+  background: #ffffff0a; border-left: 3px solid var(--red);
+  border-radius: 0 8px 8px 0; padding: 10px 12px; margin: -6px 0 18px;
+}
+.shared-note strong { color: #fff; }
+
+.hidden-list { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.hidden-label {
+  font-size: 10px; font-weight: 800; letter-spacing: .14em;
+  text-transform: uppercase; color: #5c5c68; margin-bottom: 8px;
+}
+.hidden-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 5px 0; font-size: 13px; color: #c9c9d3;
+}
+.hidden-row .btn { flex: 0 0 auto; }
+
+.edited-mark { color: var(--red); font-size: 18px; line-height: 1; flex: 0 0 auto; }
+
 .sync-status {
   font-size: 11px; color: #5c5c68; padding: 8px 2px 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

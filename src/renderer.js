@@ -22,10 +22,22 @@ function normalizeUrl(raw) {
 
 const uid = () => 'p' + Math.random().toString(36).slice(2, 9);
 
-// Delte sider først, deretter dine eigne
-const allPages = () => [...(data.shared || []), ...data.pages];
-const findPage = (id) => allPages().find((p) => p.id === id);
 const isShared = (id) => String(id).startsWith('shared:');
+
+// Felles sider kan endrast lokalt. Endringane blir lagra som ei overstyring
+// på denne maskina, medan grunnlaget framleis kjem frå den delte lista.
+function applyOverride(p) {
+  const o = (data.overrides || {})[p.id];
+  return o ? { ...p, ...o, shared: true, edited: true } : p;
+}
+
+// Delte sider først, deretter dine eigne
+const allPages = () =>
+  [...(data.shared || []).map(applyOverride).filter((p) => !p.hidden), ...data.pages];
+
+const findPage = (id) => allPages().find((p) => p.id === id);
+const hiddenShared = () =>
+  (data.shared || []).filter((p) => (data.overrides || {})[p.id]?.hidden);
 
 async function persist() {
   data.settings.activeId = activeId;
@@ -59,10 +71,11 @@ function shrinkImage(src) {
 
 /* ---------- Sidemeny ---------- */
 function pageIconEl(p) {
-  if (p.image) {
+  const src = p.image || (data.icons || {})[p.id];
+  if (src) {
     const img = document.createElement('img');
     img.className = 'nav-img';
-    img.src = p.image;
+    img.src = src;
     img.alt = '';
     img.addEventListener('error', () => img.replaceWith(colorDot(p)));
     return img;
@@ -109,17 +122,23 @@ function renderNav() {
     for (const p of items) {
       const btn = document.createElement('button');
       btn.className = 'nav-item' + (p.id === activeId ? ' active' : '');
-      btn.title = p.shared ? `${p.url}\n(felles side – styrt av den delte lista)` : p.url;
+      btn.title = p.shared
+        ? `${p.url}\n(felles side${p.edited ? ' – endra på denne maskina' : ''})`
+        : p.url;
       btn.appendChild(pageIconEl(p));
       const name = document.createElement('span');
       name.className = 'nav-name';
       name.textContent = p.name;
       btn.appendChild(name);
+      if (p.edited) {
+        const mark = document.createElement('span');
+        mark.className = 'edited-mark';
+        mark.textContent = '•';
+        mark.title = 'Endra på denne maskina';
+        btn.appendChild(mark);
+      }
       btn.addEventListener('click', () => openPage(p.id));
-      btn.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        if (!p.shared) openModal(p.id);
-      });
+      btn.addEventListener('contextmenu', (e) => { e.preventDefault(); openModal(p.id); });
       nav.appendChild(btn);
     }
   }
@@ -149,11 +168,14 @@ function webviewFor(page, create = false) {
   wv.addEventListener('did-navigate', () => { if (page.id === activeId) syncToolbar(); });
   wv.addEventListener('did-navigate-in-page', () => { if (page.id === activeId) syncToolbar(); });
 
-  // Hentar ikonet frå nettsida automatisk når sida ikkje har eit eige bilde
+  // Hentar ikonet frå nettsida automatisk når sida ikkje har eit eige bilde.
+  // Gjeld òg felles sider, og tel ikkje som ei lokal endring.
   wv.addEventListener('page-favicon-updated', async (e) => {
-    const target = data.pages.find((p) => p.id === page.id);
-    if (!target || target.image || !e.favicons || !e.favicons.length) return;
-    target.image = await shrinkImage(e.favicons[0]);
+    const current = findPage(page.id);
+    if (!current || current.image || !e.favicons?.length) return;
+    data.icons = data.icons || {};
+    if (data.icons[page.id]) return;
+    data.icons[page.id] = await shrinkImage(e.favicons[0]);
     await persist();
     renderNav();
   });
@@ -206,8 +228,7 @@ function syncToolbar() {
   const has = !!wv;
   $('btnBack').disabled = !has || !canGo(wv, 'back');
   $('btnForward').disabled = !has || !canGo(wv, 'forward');
-  ['btnReload', 'btnHome', 'btnCopy', 'btnExternal'].forEach((id) => { $(id).disabled = !has; });
-  $('btnEdit').disabled = !has || isShared(activeId);
+  ['btnReload', 'btnHome', 'btnCopy', 'btnExternal', 'btnEdit'].forEach((id) => { $(id).disabled = !has; });
   let url = '—';
   try { url = has ? wv.getURL() : '—'; } catch { /* ikkje klar enno */ }
   $('urlText').textContent = url;
@@ -245,15 +266,25 @@ function renderIconPreview() {
 
 function openModal(id = null) {
   editingId = id;
-  const page = id ? data.pages.find((p) => p.id === id) : null;
+  const page = id ? findPage(id) : null;
+  const shared = page && isShared(id);
+
   $('modalTitle').textContent = page ? 'Rediger side' : 'Legg til side';
   $('fName').value = page ? page.name : '';
   $('fUrl').value = page ? page.url : '';
   $('fGroup').value = page ? page.group || '' : '';
   $('fImageUrl').value = '';
   pickedColor = page ? page.color || COLORS[0] : COLORS[0];
-  pickedImage = page ? page.image || '' : '';
+  pickedImage = page ? (page.image || (data.icons || {})[id] || '') : '';
+
+  $('sharedNote').hidden = !shared;
+  $('fReset').hidden = !(shared && data.overrides[id]);
   $('fDelete').style.display = page ? '' : 'none';
+  $('fDelete').textContent = shared ? 'Skjul' : 'Slett';
+  $('fDelete').title = shared
+    ? 'Skjuler sida på denne maskina. Du kan hente ho fram igjen i Innstillingar.'
+    : '';
+
   renderColors();
   renderIconPreview();
   $('modal').hidden = false;
@@ -271,7 +302,25 @@ async function saveModal() {
   const typedImage = $('fImageUrl').value.trim();
   if (typedImage) pickedImage = await shrinkImage(normalizeUrl(typedImage));
 
-  if (editingId) {
+  if (editingId && isShared(editingId)) {
+    // Felles side: lagre som lokal overstyring, grunnlaget står urørt
+    const base = (data.shared || []).find((x) => x.id === editingId) || {};
+    const urlChanged = normalizeUrl(base.url) !== url;
+    const unchanged =
+      base.name === name && normalizeUrl(base.url) === url &&
+      (base.group || '') === group && (base.color || '') === pickedColor &&
+      (base.image || '') === pickedImage;
+
+    if (unchanged) delete data.overrides[editingId];
+    else data.overrides[editingId] = { name, url, group, color: pickedColor, image: pickedImage };
+    if (urlChanged) {
+      viewport.querySelector(`webview[data-id="${CSS.escape(editingId)}"]`)?.remove();
+      if (activeId === editingId) openPage(editingId);
+    }
+    await persist();
+    closeModal();
+    renderNav();
+  } else if (editingId) {
     const p = data.pages.find((x) => x.id === editingId);
     const urlChanged = normalizeUrl(p.url) !== url;
     Object.assign(p, { name, url, group, color: pickedColor, image: pickedImage });
@@ -295,7 +344,14 @@ async function saveModal() {
 async function deleteCurrent() {
   if (!editingId) return;
   viewport.querySelector(`webview[data-id="${CSS.escape(editingId)}"]`)?.remove();
-  data.pages = data.pages.filter((p) => p.id !== editingId);
+
+  if (isShared(editingId)) {
+    // Felles sider blir skjulte, ikkje sletta – dei kjem tilbake ved neste synk elles
+    data.overrides[editingId] = { ...(data.overrides[editingId] || {}), hidden: true };
+  } else {
+    data.pages = data.pages.filter((p) => p.id !== editingId);
+  }
+
   if (activeId === editingId) {
     activeId = null;
     $('empty').style.display = '';
@@ -304,6 +360,53 @@ async function deleteCurrent() {
   await persist();
   closeModal();
   renderNav();
+}
+
+// Fjernar den lokale overstyringa så sida følgjer den delte lista igjen
+async function resetCurrent() {
+  if (!editingId || !isShared(editingId)) return;
+  delete data.overrides[editingId];
+  viewport.querySelector(`webview[data-id="${CSS.escape(editingId)}"]`)?.remove();
+  await persist();
+  closeModal();
+  renderNav();
+  if (activeId === editingId) openPage(editingId);
+}
+
+async function unhideShared(id) {
+  if (!data.overrides[id]) return;
+  delete data.overrides[id].hidden;
+  if (!Object.keys(data.overrides[id]).length) delete data.overrides[id];
+  await persist();
+  renderNav();
+  renderHidden();
+}
+
+function renderHidden() {
+  const wrap = $('hiddenList');
+  const hidden = hiddenShared();
+  wrap.innerHTML = '';
+  if (!hidden.length) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+
+  const label = document.createElement('div');
+  label.className = 'hidden-label';
+  label.textContent = 'Skjulte felles sider';
+  wrap.appendChild(label);
+
+  for (const p of hidden) {
+    const row = document.createElement('div');
+    row.className = 'hidden-row';
+    const name = document.createElement('span');
+    name.textContent = p.name;
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-ghost btn-sm';
+    btn.type = 'button';
+    btn.textContent = 'Vis igjen';
+    btn.addEventListener('click', () => unhideShared(p.id));
+    row.append(name, btn);
+    wrap.appendChild(row);
+  }
 }
 
 /* ---------- Delt sideliste ---------- */
@@ -348,7 +451,11 @@ function restartSyncTimer() {
 function openSettings() {
   $('sSharedUrl').value = data.settings.sharedUrl || '';
   $('sInterval').value = String(data.settings.syncMinutes ?? 15);
-  $('sInfo').textContent = `${(data.shared || []).length} felles sider · ${lastSyncText()}`;
+  const endra = Object.values(data.overrides || {}).filter((o) => !o.hidden).length;
+  $('sInfo').textContent =
+    `${(data.shared || []).length} felles sider · ${lastSyncText()}` +
+    (endra ? ` · ${endra} endra lokalt` : '');
+  renderHidden();
   $('settingsModal').hidden = false;
   setTimeout(() => $('sSharedUrl').focus(), 30);
 }
@@ -372,6 +479,7 @@ $('btnAddEmpty').addEventListener('click', () => openModal());
 $('fCancel').addEventListener('click', closeModal);
 $('fSave').addEventListener('click', saveModal);
 $('fDelete').addEventListener('click', deleteCurrent);
+$('fReset').addEventListener('click', resetCurrent);
 $('modal').addEventListener('click', (e) => { if (e.target === $('modal')) closeModal(); });
 ['fName', 'fUrl', 'fGroup', 'fImageUrl'].forEach((id) =>
   $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') saveModal(); })
@@ -422,7 +530,7 @@ $('btnExternal').addEventListener('click', () => {
   const wv = activeWebview();
   if (wv) window.hm.openExternal(wv.getURL());
 });
-$('btnEdit').addEventListener('click', () => { if (activeId && !isShared(activeId)) openModal(activeId); });
+$('btnEdit').addEventListener('click', () => { if (activeId) openModal(activeId); });
 
 $('btnMin').addEventListener('click', () => window.hm.minimize());
 $('btnMax').addEventListener('click', () => window.hm.toggleMaximize());
@@ -444,6 +552,8 @@ $('sImport').addEventListener('click', async () => {
   viewport.querySelectorAll('webview').forEach((w) => w.remove());
   data = imported;
   data.shared = data.shared || [];
+  data.overrides = data.overrides || {};
+  data.icons = data.icons || {};
   activeId = null;
   $('empty').style.display = '';
   $('settingsModal').hidden = true;
@@ -468,6 +578,8 @@ document.addEventListener('keydown', (e) => {
 (async function init() {
   data = await window.hm.loadData();
   data.shared = data.shared || [];
+  data.overrides = data.overrides || {};
+  data.icons = data.icons || {};
   renderNav();
   syncToolbar();
   if ((data.shared || []).length) showSyncStatus(`${data.shared.length} felles sider · ${lastSyncText()}`);
