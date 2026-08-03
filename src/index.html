@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hauge Maskin</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Tittellinje -->
+  <header class="titlebar">
+    <div class="titlebar-brand">
+      <img class="logo-mini" src="../assets/logo-trim.png" alt="" />
+      <span class="titlebar-title">HAUGE MASKIN</span>
+    </div>
+    <div class="titlebar-drag"></div>
+    <div class="window-controls">
+      <button id="btnMin" class="wc" title="Minimer"><svg viewBox="0 0 10 10"><path d="M0 5h10" /></svg></button>
+      <button id="btnMax" class="wc" title="Maksimer"><svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" /></svg></button>
+      <button id="btnClose" class="wc wc-close" title="Lukk"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" /></svg></button>
+    </div>
+  </header>
+
+  <div class="app">
+    <!-- Sidemeny -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img class="logo" src="../assets/logo-trim.png" alt="Hauge Maskin" />
+        <div class="brand-text">
+          <strong>HAUGE</strong><span>MASKIN</span>
+        </div>
+      </div>
+
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Søk etter side…" autocomplete="off" />
+      </div>
+
+      <nav id="nav" class="nav"></nav>
+
+      <div class="sidebar-footer">
+        <button id="btnAdd" class="btn btn-primary btn-block">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Legg til side
+        </button>
+        <div class="footer-row">
+          <button id="btnImport" class="btn btn-ghost btn-sm" title="Importer sider frå fil">Importer</button>
+          <button id="btnExport" class="btn btn-ghost btn-sm" title="Eksporter sider til fil">Eksporter</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Innhald -->
+    <main class="content">
+      <div class="toolbar">
+        <div class="nav-buttons">
+          <button id="btnBack" class="tb" title="Tilbake"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button id="btnForward" class="tb" title="Fram"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+          <button id="btnReload" class="tb" title="Last på nytt"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+          <button id="btnHome" class="tb" title="Til startadressa"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M6 10v10h12V10"/></svg></button>
+        </div>
+        <div class="urlbar" id="urlbar">
+          <span class="dot" id="urlDot"></span>
+          <span id="urlText">—</span>
+        </div>
+        <div class="toolbar-actions">
+          <button id="btnCopy" class="tb" title="Kopier adresse"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h8"/></svg></button>
+          <button id="btnExternal" class="tb" title="Opne i nettlesar"><svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></svg></button>
+          <button id="btnEdit" class="tb" title="Rediger sida"><svg viewBox="0 0 24 24"><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>
+        </div>
+      </div>
+
+      <div class="viewport" id="viewport">
+        <div class="empty" id="empty">
+          <img class="logo-big" src="../assets/logo-trim.png" alt="Hauge Maskin" />
+          <h1>Velkomen til Hauge Maskin</h1>
+          <p>Vel ei side i menyen til venstre, eller legg til ei ny nettside.</p>
+          <button class="btn btn-primary" id="btnAddEmpty">Legg til side</button>
+        </div>
+        <div class="loadbar" id="loadbar"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Dialog: legg til / rediger -->
+  <div class="modal-backdrop" id="modal" hidden>
+    <div class="modal">
+      <h2 id="modalTitle">Legg til side</h2>
+      <label>Namn
+        <input id="fName" type="text" placeholder="T.d. Ordrar" />
+      </label>
+      <label>Nettadresse (URL)
+        <input id="fUrl" type="text" placeholder="https://…" />
+      </label>
+      <label>Gruppe
+        <input id="fGroup" type="text" list="groupList" placeholder="T.d. Verktøy" />
+        <datalist id="groupList"></datalist>
+      </label>
+      <label>Farge
+        <div class="colors" id="colors"></div>
+      </label>
+      <div class="modal-actions">
+        <button id="fDelete" class="btn btn-danger">Slett</button>
+        <span class="spacer"></span>
+        <button id="fCancel" class="btn btn-ghost">Avbryt</button>
+        <button id="fSave" class="btn btn-primary">Lagre</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
