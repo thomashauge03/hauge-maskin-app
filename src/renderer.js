@@ -192,11 +192,20 @@ function setLoading(on) {
   }
 }
 
+// Electron 32 flytta canGoBack/goBack til webview.navigationHistory
+const navHist = (wv) => (wv && wv.navigationHistory) ? wv.navigationHistory : wv;
+const canGo = (wv, dir) => {
+  try {
+    const h = navHist(wv);
+    return dir === 'back' ? h.canGoBack() : h.canGoForward();
+  } catch { return false; }
+};
+
 function syncToolbar() {
   const wv = activeWebview();
   const has = !!wv;
-  $('btnBack').disabled = !has || !wv.canGoBack();
-  $('btnForward').disabled = !has || !wv.canGoForward();
+  $('btnBack').disabled = !has || !canGo(wv, 'back');
+  $('btnForward').disabled = !has || !canGo(wv, 'forward');
   ['btnReload', 'btnHome', 'btnCopy', 'btnExternal'].forEach((id) => { $(id).disabled = !has; });
   $('btnEdit').disabled = !has || isShared(activeId);
   let url = '—';
@@ -398,8 +407,8 @@ $('fImageUrl').addEventListener('change', async () => {
   renderIconPreview();
 });
 
-$('btnBack').addEventListener('click', () => activeWebview()?.goBack());
-$('btnForward').addEventListener('click', () => activeWebview()?.goForward());
+$('btnBack').addEventListener('click', () => navHist(activeWebview())?.goBack());
+$('btnForward').addEventListener('click', () => navHist(activeWebview())?.goForward());
 $('btnReload').addEventListener('click', () => activeWebview()?.reload());
 $('btnHome').addEventListener('click', () => {
   const p = findPage(activeId);
@@ -451,8 +460,8 @@ document.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.key.toLowerCase() === 'r') { e.preventDefault(); activeWebview()?.reload(); }
   if (e.ctrlKey && e.key.toLowerCase() === 'f') { e.preventDefault(); $('search').focus(); }
   if (e.ctrlKey && e.key.toLowerCase() === 'n') { e.preventDefault(); openModal(); }
-  if (e.altKey && e.key === 'ArrowLeft') activeWebview()?.goBack();
-  if (e.altKey && e.key === 'ArrowRight') activeWebview()?.goForward();
+  if (e.altKey && e.key === 'ArrowLeft') navHist(activeWebview())?.goBack();
+  if (e.altKey && e.key === 'ArrowRight') navHist(activeWebview())?.goForward();
 });
 
 /* ---------- Oppstart ---------- */
