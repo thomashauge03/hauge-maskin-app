@@ -1,6 +1,6 @@
 {
   "name": "hauge-maskin-app",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "description": "Hauge Maskin – samlet skrivebordsapp for alle nettsider og verktøy",
   "main": "src/main.js",
   "author": "Hauge Maskin",
@@ -16,10 +16,19 @@
   "build": {
     "appId": "no.haugemaskin.app",
     "productName": "Hauge Maskin",
-    "directories": { "output": "dist" },
-    "files": ["src/**/*", "assets/**/*", "package.json"],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
     "win": {
-      "target": ["nsis", "portable"],
+      "target": [
+        "nsis",
+        "portable"
+      ],
       "icon": "assets/icon.ico"
     },
     "nsis": {
@@ -27,6 +36,16 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "shortcutName": "Hauge Maskin"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "thomashauge03",
+        "repo": "hauge-maskin-app"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }

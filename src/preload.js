@@ -11,5 +11,15 @@ contextBridge.exposeInMainWorld('hm', {
   minimize: () => ipcRenderer.invoke('window:minimize'),
   toggleMaximize: () => ipcRenderer.invoke('window:maximize'),
   close: () => ipcRenderer.invoke('window:close'),
-  onWindowState: (cb) => ipcRenderer.on('window:state', (_e, s) => cb(s))
+  onWindowState: (cb) => ipcRenderer.on('window:state', (_e, s) => cb(s)),
+
+  appVersion: () => ipcRenderer.invoke('app:version'),
+  checkUpdate: () => ipcRenderer.invoke('update:check'),
+  installUpdate: () => ipcRenderer.invoke('update:install'),
+  onUpdate: (cb) => {
+    ipcRenderer.on('update:available', (_e, d) => cb('available', d));
+    ipcRenderer.on('update:progress', (_e, d) => cb('progress', d));
+    ipcRenderer.on('update:ready', (_e, d) => cb('ready', d));
+    ipcRenderer.on('update:error', (_e, d) => cb('error', d));
+  }
 });

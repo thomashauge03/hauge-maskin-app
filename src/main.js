@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 
@@ -106,6 +107,7 @@ app.on('web-contents-created', (_e, contents) => {
 
 app.whenReady().then(() => {
   createWindow();
+  setupAutoUpdate();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
@@ -114,6 +116,45 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+
+/* ---------- Automatisk oppdatering ---------- */
+// Appen ser etter nye versjonar på GitHub, lastar dei ned i bakgrunnen og
+// installerer dei når brukaren startar appen på nytt.
+function setupAutoUpdate() {
+  if (!app.isPackaged) return; // gir berre meining i ein installert app
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  const send = (channel, payload) => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
+  };
+
+  autoUpdater.on('update-available', (info) => send('update:available', { version: info.version }));
+  autoUpdater.on('download-progress', (p) => send('update:progress', { percent: Math.round(p.percent) }));
+  autoUpdater.on('update-downloaded', (info) => send('update:ready', { version: info.version }));
+  autoUpdater.on('error', (err) => send('update:error', { message: String(err && err.message || err) }));
+
+  const check = () => autoUpdater.checkForUpdates().catch(() => { /* offline er ikkje ein feil */ });
+  check();
+  setInterval(check, 6 * 60 * 60 * 1000); // og kvar sjette time
+}
+
+ipcMain.handle('update:install', () => {
+  autoUpdater.quitAndInstall(false, true);
+});
+
+ipcMain.handle('update:check', async () => {
+  if (!app.isPackaged) return { ok: false, error: 'Oppdatering verkar berre i den installerte appen.' };
+  try {
+    const res = await autoUpdater.checkForUpdates();
+    return { ok: true, version: res?.updateInfo?.version || null };
+  } catch (err) {
+    return { ok: false, error: String(err && err.message || err) };
+  }
+});
+
+ipcMain.handle('app:version', () => app.getVersion());
 
 ipcMain.handle('data:load', () => readData());
 ipcMain.handle('data:save', (_e, data) => writeData(data));

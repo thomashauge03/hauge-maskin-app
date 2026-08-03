@@ -574,6 +574,41 @@ document.addEventListener('keydown', (e) => {
   if (e.altKey && e.key === 'ArrowRight') navHist(activeWebview())?.goForward();
 });
 
+/* ---------- Automatisk oppdatering ---------- */
+function showUpdate(text, showButton = false) {
+  $('updateBox').hidden = false;
+  $('updateText').textContent = text;
+  $('updateBtn').hidden = !showButton;
+}
+
+window.hm.onUpdate((event, d) => {
+  if (event === 'available') showUpdate(`Lastar ned versjon ${d.version}…`);
+  if (event === 'progress') showUpdate(`Lastar ned oppdatering… ${d.percent} %`);
+  if (event === 'ready') showUpdate(`Versjon ${d.version} er klar.`, true);
+  if (event === 'error') $('updateBox').hidden = true; // t.d. ingen nettilgang
+});
+
+$('updateBtn').addEventListener('click', () => window.hm.installUpdate());
+
+$('sCheckUpdate').addEventListener('click', async () => {
+  const btn = $('sCheckUpdate');
+  btn.disabled = true;
+  btn.textContent = 'Ser etter…';
+  const res = await window.hm.checkUpdate();
+  const naa = await window.hm.appVersion();
+  if (!res.ok) {
+    btn.textContent = 'Sjå etter oppdatering';
+    $('sInfo').textContent = res.error;
+  } else if (res.version && res.version !== naa) {
+    btn.textContent = 'Lastar ned…';
+    $('sInfo').textContent = `Versjon ${res.version} blir lasta ned i bakgrunnen.`;
+  } else {
+    btn.textContent = 'Sjå etter oppdatering';
+    $('sInfo').textContent = `Du har nyaste versjon (${naa}).`;
+  }
+  btn.disabled = false;
+});
+
 /* ---------- Oppstart ---------- */
 (async function init() {
   data = await window.hm.loadData();
@@ -589,4 +624,6 @@ document.addEventListener('keydown', (e) => {
 
   restartSyncTimer();
   if ((data.settings.sharedUrl || '').trim()) doSync(true);
+
+  $('version').textContent = 'Versjon ' + (await window.hm.appVersion());
 })();

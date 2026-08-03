@@ -48,6 +48,11 @@
           <button id="btnSync" class="btn btn-ghost btn-sm" title="Hent delte sider på nytt">Synk</button>
         </div>
         <div class="sync-status" id="syncStatus"></div>
+        <div class="update-box" id="updateBox" hidden>
+          <span id="updateText"></span>
+          <button id="updateBtn" class="btn btn-primary btn-sm" hidden>Start på nytt</button>
+        </div>
+        <div class="version" id="version"></div>
       </div>
     </aside>
 
@@ -147,6 +152,7 @@
       <div class="settings-info" id="sInfo"></div>
       <div class="hidden-list" id="hiddenList" hidden></div>
       <div class="modal-actions">
+        <button id="sCheckUpdate" class="btn btn-ghost">Sjå etter oppdatering</button>
         <button id="sImport" class="btn btn-ghost">Importer fil</button>
         <button id="sExport" class="btn btn-ghost">Eksporter</button>
         <span class="spacer"></span>
