@@ -6,11 +6,46 @@ nettadresser når som helst.
 
 ![Logo](assets/logo.png)
 
+## Last ned
+
+| Fil | Når du brukar den |
+| --- | --- |
+| [**Hauge Maskin Setup 1.0.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge.Maskin.Setup.1.0.0.exe) | Vanleg installasjon. Lagar snarveg på skrivebordet og i startmenyen. |
+| [**Hauge Maskin 1.0.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge.Maskin.1.0.0.exe) | Portabel. Kan køyrast rett frå ein minnepinne, utan installasjon. |
+
+Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
+
+> Windows SmartScreen kan gi ei åtvaring første gongen, fordi fila ikkje er
+> kodesignert. Vel **Meir info → Køyr likevel**.
+
+## Felles sider for alle
+
+Appen hentar ei felles sideliste frå [`sider.json`](sider.json) i dette repoet.
+Du legg sider inn **éin** stad, og alle som har appen får dei automatisk – med
+mindre dei har endra adressa i Innstillingar.
+
+Slik legg du til ei ny felles side:
+
+1. Rediger [`sider.json`](sider.json) og legg til eit objekt i `pages`:
+   ```json
+   { "id": "ordre", "name": "Ordresystem", "url": "https://…", "group": "Verktøy", "color": "#e2001a", "image": "https://…/ikon.png" }
+   ```
+   `id` må vere unik. `group`, `color` og `image` er valfrie.
+2. Commit og push til `main`.
+3. Appane hentar lista på nytt ved oppstart og kvart 15. minutt (kan endrast i
+   Innstillingar). Knappen **Synk** hentar med ein gong.
+
+Felles sider kan ikkje endrast eller slettast lokalt – dei blir styrte av lista.
+Sidene kvar enkelt legg til sjølv ligg ved sida av, og blir ikkje rørte.
+
 ## Funksjonar
 
 - **Sidemeny med grupper** – organiser sidene i grupper (t.d. Verktøy, Offentleg).
 - **Legg til / rediger / slett sider** – knappen «Legg til side», eller høgreklikk
   på ei side i menyen for å redigere.
+- **Bilde på kvar lenke** – vel ei biletfil frå maskina, lim inn ei bildeadresse,
+  eller la appen hente ikonet frå nettsida sjølv. Bilda blir krympa til 64×64.
+- **Felles sideliste** – alle får dei same sidene, automatisk oppdatert.
 - **Ekte nettlesar i appen** – kvar side blir lasta i eit eige vindauge og held
   innlogging (delt økt), så du slepp å logge inn på nytt kvar gong.
 - **Verktøylinje** – tilbake, fram, last på nytt, heim, kopier adresse og
