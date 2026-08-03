@@ -2,46 +2,46 @@
   "_om": "Felles sideliste for Hauge Maskin-appen. Rediger denne fila, push til GitHub, så får alle dei nye sidene automatisk. Felt: id (unik tekst), name, url, group, color, image (valfri bildeadresse).",
   "pages": [
     {
-      "id": "hm-web",
-      "name": "Hauge Maskin",
-      "url": "https://www.haugemaskin.no",
-      "group": "Hauge Maskin",
+      "id": "tilbudssystem",
+      "name": "Tilbodssystem",
+      "url": "https://tilbudssystem-mal.vercel.app/dashboard",
+      "group": "System",
       "color": "#e2001a"
     },
     {
-      "id": "altinn",
-      "name": "Altinn",
-      "url": "https://www.altinn.no",
-      "group": "Offentleg",
-      "color": "#0062ba"
+      "id": "leveringseddel",
+      "name": "Leveringseddel",
+      "url": "https://haugemaskin-grus.vercel.app/admin",
+      "group": "System",
+      "color": "#ff8a00"
     },
     {
-      "id": "brreg",
-      "name": "Brønnøysundregistera",
-      "url": "https://www.brreg.no",
-      "group": "Offentleg",
-      "color": "#1a7f5a"
+      "id": "utleie",
+      "name": "Utleie",
+      "url": "https://utleie-hauge-maskin.vercel.app/admin",
+      "group": "System",
+      "color": "#ffd400"
     },
     {
-      "id": "vegvesen",
-      "name": "Statens vegvesen",
-      "url": "https://www.vegvesen.no",
-      "group": "Offentleg",
-      "color": "#f7941e"
+      "id": "lagersystem",
+      "name": "Lagersystem",
+      "url": "https://vercel.com/thomashauge-s-projects/stock-smart",
+      "group": "System",
+      "color": "#22c55e"
     },
     {
-      "id": "yr",
-      "name": "Yr – vêrmelding",
-      "url": "https://www.yr.no",
-      "group": "Verktøy",
+      "id": "etikett",
+      "name": "Etikett lager",
+      "url": "https://etikett.techauge.no/",
+      "group": "System",
       "color": "#00b9f1"
     },
     {
-      "id": "kart",
-      "name": "Norgeskart",
-      "url": "https://norgeskart.no",
-      "group": "Verktøy",
-      "color": "#22c55e"
+      "id": "hm-web",
+      "name": "Hauge Maskin – heimeside",
+      "url": "https://hm-web-craft.lovable.app",
+      "group": "Hauge Maskin",
+      "color": "#4285f4"
     }
   ]
 }
