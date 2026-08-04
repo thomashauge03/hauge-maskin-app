@@ -37,6 +37,13 @@
       "color": "#00b9f1"
     },
     {
+      "id": "smartdok-pdf",
+      "name": "Smartdok → PDF",
+      "url": "https://smartdok-to-pdf.lovable.app",
+      "group": "System",
+      "color": "#a855f7"
+    },
+    {
       "id": "hm-web",
       "name": "Hauge Maskin – heimeside",
       "url": "https://hm-web-craft.lovable.app",
