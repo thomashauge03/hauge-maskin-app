@@ -45,29 +45,55 @@ async function persist() {
   await window.hm.saveData(data);
 }
 
-// Krympar eit bilde til 64x64 så pages.json held seg liten
-function shrinkImage(src) {
+// Ikona blir viste i stort format øvst i menyen, så dei blir lagra i 192 px.
+// Er kjelda mindre, blir ho ikkje blåst opp – då er det betre å la biletet
+// vere lite og skarpt enn stort og uskarpt.
+const ICON_SIZE = 192;
+
+function loadImage(src) {
   return new Promise((resolve) => {
     const img = new Image();
-    img.onload = () => {
-      try {
-        const size = 64;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        const scale = Math.min(size / img.width, size / img.height);
-        const w = img.width * scale;
-        const h = img.height * scale;
-        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-        resolve(canvas.toDataURL('image/png'));
-      } catch {
-        resolve(src); // t.d. bilde frå nettet som ikkje kan lesast av canvas
-      }
-    };
-    img.onerror = () => resolve(src);
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
     img.src = src;
   });
+}
+
+function shrinkImage(src, maxSize = ICON_SIZE) {
+  return new Promise(async (resolve) => {
+    const img = await loadImage(src);
+    if (!img || !img.width) return resolve(src);
+    try {
+      // Aldri større enn originalen
+      const side = Math.min(maxSize, Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = side;
+      canvas.height = side;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      const scale = Math.min(side / img.width, side / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, (side - w) / 2, (side - h) / 2, w, h);
+      resolve(canvas.toDataURL('image/png'));
+    } catch {
+      resolve(src); // t.d. bilde frå nettet som ikkje kan lesast av canvas
+    }
+  });
+}
+
+// Nettsider tilbyr ofte fleire ikon (16x16 favicon, 180x180 apple-touch osv.).
+// Vi vil ha det største, ikkje det første.
+async function bestFavicon(urls) {
+  const bilde = await Promise.all(urls.slice(0, 6).map(loadImage));
+  let best = null;
+  for (let i = 0; i < bilde.length; i++) {
+    const img = bilde[i];
+    if (!img || !img.width) continue;
+    if (!best || img.width > best.img.width) best = { img, url: urls[i] };
+  }
+  return best ? best.url : null;
 }
 
 /* ---------- Sidemeny ---------- */
@@ -209,7 +235,9 @@ function webviewFor(page, create = false) {
     if (!current || current.image || !e.favicons?.length) return;
     data.icons = data.icons || {};
     if (data.icons[page.id]) return;
-    data.icons[page.id] = await shrinkImage(e.favicons[0]);
+    const beste = await bestFavicon(e.favicons);
+    if (!beste) return;
+    data.icons[page.id] = await shrinkImage(beste);
     await persist();
     renderNav();
   });
@@ -747,7 +775,15 @@ $('fAutoIcon').addEventListener('click', async () => {
   if (!url) { $('fUrl').focus(); return; }
   try {
     const origin = new URL(url).origin;
-    pickedImage = await shrinkImage(origin + '/favicon.ico');
+    const beste = await bestFavicon([
+      origin + '/apple-touch-icon.png',
+      origin + '/icon.png',
+      origin + '/logo.png',
+      origin + '/favicon.png',
+      origin + '/favicon.ico'
+    ]);
+    if (!beste) return;
+    pickedImage = await shrinkImage(beste);
     renderIconPreview();
   } catch { /* ugyldig adresse */ }
 });
@@ -858,6 +894,13 @@ $('sCheckUpdate').addEventListener('click', async () => {
   data.shared = data.shared || [];
   data.overrides = data.overrides || {};
   data.icons = data.icons || {};
+  // Ikon lagra av eldre versjonar er berre 64 px og blir uskarpe i det store
+  // formatet. Vi kastar dei, så blir dei henta på nytt i full oppløysing.
+  if (data.iconVersion !== 2) {
+    data.icons = {};
+    data.iconVersion = 2;
+    await persist();
+  }
   renderNav();
   syncToolbar();
   if ((data.shared || []).length) showSyncStatus(`${data.shared.length} felles sider · ${lastSyncText()}`);

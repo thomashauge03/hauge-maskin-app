@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-1.5.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.5.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-1.5.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.5.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-1.5.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.5.1.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-1.5.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.5.1.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -89,7 +89,7 @@ endringane gjeld berre den maskina. Sida får ein raud prikk i menyen.
 - **Legg til / rediger / slett sider** – knappen «Legg til side», eller høgreklikk
   på ei side i menyen for å redigere.
 - **Bilde på kvar lenke** – vel ei biletfil frå maskina, lim inn ei bildeadresse,
-  eller la appen hente ikonet frå nettsida sjølv. Bilda blir krympa til 64×64.
+  eller la appen hente ikonet frå nettsida sjølv. Bilda blir lagra i inntil 192×192.
 - **Felles sideliste** – alle får dei same sidene, automatisk oppdatert.
 - **Ekte nettlesar i appen** – kvar side blir lasta i eit eige vindauge og held
   innlogging (delt økt), så du slepp å logge inn på nytt kvar gong.
