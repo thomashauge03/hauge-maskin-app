@@ -70,6 +70,13 @@
       "url": "https://web.smartdok.no/Start.aspx",
       "group": "Mine sider",
       "color": "#ffd400"
+    },
+    {
+      "id": "kopimaskin",
+      "name": "Kopimaskin",
+      "url": "http://192.168.0.245/wcd/system_device.xml",
+      "group": "Diverse",
+      "color": "#8a8a97"
     }
   ]
 }
