@@ -195,9 +195,13 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 }
 .modal-backdrop[hidden] { display: none; }
 .modal {
-  width: 420px; background: var(--bg-2); border: 1px solid var(--line);
+  width: 470px; max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 60px); overflow-y: auto;
+  background: var(--bg-2); border: 1px solid var(--line);
   border-radius: 16px; padding: 24px; box-shadow: 0 24px 70px #000a;
 }
+.modal::-webkit-scrollbar { width: 8px; }
+.modal::-webkit-scrollbar-thumb { background: #2a2a33; border-radius: 8px; }
 .modal h2 { margin: 0 0 18px; font-size: 18px; font-weight: 800; font-style: italic; }
 .modal label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 14px; }
 .modal input[type="text"] {
@@ -278,5 +282,15 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .update-box .btn { width: 100%; margin-top: 8px; }
 .version { font-size: 10.5px; color: #4a4a55; padding: 8px 2px 0; }
 
-.modal-actions { display: flex; align-items: center; gap: 8px; margin-top: 22px; }
+/* [hidden] må slå gjennom mot display-reglane på knappane */
+[hidden] { display: none !important; }
+
+.modal-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap; margin-top: 24px;
+}
+.actions-left, .actions-right { display: flex; align-items: center; gap: 8px; }
+.actions-right { margin-left: auto; }
+.actions-left:empty { display: none; }
+.modal-actions .btn { white-space: nowrap; }
 .spacer { flex: 1; }

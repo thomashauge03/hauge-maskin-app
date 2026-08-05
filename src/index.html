@@ -122,13 +122,16 @@
       </label>
       <div class="publish-status" id="publishStatus" hidden></div>
       <div class="modal-actions">
-        <button id="fDelete" class="btn btn-danger">Slett</button>
-        <button id="fDeleteAll" class="btn btn-danger" hidden title="Fjernar sida frå den felles lista, for alle">Fjern for alle</button>
-        <button id="fReset" class="btn btn-ghost" hidden title="Fjern dei lokale endringane">Tilbakestill</button>
-        <span class="spacer"></span>
-        <button id="fCancel" class="btn btn-ghost">Avbryt</button>
-        <button id="fSave" class="btn btn-ghost">Berre meg</button>
-        <button id="fPublish" class="btn btn-primary" hidden title="Sender endringa ut til alle">For alle</button>
+        <div class="actions-left">
+          <button id="fDelete" class="btn btn-danger">Slett</button>
+          <button id="fDeleteAll" class="btn btn-danger" hidden title="Fjernar sida frå den felles lista, for alle">Fjern for alle</button>
+          <button id="fReset" class="btn btn-ghost" hidden title="Fjern dei lokale endringane">Tilbakestill</button>
+        </div>
+        <div class="actions-right">
+          <button id="fCancel" class="btn btn-ghost">Avbryt</button>
+          <button id="fSave" class="btn btn-ghost">Lagre</button>
+          <button id="fPublish" class="btn btn-primary" hidden title="Sender endringa ut til alle">Lagre for alle</button>
+        </div>
       </div>
     </div>
   </div>

@@ -278,7 +278,10 @@ function openModal(id = null) {
   pickedColor = page ? page.color || COLORS[0] : COLORS[0];
   pickedImage = page ? (page.image || (data.icons || {})[id] || '') : '';
 
-  $('sharedNote').hidden = !shared || isAdmin;
+  $('sharedNote').hidden = !shared;
+  $('sharedNote').innerHTML = isAdmin
+    ? 'Dette er ei <strong>felles side</strong>. <strong>Lagre</strong> endrar berre denne maskina – <strong>Lagre for alle</strong> sender endringa ut til alle.'
+    : 'Dette er ei <strong>felles side</strong>. Endringane du gjer her gjeld berre denne maskina – den delte lista blir ikkje rørt.';
   $('fReset').hidden = !(shared && data.overrides[id]);
   $('fDelete').style.display = page ? '' : 'none';
   $('fDelete').textContent = shared ? 'Skjul' : 'Slett';
@@ -289,7 +292,7 @@ function openModal(id = null) {
   // Som admin kan endringa sendast ut til alle
   $('fPublish').hidden = !isAdmin;
   $('fPublish').textContent = page ? 'Lagre for alle' : 'Legg til for alle';
-  $('fSave').textContent = isAdmin ? 'Berre meg' : 'Lagre';
+  $('fSave').textContent = isAdmin && !page ? 'Berre meg' : 'Lagre';
   $('fDeleteAll').hidden = !(isAdmin && shared);
   $('publishStatus').hidden = true;
 
