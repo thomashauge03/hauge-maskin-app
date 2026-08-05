@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.0.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.0.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-2.0.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.0.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-2.0.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.0.1.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-2.0.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.0.1.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -136,7 +136,7 @@ Lastar du ned ei fil frå ei side – til dømes ein PDF – hamnar ho ikkje i
 nedlastingsmappa, men i eit kort nedst i sidemenyen. Derifrå drar du fila rett
 inn i ei anna side.
 
-Etter at fila er dradd over, blir ho sletta frå maskina. Du får seks sekund med
+Knappen **opne mappa** viser kvar fila ligg. Etter at fila er dradd over, blir ho sletta frå maskina. Du får seks sekund med
 **Angre** før det skjer, i tilfelle slippet ikkje gjekk gjennom. Appen tek vare
 på dei ti siste filene; eldre blir rydda bort automatisk.
 

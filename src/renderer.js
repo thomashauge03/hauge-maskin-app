@@ -514,17 +514,19 @@ function renderTray() {
   $('traySize').textContent = visStorleik(siste.size);
   $('trayFile').classList.remove('brukt');
   $('trayLabel').textContent = 'Klar til å dra over';
-  $('trayFile').title = `Dra ${siste.name} inn i ei anna side`;
+  // Namnet blir ofte for langt for kortet, så heile står i hjelpeteksten
+  $('trayFile').title = `${siste.name}\nDra fila inn i ei anna side`;
 
   const meir = $('trayMore');
   meir.innerHTML = '';
   if (vedlegg.length > 1) {
     meir.append(`${vedlegg.length - 1} eldre fil${vedlegg.length > 2 ? 'er' : ''} · `);
-    const knapp = document.createElement('button');
-    knapp.textContent = 'vis i mappa';
-    knapp.addEventListener('click', () => window.hm.revealAttachment(siste.path));
-    meir.appendChild(knapp);
   }
+  const knapp = document.createElement('button');
+  knapp.textContent = 'opne mappa';
+  knapp.title = siste.path;
+  knapp.addEventListener('click', () => window.hm.revealAttachment(siste.path));
+  meir.appendChild(knapp);
 }
 
 async function refreshTray() {
