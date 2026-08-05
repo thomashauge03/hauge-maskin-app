@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-1.8.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.8.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-1.8.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.8.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-1.9.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.9.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-1.9.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.9.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -124,6 +124,26 @@ maskina** i sideredigeringa. Det går føre den felles innlogginga for den sida.
   bekreftar sjølv.
 - Sider som brukar «Logg inn med Google/GitHub» har ikkje passordfelt. Der er
   det den lagra økta i appen som gjer at du slepp å logge inn på nytt.
+
+## Dra filer mellom sidene
+
+Lastar du ned ei fil frå ei side – til dømes ein PDF – hamnar ho ikkje i
+nedlastingsmappa, men i eit kort nedst i sidemenyen. Derifrå drar du fila rett
+inn i ei anna side.
+
+Etter at fila er dradd over, blir ho sletta frå maskina. Du får seks sekund med
+**Angre** før det skjer, i tilfelle slippet ikkje gjekk gjennom. Appen tek vare
+på dei ti siste filene; eldre blir rydda bort automatisk.
+
+## Kvar blir hemmelegheiter lagra?
+
+GitHub-tokenet og innloggingane blir krypterte med **Windows DPAPI**, knytt til
+brukarkontoen din. Dei ligg i `admin.dat` og `logins.dat` under
+`%APPDATA%\hauge-maskin-app`, og overlever oppdateringar og ominstallasjonar.
+
+Appen tillèt berre **éi køyrande utgåve** om gongen. To utgåver som delte same
+datamappe kunne øydeleggje krypteringsnøkkelen, og då gjekk token og passord
+tapt ved oppdatering.
 
 ## Hurtigtastar
 

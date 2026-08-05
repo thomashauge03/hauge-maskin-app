@@ -47,6 +47,22 @@
 
       <nav id="nav" class="nav"></nav>
 
+      <!-- Filer lasta ned frå ei side, klare til å dragast inn i ei anna -->
+      <div class="tray" id="tray" hidden>
+        <div class="tray-head">
+          <span id="trayLabel">Klar til å dra over</span>
+          <button id="trayClear" class="tray-x" title="Slett">✕</button>
+        </div>
+        <div class="tray-file" id="trayFile" draggable="true">
+          <svg class="tray-ikon" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/></svg>
+          <div class="tray-tekst">
+            <strong id="trayName"></strong>
+            <span id="traySize"></span>
+          </div>
+        </div>
+        <div class="tray-more" id="trayMore"></div>
+      </div>
+
       <div class="sidebar-footer">
         <button id="btnAdd" class="btn btn-primary btn-block">
           <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>

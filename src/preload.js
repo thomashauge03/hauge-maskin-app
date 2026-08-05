@@ -7,6 +7,12 @@ contextBridge.exposeInMainWorld('hm', {
   importData: () => ipcRenderer.invoke('data:import'),
   pickImage: () => ipcRenderer.invoke('image:pick'),
   syncShared: () => ipcRenderer.invoke('shared:sync'),
+  listAttachments: () => ipcRenderer.invoke('attach:list'),
+  dragAttachment: (filePath) => ipcRenderer.send('attach:drag', filePath),
+  deleteAttachment: (filePath) => ipcRenderer.invoke('attach:delete', filePath),
+  revealAttachment: (filePath) => ipcRenderer.invoke('attach:reveal', filePath),
+  onAttachments: (cb) => ipcRenderer.on('attach:changed', (_e, liste) => cb(liste)),
+
   listLogins: () => ipcRenderer.invoke('login:list'),
   setLogin: (payload) => ipcRenderer.invoke('login:set', payload),
   setSharedLogin: (payload) => ipcRenderer.invoke('login:setShared', payload),

@@ -1,7 +1,8 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, webContents } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, webContents, session } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
+const { execFile } = require('child_process');
 
 let mainWindow = null;
 
@@ -122,9 +123,22 @@ app.on('web-contents-created', (_e, contents) => {
   });
 });
 
-app.whenReady().then(() => {
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
+app.whenReady().then(async () => {
+  await lastHemmelegheiter();
   createWindow();
   setupAutoUpdate();
+  fangNedlastingar();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
@@ -134,31 +148,159 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
+/* ---------- Kryptert lagring av token og passord ---------- */
+// Vi brukar Windows sin eigen DPAPI direkte, knytt til brukarkontoen. Då
+// overlever hemmelegheitene oppdateringar, ominstallasjonar og nye versjonar
+// av appen. (Electron sin safeStorage brukar ein nøkkel som ligg i
+// «Local State» inne i appmappa, og den kan gå tapt.)
+const PS_PROTECT = `Add-Type -AssemblyName System.Security
+$inn = [Console]::In.ReadToEnd()
+$b = [Text.Encoding]::UTF8.GetBytes($inn)
+[Convert]::ToBase64String([Security.Cryptography.ProtectedData]::Protect($b, $null, 'CurrentUser'))`;
+
+const PS_UNPROTECT = `Add-Type -AssemblyName System.Security
+$inn = [Console]::In.ReadToEnd().Trim()
+$b = [Convert]::FromBase64String($inn)
+[Text.Encoding]::UTF8.GetString([Security.Cryptography.ProtectedData]::Unprotect($b, $null, 'CurrentUser'))`;
+
+function kjørPowerShell(skript, inndata) {
+  return new Promise((ok, feil) => {
+    const p = execFile(
+      'powershell.exe',
+      ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', skript],
+      { maxBuffer: 16 * 1024 * 1024, windowsHide: true },
+      (err, ut, errUt) => (err ? feil(new Error(errUt || err.message)) : ok(ut.trim()))
+    );
+    p.stdin.end(inndata, 'utf8');
+  });
+}
+
+async function krypter(tekst) {
+  try {
+    return { mode: 'dpapi', data: await kjørPowerShell(PS_PROTECT, tekst) };
+  } catch {
+    // Reserveløysing dersom PowerShell ikkje er tilgjengeleg
+    if (safeStorage.isEncryptionAvailable()) {
+      return { mode: 'safe', data: safeStorage.encryptString(tekst).toString('base64') };
+    }
+    throw new Error('Fann ingen måte å kryptere på.');
+  }
+}
+
+async function dekrypter(pakke) {
+  if (pakke.mode === 'dpapi') return kjørPowerShell(PS_UNPROTECT, pakke.data);
+  return safeStorage.decryptString(Buffer.from(pakke.data, 'base64'));
+}
+
+async function lagreHemmeleg(fil, tekst) {
+  try {
+    fs.writeFileSync(fil, JSON.stringify(await krypter(tekst)), 'utf8');
+  } catch (err) {
+    console.error('Klarte ikkje lagre', path.basename(fil), err.message);
+  }
+}
+
+async function lesHemmeleg(fil) {
+  if (!fs.existsSync(fil)) return null;
+  try {
+    return await dekrypter(JSON.parse(fs.readFileSync(fil, 'utf8')));
+  } catch {
+    // Ei fil vi ikkje får opna er verdilaus – vi fjernar ho så brukaren får
+    // beskjed om å legge inn på nytt i staden for å møte ein taus feil
+    fs.rmSync(fil, { force: true });
+    return null;
+  }
+}
+
+async function lastHemmelegheiter() {
+  adminToken = await lesHemmeleg(tokenFile());
+  const tekst = await lesHemmeleg(loginFile());
+  try { loginStore = tekst ? JSON.parse(tekst) : {}; } catch { loginStore = {}; }
+
+  // Rydd vekk det gamle formatet, som var avhengig av Chromium sin nøkkel
+  for (const gammal of ['admin.bin', 'logins.bin']) {
+    fs.rmSync(path.join(app.getPath('userData'), gammal), { force: true });
+  }
+}
+
+/* ---------- Vedlegg: filer lasta ned frå sidene ---------- */
+// Filer som blir lasta ned inne i appen hamnar ikkje i nedlastingsmappa, men i
+// ei eiga mappe som høyrer til appen. Derifrå kan dei dragast rett inn i ei
+// anna side, og blir sletta med det same dei er brukte.
+const attachDir = () => {
+  const dir = path.join(app.getPath('userData'), 'vedlegg');
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
+};
+
+let vedlegg = []; // { path, name, size, time }
+
+function sendVedlegg() {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('attach:changed', vedlegg);
+  }
+}
+
+function ryddVedlegg() {
+  // Filer som er borte frå disken skal ikkje henge att i lista
+  vedlegg = vedlegg.filter((v) => fs.existsSync(v.path));
+}
+
+function fangNedlastingar() {
+  const ses = session.fromPartition('persist:hm');
+  ses.on('will-download', (_e, item) => {
+    const namn = item.getFilename();
+    const mål = path.join(attachDir(), `${Date.now()}-${namn}`);
+    item.setSavePath(mål);
+    item.once('done', (_ev, state) => {
+      if (state !== 'completed') return;
+      vedlegg.unshift({ path: mål, name: namn, size: item.getTotalBytes(), time: Date.now() });
+      // Vi held på dei ti siste; eldre blir sletta så mappa ikkje veks
+      for (const gammal of vedlegg.slice(10)) {
+        try { fs.rmSync(gammal.path, { force: true }); } catch { /* alt sletta */ }
+      }
+      vedlegg = vedlegg.slice(0, 10);
+      sendVedlegg();
+    });
+  });
+}
+
+ipcMain.handle('attach:list', () => { ryddVedlegg(); return vedlegg; });
+
+// Dradraget må startast frå hovudprosessen medan hendinga går, difor send/on
+ipcMain.on('attach:drag', (e, filPath) => {
+  if (!vedlegg.some((v) => v.path === filPath) || !fs.existsSync(filPath)) return;
+  e.sender.startDrag({
+    file: filPath,
+    icon: path.join(__dirname, '..', 'assets', 'icon.png')
+  });
+});
+
+ipcMain.handle('attach:delete', (_e, filPath) => {
+  try { fs.rmSync(filPath, { force: true }); } catch { /* alt borte */ }
+  vedlegg = vedlegg.filter((v) => v.path !== filPath);
+  sendVedlegg();
+  return true;
+});
+
+ipcMain.handle('attach:reveal', (_e, filPath) => {
+  if (fs.existsSync(filPath)) shell.showItemInFolder(filPath);
+  return true;
+});
+
 /* ---------- Lagra innlogging ---------- */
 // Brukarnamn og passord blir krypterte med Windows sin eigen nøkkelkvelv og
 // ligg berre på maskina til den enkelte. Dei blir aldri sende til GitHub, blir
 // ikkje med i eksport, og blir aldri sende til grensesnittet – berre
 // hovudprosessen les dei, og berre for å fylle inn i rett innloggingsside.
-const loginFile = () => path.join(app.getPath('userData'), 'logins.bin');
+const loginFile = () => path.join(app.getPath('userData'), 'logins.dat');
 
-function readLogins() {
-  try {
-    const buf = fs.readFileSync(loginFile());
-    const tekst = safeStorage.isEncryptionAvailable()
-      ? safeStorage.decryptString(buf)
-      : buf.toString('utf8');
-    return JSON.parse(tekst);
-  } catch {
-    return {};
-  }
-}
+let loginStore = {};
+const readLogins = () => loginStore;
 
-function writeLogins(alle) {
-  const tekst = JSON.stringify(alle);
-  const data = safeStorage.isEncryptionAvailable()
-    ? safeStorage.encryptString(tekst)
-    : Buffer.from(tekst, 'utf8');
-  fs.writeFileSync(loginFile(), data);
+async function writeLogins(alle) {
+  loginStore = alle;
+  await lagreHemmeleg(loginFile(), JSON.stringify(alle));
 }
 
 const originOf = (url) => { try { return new URL(url).origin; } catch { return null; } };
@@ -192,31 +334,31 @@ ipcMain.handle('login:list', () => {
   return ut;
 });
 
-ipcMain.handle('login:setShared', (_e, { user, pass }) => {
+ipcMain.handle('login:setShared', async (_e, { user, pass }) => {
   const alle = readLogins();
-  if (!user && !pass) { delete alle[FELLES]; writeLogins(alle); return { ok: true, removed: true }; }
+  if (!user && !pass) { delete alle[FELLES]; await writeLogins(alle); return { ok: true, removed: true }; }
   const gammal = alle[FELLES] || {};
   alle[FELLES] = { user: user || gammal.user || '', pass: pass || gammal.pass || '' };
-  writeLogins(alle);
+  await writeLogins(alle);
   return { ok: true };
 });
 
-ipcMain.handle('login:set', (_e, { id, url, user, pass }) => {
+ipcMain.handle('login:set', async (_e, { id, url, user, pass }) => {
   const origin = originOf(url);
   if (!id || !origin) return { ok: false, error: 'Manglar side eller adresse.' };
   const alle = readLogins();
-  if (!user && !pass) { delete alle[id]; writeLogins(alle); return { ok: true, removed: true }; }
+  if (!user && !pass) { delete alle[id]; await writeLogins(alle); return { ok: true, removed: true }; }
   // Passord som ikkje blir endra, skal ikkje overskrivast med tomt
   const gammal = alle[id] || {};
   alle[id] = { origin, user: user || gammal.user || '', pass: pass || gammal.pass || '' };
-  writeLogins(alle);
+  await writeLogins(alle);
   return { ok: true };
 });
 
-ipcMain.handle('login:clear', (_e, id) => {
+ipcMain.handle('login:clear', async (_e, id) => {
   const alle = readLogins();
   delete alle[id];
-  writeLogins(alle);
+  await writeLogins(alle);
   return { ok: true };
 });
 
@@ -279,25 +421,15 @@ ipcMain.handle('login:fill', async (_e, { id, webContentsId }) => {
 /* ---------- Admin: skrive til den felles lista ---------- */
 // Tokenet blir kryptert med Windows sin eigen nøkkelkvelv (DPAPI) og ligg berre
 // på denne maskina. Det følgjer aldri med i eksport eller synkronisering.
-const tokenFile = () => path.join(app.getPath('userData'), 'admin.bin');
+const tokenFile = () => path.join(app.getPath('userData'), 'admin.dat');
 
-function readToken() {
-  try {
-    const buf = fs.readFileSync(tokenFile());
-    return safeStorage.isEncryptionAvailable()
-      ? safeStorage.decryptString(buf)
-      : buf.toString('utf8');
-  } catch {
-    return null;
-  }
-}
+let adminToken = null;
+const readToken = () => adminToken;
 
-function writeToken(token) {
+async function writeToken(token) {
+  adminToken = token || null;
   if (!token) { fs.rmSync(tokenFile(), { force: true }); return true; }
-  const data = safeStorage.isEncryptionAvailable()
-    ? safeStorage.encryptString(token)
-    : Buffer.from(token, 'utf8');
-  fs.writeFileSync(tokenFile(), data);
+  await lagreHemmeleg(tokenFile(), token);
   return true;
 }
 
@@ -324,22 +456,25 @@ ipcMain.handle('admin:status', async () => {
   if (!token) return { admin: false };
   try {
     const res = await gh(token, 'https://api.github.com/user');
-    if (!res.ok) return { admin: false, error: `Tokenet blir ikkje godteke (${res.status}).` };
+    // Berre eit avvist token betyr at vi ikkje lenger er admin. Er tenaren nede
+    // eller nettet borte, held vi på admin-statusen i staden for å «gløyme» han.
+    if (res.status === 401) return { admin: false, error: 'Tokenet er ikkje lenger gyldig. Lag eit nytt.' };
+    if (!res.ok) return { admin: true, offline: true, error: `Fekk ikkje kontakt med GitHub (${res.status}).` };
     const user = await res.json();
     return { admin: true, login: user.login };
-  } catch (err) {
-    return { admin: true, offline: true, error: String(err.message || err) };
+  } catch {
+    return { admin: true, offline: true, error: 'Får ikkje kontakt med GitHub akkurat no.' };
   }
 });
 
 ipcMain.handle('admin:setToken', async (_e, token) => {
   const clean = (token || '').trim();
-  if (!clean) { writeToken(null); return { ok: true, admin: false }; }
+  if (!clean) { await writeToken(null); return { ok: true, admin: false }; }
   try {
     const res = await gh(clean, 'https://api.github.com/user');
     if (!res.ok) return { ok: false, error: `Tokenet blir ikkje godteke (${res.status}).` };
     const user = await res.json();
-    writeToken(clean);
+    await writeToken(clean);
     return { ok: true, admin: true, login: user.login };
   } catch (err) {
     return { ok: false, error: String(err.message || err) };

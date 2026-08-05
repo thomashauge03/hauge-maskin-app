@@ -496,6 +496,97 @@ function renderHidden() {
   }
 }
 
+/* ---------- Vedlegg ---------- */
+// Filer som blir lasta ned frå ei side hamnar her, klare til å dragast rett
+// inn i ei anna side. Etter at fila er dradd over, blir ho sletta.
+let vedlegg = [];
+let slettTimer = null;
+
+const visStorleik = (b) =>
+  b >= 1024 * 1024 ? (b / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' kB';
+
+function renderTray() {
+  const boks = $('tray');
+  if (!vedlegg.length) { boks.hidden = true; return; }
+
+  const siste = vedlegg[0];
+  boks.hidden = false;
+  $('trayName').textContent = siste.name;
+  $('traySize').textContent = visStorleik(siste.size);
+  $('trayFile').classList.remove('brukt');
+  $('trayLabel').textContent = 'Klar til å dra over';
+  $('trayFile').title = `Dra ${siste.name} inn i ei anna side`;
+
+  const meir = $('trayMore');
+  meir.innerHTML = '';
+  if (vedlegg.length > 1) {
+    meir.append(`${vedlegg.length - 1} eldre fil${vedlegg.length > 2 ? 'er' : ''} · `);
+    const knapp = document.createElement('button');
+    knapp.textContent = 'vis i mappa';
+    knapp.addEventListener('click', () => window.hm.revealAttachment(siste.path));
+    meir.appendChild(knapp);
+  }
+}
+
+async function refreshTray() {
+  vedlegg = await window.hm.listAttachments();
+  renderTray();
+}
+
+$('trayFile').addEventListener('dragstart', (e) => {
+  if (!vedlegg.length) return;
+  // Elektron tek over dradraget, så nettlesaren sitt eige må stoppast
+  e.preventDefault();
+  window.hm.dragAttachment(vedlegg[0].path);
+});
+
+// Vi får ikkje vite om slippet faktisk gjekk gjennom, så fila blir liggande
+// nokre sekund med moglegheit for å angre før ho blir sletta.
+$('trayFile').addEventListener('dragend', () => startSletting());
+
+function startSletting() {
+  if (!vedlegg.length || slettTimer) return;
+  const fil = vedlegg[0];
+  $('trayFile').classList.add('brukt');
+
+  let att = 6;
+  const tikk = () => {
+    $('trayLabel').textContent = `Slettar om ${att} s`;
+    const meir = $('trayMore');
+    meir.innerHTML = '';
+    const angre = document.createElement('button');
+    angre.textContent = 'Angre';
+    angre.addEventListener('click', stoppSletting);
+    meir.appendChild(angre);
+  };
+  tikk();
+
+  slettTimer = setInterval(async () => {
+    att -= 1;
+    if (att > 0) return tikk();
+    clearInterval(slettTimer);
+    slettTimer = null;
+    await window.hm.deleteAttachment(fil.path);
+  }, 1000);
+}
+
+function stoppSletting() {
+  if (slettTimer) { clearInterval(slettTimer); slettTimer = null; }
+  renderTray();
+}
+
+$('trayClear').addEventListener('click', async () => {
+  if (!vedlegg.length) return;
+  stoppSletting();
+  await window.hm.deleteAttachment(vedlegg[0].path);
+});
+
+window.hm.onAttachments((liste) => {
+  stoppSletting();
+  vedlegg = liste;
+  renderTray();
+});
+
 /* ---------- Lagra innlogging ---------- */
 // Renderer kjenner berre til KVA sider som har innlogging, og brukarnamnet.
 // Passorda ligg kryptert i hovudprosessen og kjem aldri hit.
@@ -1085,4 +1176,5 @@ $('sCheckUpdate').addEventListener('click', async () => {
   $('version').textContent = 'Versjon ' + (await window.hm.appVersion());
   await refreshAdmin();
   await refreshLogins();
+  await refreshTray();
 })();
