@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
@@ -115,6 +115,115 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+/* ---------- Admin: skrive til den felles lista ---------- */
+// Tokenet blir kryptert med Windows sin eigen nøkkelkvelv (DPAPI) og ligg berre
+// på denne maskina. Det følgjer aldri med i eksport eller synkronisering.
+const tokenFile = () => path.join(app.getPath('userData'), 'admin.bin');
+
+function readToken() {
+  try {
+    const buf = fs.readFileSync(tokenFile());
+    return safeStorage.isEncryptionAvailable()
+      ? safeStorage.decryptString(buf)
+      : buf.toString('utf8');
+  } catch {
+    return null;
+  }
+}
+
+function writeToken(token) {
+  if (!token) { fs.rmSync(tokenFile(), { force: true }); return true; }
+  const data = safeStorage.isEncryptionAvailable()
+    ? safeStorage.encryptString(token)
+    : Buffer.from(token, 'utf8');
+  fs.writeFileSync(tokenFile(), data);
+  return true;
+}
+
+// Plukkar eigar, repo, gren og filnamn ut av raw-adressa til den delte lista
+function parseSharedUrl(url) {
+  const m = /^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/.exec(url || '');
+  if (!m) return null;
+  return { owner: m[1], repo: m[2], branch: m[3], filePath: m[4] };
+}
+
+const gh = (token, url, options = {}) =>
+  fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+
+ipcMain.handle('admin:status', async () => {
+  const token = readToken();
+  if (!token) return { admin: false };
+  try {
+    const res = await gh(token, 'https://api.github.com/user');
+    if (!res.ok) return { admin: false, error: `Tokenet blir ikkje godteke (${res.status}).` };
+    const user = await res.json();
+    return { admin: true, login: user.login };
+  } catch (err) {
+    return { admin: true, offline: true, error: String(err.message || err) };
+  }
+});
+
+ipcMain.handle('admin:setToken', async (_e, token) => {
+  const clean = (token || '').trim();
+  if (!clean) { writeToken(null); return { ok: true, admin: false }; }
+  try {
+    const res = await gh(clean, 'https://api.github.com/user');
+    if (!res.ok) return { ok: false, error: `Tokenet blir ikkje godteke (${res.status}).` };
+    const user = await res.json();
+    writeToken(clean);
+    return { ok: true, admin: true, login: user.login };
+  } catch (err) {
+    return { ok: false, error: String(err.message || err) };
+  }
+});
+
+// Skriv heile den felles lista tilbake til GitHub
+ipcMain.handle('shared:publish', async (_e, { pages, message }) => {
+  const token = readToken();
+  if (!token) return { ok: false, error: 'Du er ikkje admin på denne maskina.' };
+
+  const data = readData();
+  const loc = parseSharedUrl(data.settings.sharedUrl);
+  if (!loc) return { ok: false, error: 'Den delte lista ligg ikkje på GitHub, så ho kan ikkje endrast herifrå.' };
+
+  const api = `https://api.github.com/repos/${loc.owner}/${loc.repo}/contents/${loc.filePath}`;
+  try {
+    // Hentar sha-en til den versjonen som ligg der no
+    const cur = await gh(token, `${api}?ref=${loc.branch}`);
+    if (!cur.ok) return { ok: false, error: `Fann ikkje fila på GitHub (${cur.status}).` };
+    const sha = (await cur.json()).sha;
+
+    const body = {
+      _om: 'Felles sideliste for Hauge Maskin-appen. Endringar herifrå går ut til alle appane.',
+      pages
+    };
+    const res = await gh(token, api, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: message || 'Oppdater felles sideliste frå appen',
+        content: Buffer.from(JSON.stringify(body, null, 2) + '\n', 'utf8').toString('base64'),
+        sha,
+        branch: loc.branch
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { ok: false, error: err.message || `GitHub svarte ${res.status}.` };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: String(err.message || err) };
+  }
 });
 
 /* ---------- Automatisk oppdatering ---------- */

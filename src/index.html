@@ -120,12 +120,15 @@
       <label>Farge (blir brukt når det ikkje er bilde)
         <div class="colors" id="colors"></div>
       </label>
+      <div class="publish-status" id="publishStatus" hidden></div>
       <div class="modal-actions">
         <button id="fDelete" class="btn btn-danger">Slett</button>
+        <button id="fDeleteAll" class="btn btn-danger" hidden title="Fjernar sida frå den felles lista, for alle">Fjern for alle</button>
         <button id="fReset" class="btn btn-ghost" hidden title="Fjern dei lokale endringane">Tilbakestill</button>
         <span class="spacer"></span>
         <button id="fCancel" class="btn btn-ghost">Avbryt</button>
-        <button id="fSave" class="btn btn-primary">Lagre</button>
+        <button id="fSave" class="btn btn-ghost">Berre meg</button>
+        <button id="fPublish" class="btn btn-primary" hidden title="Sender endringa ut til alle">For alle</button>
       </div>
     </div>
   </div>
@@ -151,6 +154,22 @@
       </label>
       <div class="settings-info" id="sInfo"></div>
       <div class="hidden-list" id="hiddenList" hidden></div>
+
+      <div class="admin-box">
+        <div class="hidden-label">Admin</div>
+        <div id="adminState" class="settings-info">Ikkje admin på denne maskina.</div>
+        <label id="adminTokenRow">GitHub-token
+          <input id="sToken" type="password" placeholder="github_pat_… eller ghp_…" autocomplete="off" />
+        </label>
+        <div class="footer-row">
+          <button id="sSaveToken" class="btn btn-ghost btn-sm" type="button">Lagre token</button>
+          <button id="sClearToken" class="btn btn-ghost btn-sm" type="button" hidden>Fjern admin</button>
+        </div>
+        <p class="hint small">
+          Som admin kan du endre den felles lista rett frå appen. Tokenet blir
+          kryptert og lagra berre på denne maskina.
+        </p>
+      </div>
       <div class="modal-actions">
         <button id="sCheckUpdate" class="btn btn-ghost">Sjå etter oppdatering</button>
         <button id="sImport" class="btn btn-ghost">Importer fil</button>

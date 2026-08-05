@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-1.2.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.2.1.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-1.2.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.2.1.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-1.3.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.3.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-1.3.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.3.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -34,6 +34,30 @@ Slik legg du til ei ny felles side:
 2. Commit og push til `main`.
 3. Appane hentar lista på nytt ved oppstart og kvart 15. minutt (kan endrast i
    Innstillingar). Knappen **Synk** hentar med ein gong.
+
+### Adminmodus – endre lista for alle rett frå appen
+
+Med eit GitHub-token lagt inn under **Innstillingar → Admin** kan du endre den
+felles lista utan å røre GitHub manuelt. Då får dialogen to lagreknappar:
+
+| Knapp | Kva skjer |
+| --- | --- |
+| **Berre meg** | Endringa gjeld denne maskina (som før). |
+| **For alle** | Skriv endringa til `sider.json` på GitHub. Alle andre får ho ved neste synk, eller når dei trykkjer **Synk**. |
+
+Du kan òg **Legg til for alle** når du lagar ei ny side, og **Fjern for alle**
+for å ta ei side ut av lista.
+
+Slik lagar du tokenet:
+
+1. Gå til [github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new)
+2. **Repository access** → *Only select repositories* → `hauge-maskin-app`
+3. **Permissions** → *Repository permissions* → **Contents: Read and write**
+4. Lag tokenet, kopier det, og lim det inn i **Innstillingar → Admin → Lagre token**
+
+Tokenet blir kryptert med Windows sin eigen nøkkelkvelv og ligg berre på di
+maskin. Det følgjer aldri med i eksport eller synkronisering. Berre maskiner med
+token kan endre den felles lista – alle andre kan berre lese ho.
 
 ### Endre ei felles side på eiga maskin
 

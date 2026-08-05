@@ -6,6 +6,7 @@ let editingId = null;
 let pickedColor = COLORS[0];
 let pickedImage = '';
 let syncTimer = null;
+let isAdmin = false;
 
 const $ = (id) => document.getElementById(id);
 const viewport = $('viewport');
@@ -277,13 +278,20 @@ function openModal(id = null) {
   pickedColor = page ? page.color || COLORS[0] : COLORS[0];
   pickedImage = page ? (page.image || (data.icons || {})[id] || '') : '';
 
-  $('sharedNote').hidden = !shared;
+  $('sharedNote').hidden = !shared || isAdmin;
   $('fReset').hidden = !(shared && data.overrides[id]);
   $('fDelete').style.display = page ? '' : 'none';
   $('fDelete').textContent = shared ? 'Skjul' : 'Slett';
   $('fDelete').title = shared
     ? 'Skjuler sida på denne maskina. Du kan hente ho fram igjen i Innstillingar.'
     : '';
+
+  // Som admin kan endringa sendast ut til alle
+  $('fPublish').hidden = !isAdmin;
+  $('fPublish').textContent = page ? 'Lagre for alle' : 'Legg til for alle';
+  $('fSave').textContent = isAdmin ? 'Berre meg' : 'Lagre';
+  $('fDeleteAll').hidden = !(isAdmin && shared);
+  $('publishStatus').hidden = true;
 
   renderColors();
   renderIconPreview();
@@ -409,6 +417,110 @@ function renderHidden() {
   }
 }
 
+/* ---------- Admin: endre den felles lista for alle ---------- */
+const bareId = (id) => String(id).replace(/^shared:/, '');
+
+// Gjer den interne lista om til formatet som ligg i sider.json
+function toSharedJson(list) {
+  return list.map((p) => {
+    const out = { id: bareId(p.id), name: p.name, url: p.url };
+    if (p.group) out.group = p.group;
+    if (p.color) out.color = p.color;
+    if (p.image) out.image = p.image;
+    return out;
+  });
+}
+
+function setPublishStatus(text, kind = '') {
+  const el = $('publishStatus');
+  el.hidden = !text;
+  el.textContent = text;
+  el.className = 'publish-status' + (kind ? ' ' + kind : '');
+}
+
+async function publish(list, message) {
+  setPublishStatus('Sender til alle…');
+  const res = await window.hm.publishShared({ pages: toSharedJson(list), message });
+  if (!res.ok) { setPublishStatus(res.error, 'error'); return false; }
+  setPublishStatus('Sendt. Alle får endringa ved neste synk.', 'ok');
+  return true;
+}
+
+async function publishModal() {
+  const name = $('fName').value.trim();
+  const url = normalizeUrl($('fUrl').value);
+  if (!name || !url) { $(name ? 'fUrl' : 'fName').focus(); return; }
+  const group = $('fGroup').value.trim() || 'Anna';
+
+  const typed = $('fImageUrl').value.trim();
+  if (typed) pickedImage = await shrinkImage(normalizeUrl(typed));
+
+  const felt = { name, url, group, color: pickedColor, image: pickedImage };
+  let list;
+  let message;
+
+  if (editingId && isShared(editingId)) {
+    list = (data.shared || []).map((p) => (p.id === editingId ? { ...p, ...felt } : p));
+    message = `Endre felles side: ${name}`;
+  } else {
+    const id = 'shared:' + (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || uid());
+    list = [...(data.shared || []), { id, ...felt }];
+    message = `Legg til felles side: ${name}`;
+  }
+
+  if (!(await publish(list, message))) return;
+
+  // Lokale overstyringar og lokale kopiar ville berre skygge for det nye
+  if (editingId && isShared(editingId)) delete data.overrides[editingId];
+  else if (editingId) data.pages = data.pages.filter((p) => p.id !== editingId);
+
+  await persist();
+  await doSync();
+  closeModal();
+  renderNav();
+}
+
+async function deleteForAll() {
+  if (!editingId || !isShared(editingId)) return;
+  const page = findPage(editingId);
+  const list = (data.shared || []).filter((p) => p.id !== editingId);
+  if (!(await publish(list, `Fjern felles side: ${page ? page.name : editingId}`))) return;
+
+  viewport.querySelector(`webview[data-id="${CSS.escape(editingId)}"]`)?.remove();
+  delete data.overrides[editingId];
+  if (activeId === editingId) {
+    activeId = null;
+    $('empty').style.display = '';
+    syncToolbar();
+  }
+  await persist();
+  await doSync();
+  closeModal();
+  renderNav();
+}
+
+async function refreshAdmin() {
+  const res = await window.hm.adminStatus();
+  isAdmin = !!res.admin;
+  const state = $('adminState');
+  if (isAdmin) {
+    state.innerHTML = '';
+    state.append(
+      res.login ? `Innlogga som ${res.login}.` : 'Admin (får ikkje kontakt med GitHub no).'
+    );
+    const badge = document.createElement('span');
+    badge.className = 'admin-badge';
+    badge.textContent = 'admin';
+    state.appendChild(badge);
+    $('sClearToken').hidden = false;
+    $('adminTokenRow').hidden = true;
+  } else {
+    state.textContent = res.error || 'Ikkje admin på denne maskina.';
+    $('sClearToken').hidden = true;
+    $('adminTokenRow').hidden = false;
+  }
+}
+
 /* ---------- Delt sideliste ---------- */
 function showSyncStatus(text, isError = false) {
   const el = $('syncStatus');
@@ -456,6 +568,7 @@ function openSettings() {
     `${(data.shared || []).length} felles sider · ${lastSyncText()}` +
     (endra ? ` · ${endra} endra lokalt` : '');
   renderHidden();
+  refreshAdmin();
   $('settingsModal').hidden = false;
   setTimeout(() => $('sSharedUrl').focus(), 30);
 }
@@ -480,6 +593,23 @@ $('fCancel').addEventListener('click', closeModal);
 $('fSave').addEventListener('click', saveModal);
 $('fDelete').addEventListener('click', deleteCurrent);
 $('fReset').addEventListener('click', resetCurrent);
+$('fPublish').addEventListener('click', publishModal);
+$('fDeleteAll').addEventListener('click', deleteForAll);
+
+$('sSaveToken').addEventListener('click', async () => {
+  const btn = $('sSaveToken');
+  btn.disabled = true;
+  const res = await window.hm.setAdminToken($('sToken').value);
+  btn.disabled = false;
+  $('sToken').value = '';
+  if (!res.ok) { $('adminState').textContent = res.error; return; }
+  await refreshAdmin();
+});
+
+$('sClearToken').addEventListener('click', async () => {
+  await window.hm.setAdminToken('');
+  await refreshAdmin();
+});
 $('modal').addEventListener('click', (e) => { if (e.target === $('modal')) closeModal(); });
 ['fName', 'fUrl', 'fGroup', 'fImageUrl'].forEach((id) =>
   $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') saveModal(); })
@@ -626,4 +756,5 @@ $('sCheckUpdate').addEventListener('click', async () => {
   if ((data.settings.sharedUrl || '').trim()) doSync(true);
 
   $('version').textContent = 'Versjon ' + (await window.hm.appVersion());
+  await refreshAdmin();
 })();
