@@ -81,6 +81,8 @@
         <div class="toolbar-actions">
           <button id="btnCopy" class="tb" title="Kopier adresse"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h8"/></svg></button>
           <button id="btnExternal" class="tb" title="Opne i nettlesar"><svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></svg></button>
+          <button id="btnFill" class="tb" title="Fyll inn lagra innlogging" hidden><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><path d="M12 12h9"/><path d="M17 12v4"/><path d="M20.5 12v3"/></svg></button>
+          <button id="btnHelp" class="tb" title="Kva er dette? (F1)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 1.8-2.5 3.5"/><path d="M12 17h.01"/></svg></button>
           <button id="btnEdit" class="tb" title="Rediger sida"><svg viewBox="0 0 24 24"><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>
         </div>
       </div>
@@ -129,6 +131,28 @@
       <label>Farge (blir brukt når det ikkje er bilde)
         <div class="colors" id="colors"></div>
       </label>
+      <label>Forklaring – kva er dette systemet?
+        <textarea id="fHelp" rows="3" placeholder="Kort forklaring som dukkar opp i hjelpemenyen…"></textarea>
+      </label>
+
+      <div class="login-box">
+        <div class="hidden-label">Innlogging på denne maskina</div>
+        <p class="hint small">
+          Blir kryptert og lagra berre her – aldri sendt til dei andre.
+          Appen fyller inn feltet for deg, men trykkjer ikkje «logg inn» sjølv.
+        </p>
+        <label>Brukarnamn eller e-post
+          <input id="fUser" type="text" autocomplete="off" spellcheck="false" />
+        </label>
+        <label>Passord
+          <input id="fPass" type="password" autocomplete="new-password" />
+        </label>
+        <div class="footer-row">
+          <button id="fLoginSave" class="btn btn-ghost btn-sm" type="button">Lagre innlogging</button>
+          <button id="fLoginClear" class="btn btn-ghost btn-sm" type="button">Fjern</button>
+        </div>
+        <div class="settings-info" id="loginState"></div>
+      </div>
       <div class="publish-status" id="publishStatus" hidden></div>
       <div class="modal-actions">
         <div class="actions-left">
@@ -193,6 +217,25 @@
         <span class="spacer"></span>
         <button id="sCancel" class="btn btn-ghost">Avbryt</button>
         <button id="sSave" class="btn btn-primary">Lagre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialog: hjelp -->
+  <div class="modal-backdrop" id="helpModal" hidden>
+    <div class="modal modal-wide">
+      <h2>Kva er dei ulike sidene?</h2>
+      <div id="helpCurrent" class="help-current" hidden></div>
+      <div id="helpList" class="help-list"></div>
+      <p class="hint small" id="helpAdminHint" hidden>
+        Du er admin: opne ei side, trykk blyanten, og skriv under «Forklaring».
+        <strong>Lagre for alle</strong> sender teksten ut til alle.
+      </p>
+      <div class="modal-actions">
+        <div class="actions-left"></div>
+        <div class="actions-right">
+          <button id="helpClose" class="btn btn-primary">Lukk</button>
+        </div>
       </div>
     </div>
   </div>

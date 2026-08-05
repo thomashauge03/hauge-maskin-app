@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-1.5.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.5.1.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-1.5.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.5.1.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-1.7.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.7.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-1.7.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.7.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -54,7 +54,7 @@ henta automatisk. Bruk denne når du har finpussa fleire sider og vil at alle
 skal få akkurat den same oppsettet. Dei lokale endringane dine blir samtidig
 gjort offisielle, så «endra»-prikkane forsvinn.
 
-Ikon blir lagra som små 64×64-bilde direkte i `sider.json`, så dei virkar òg
+Ikon blir lagra som små 192×192-bilde direkte i `sider.json`, så dei virkar òg
 utan nett. Appen stoppar deg om lista skulle bli større enn 400 kB.
 
 Slik lagar du tokenet:
@@ -83,8 +83,8 @@ endringane gjeld berre den maskina. Sida får ein raud prikk i menyen.
 
 ## Funksjonar
 
-- **Stort ikon for sida som er open** – øvst i sidemenyen ser du ikonet til den
-  sida du står på, i stort format, med namn og gruppe under.
+- **Sida som er open** – øvst i sidemenyen ser du ikonet og namnet på sida du
+  står på. Ei raud bølgje glir over bokstavane, så det aldri kjennest daudt.
 - **Sidemeny med grupper** – organiser sidene i grupper (t.d. Verktøy, Offentleg).
 - **Legg til / rediger / slett sider** – knappen «Legg til side», eller høgreklikk
   på ei side i menyen for å redigere.
@@ -99,6 +99,28 @@ endringane gjeld berre den maskina. Sida får ein raud prikk i menyen.
 - **Import / eksport** – ta med sidene dine over til ei anna maskin (JSON-fil).
 - **Moderne mørkt design** i svart, kvitt og HM-raudt.
 
+## Hjelpemeny
+
+Spørsmålsteiknet i verktøylinja (eller **F1**) opnar ei forklaring på kva sida
+du står på er, og ei liste over alle dei andre. Som admin skriv du teksten under
+**Forklaring** i sideredigeringa, og **Lagre for alle** sender han ut til alle.
+
+## Lagra innlogging
+
+Kvar brukar kan lagre brukarnamn og passord til ei side under
+**Innlogging på denne maskina** i sideredigeringa. Appen fyller då inn feltet
+automatisk når innloggingssida blir lasta.
+
+- Passorda blir krypterte med Windows sin eigen nøkkelkvelv og ligg **berre** på
+  den maskina. Dei blir aldri sende til GitHub, kjem ikkje med i eksport, og
+  passerer aldri grensesnittet – berre hovudprosessen les dei.
+- Innlogginga blir berre fylt inn på den **nettstaden ho vart lagra for**.
+  Endrar sida adresse, blir ingenting fylt inn.
+- Appen trykkjer **ikkje** «logg inn» sjølv. Du ser kva som blir fylt inn og
+  bekreftar sjølv.
+- Sider som brukar «Logg inn med Google/GitHub» har ikkje passordfelt. Der er
+  det den lagra økta i appen som gjer at du slepp å logge inn på nytt.
+
 ## Hurtigtastar
 
 | Tast | Handling |
@@ -107,6 +129,7 @@ endringane gjeld berre den maskina. Sida får ein raud prikk i menyen.
 | `Ctrl` + `F` | Søk i sidemenyen |
 | `Ctrl` + `R` | Last sida på nytt |
 | `Alt` + `←` / `→` | Tilbake / fram |
+| `F1` | Opne hjelpemenyen |
 | `Esc` | Lukk dialog |
 
 ## Kom i gang
@@ -134,7 +157,7 @@ Electron 32, utan andre køyretidsavhengnader. Kjeldekode i `src/`:
 
 | Fil | Rolle |
 | --- | --- |
-| `src/main.js` | Hovudprosess, vindauge, lagring, IPC |
+| `src/main.js` | Hovudprosess, vindauge, lagring, innlogging, IPC |
 | `src/preload.js` | Sikker bru mellom hovudprosess og grensesnitt |
 | `src/index.html` | Grensesnittet |
 | `src/renderer.js` | Logikk for sider, navigasjon og dialogar |

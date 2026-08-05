@@ -224,7 +224,12 @@ function webviewFor(page, create = false) {
   wv.setAttribute('partition', 'persist:hm');
 
   wv.addEventListener('did-start-loading', () => { if (page.id === activeId) setLoading(true); });
-  wv.addEventListener('did-stop-loading', () => { if (page.id === activeId) { setLoading(false); syncToolbar(); } });
+  wv.addEventListener('did-stop-loading', () => {
+    if (page.id !== activeId) return;
+    setLoading(false);
+    syncToolbar();
+    if (logins[page.id]) fyllInnlogging(true);
+  });
   wv.addEventListener('did-navigate', () => { if (page.id === activeId) syncToolbar(); });
   wv.addEventListener('did-navigate-in-page', () => { if (page.id === activeId) syncToolbar(); });
 
@@ -257,6 +262,7 @@ function openPage(id) {
 
   renderNav();
   syncToolbar();
+  oppdaterFyllKnapp();
   persist();
 }
 
@@ -338,6 +344,9 @@ function openModal(id = null) {
   $('fUrl').value = page ? page.url : '';
   $('fGroup').value = page ? page.group || '' : '';
   $('fImageUrl').value = '';
+  $('fHelp').value = page ? (page.help || '') : '';
+  $('fUser').value = (id && logins[id]) ? logins[id].user : '';
+  $('fPass').value = '';
   pickedColor = page ? page.color || COLORS[0] : COLORS[0];
   // Berre eit bilde du sjølv har valt. Ikon appen har henta automatisk blir
   // vist i førehandsvisninga, men skal ikkje lagrast som ei endring.
@@ -363,6 +372,7 @@ function openModal(id = null) {
 
   renderColors();
   renderIconPreview();
+  visLoginStatus();
   $('modal').hidden = false;
   setTimeout(() => $('fName').focus(), 30);
 }
@@ -374,6 +384,7 @@ async function saveModal() {
   const url = normalizeUrl($('fUrl').value);
   if (!name || !url) { $(name ? 'fUrl' : 'fName').focus(); return; }
   const group = $('fGroup').value.trim() || 'Anna';
+  const help = $('fHelp').value.trim();
 
   const typedImage = $('fImageUrl').value.trim();
   if (typedImage) pickedImage = await shrinkImage(normalizeUrl(typedImage));
@@ -385,10 +396,10 @@ async function saveModal() {
     const unchanged =
       base.name === name && normalizeUrl(base.url) === url &&
       (base.group || '') === group && (base.color || '') === pickedColor &&
-      (base.image || '') === pickedImage;
+      (base.image || '') === pickedImage && (base.help || '') === help;
 
     if (unchanged) delete data.overrides[editingId];
-    else data.overrides[editingId] = { name, url, group, color: pickedColor, image: pickedImage };
+    else data.overrides[editingId] = { name, url, group, color: pickedColor, image: pickedImage, help };
     if (urlChanged) {
       viewport.querySelector(`webview[data-id="${CSS.escape(editingId)}"]`)?.remove();
       if (activeId === editingId) openPage(editingId);
@@ -399,7 +410,7 @@ async function saveModal() {
   } else if (editingId) {
     const p = data.pages.find((x) => x.id === editingId);
     const urlChanged = normalizeUrl(p.url) !== url;
-    Object.assign(p, { name, url, group, color: pickedColor, image: pickedImage });
+    Object.assign(p, { name, url, group, color: pickedColor, image: pickedImage, help });
     if (urlChanged) {
       viewport.querySelector(`webview[data-id="${CSS.escape(p.id)}"]`)?.remove();
       if (activeId === p.id) openPage(p.id);
@@ -408,7 +419,7 @@ async function saveModal() {
     closeModal();
     renderNav();
   } else {
-    const p = { id: uid(), name, url, group, color: pickedColor, image: pickedImage };
+    const p = { id: uid(), name, url, group, color: pickedColor, image: pickedImage, help };
     data.pages.push(p);
     await persist();
     closeModal();
@@ -485,6 +496,118 @@ function renderHidden() {
   }
 }
 
+/* ---------- Lagra innlogging ---------- */
+// Renderer kjenner berre til KVA sider som har innlogging, og brukarnamnet.
+// Passorda ligg kryptert i hovudprosessen og kjem aldri hit.
+let logins = {};
+
+async function refreshLogins() {
+  logins = await window.hm.listLogins();
+  oppdaterFyllKnapp();
+}
+
+function oppdaterFyllKnapp() {
+  $('btnFill').hidden = !(activeId && logins[activeId]);
+}
+
+function visLoginStatus() {
+  const l = editingId ? logins[editingId] : null;
+  $('loginState').textContent = l
+    ? `Lagra for ${l.user || '(utan brukarnamn)'} på ${l.origin}`
+    : 'Inga innlogging lagra for denne sida.';
+}
+
+async function lagreLogin() {
+  if (!editingId) return;
+  const res = await window.hm.setLogin({
+    id: editingId,
+    url: normalizeUrl($('fUrl').value),
+    user: $('fUser').value.trim(),
+    pass: $('fPass').value
+  });
+  $('fPass').value = '';
+  if (!res.ok) { $('loginState').textContent = res.error; return; }
+  await refreshLogins();
+  visLoginStatus();
+}
+
+async function fjernLogin() {
+  if (!editingId) return;
+  await window.hm.clearLogin(editingId);
+  $('fUser').value = '';
+  $('fPass').value = '';
+  await refreshLogins();
+  visLoginStatus();
+}
+
+async function fyllInnlogging(stille = false) {
+  const wv = activeWebview();
+  if (!wv || !activeId || !logins[activeId]) return;
+  try {
+    const res = await window.hm.fillLogin({ id: activeId, webContentsId: wv.getWebContentsId() });
+    if (!res.ok && !stille) alert(res.error);
+  } catch { /* sida er ikkje klar */ }
+}
+
+/* ---------- Hjelp ---------- */
+function helpIconEl(p) {
+  const box = document.createElement('div');
+  box.className = 'help-icon';
+  const src = p.image || (data.icons || {})[p.id];
+  if (src) {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = '';
+    box.appendChild(img);
+  } else {
+    const dot = document.createElement('span');
+    dot.className = 'help-dot';
+    dot.style.background = p.color || '#8a8a97';
+    box.appendChild(dot);
+  }
+  return box;
+}
+
+function openHelp() {
+  const alle = allPages();
+  const aktiv = activeId ? findPage(activeId) : null;
+
+  const current = $('helpCurrent');
+  current.innerHTML = '';
+  current.hidden = !aktiv;
+  if (aktiv) {
+    current.appendChild(helpIconEl(aktiv));
+    const tekst = document.createElement('div');
+    const h = document.createElement('h3');
+    h.textContent = aktiv.name;
+    const p = document.createElement('p');
+    p.textContent = aktiv.help || 'Ingen forklaring er lagt inn for denne sida enno.';
+    tekst.append(h, p);
+    current.appendChild(tekst);
+  }
+
+  const liste = $('helpList');
+  liste.innerHTML = '';
+  for (const p of alle) {
+    if (aktiv && p.id === aktiv.id) continue;
+    const rad = document.createElement('div');
+    rad.className = 'help-row';
+    rad.appendChild(helpIconEl(p));
+    const tekst = document.createElement('div');
+    const n = document.createElement('strong');
+    n.textContent = p.name;
+    const b = document.createElement('p');
+    if (p.help) b.textContent = p.help;
+    else { b.textContent = 'Ingen forklaring lagt inn enno.'; b.className = 'tom'; }
+    tekst.append(n, b);
+    rad.appendChild(tekst);
+    liste.appendChild(rad);
+  }
+
+  $('helpAdminHint').hidden = !isAdmin;
+  $('helpModal').hidden = false;
+}
+
 /* ---------- Admin: endre den felles lista for alle ---------- */
 const bareId = (id) => String(id).replace(/^shared:/, '');
 
@@ -494,6 +617,7 @@ function toSharedJson(list) {
     const out = { id: bareId(p.id), name: p.name, url: p.url };
     if (p.group) out.group = p.group;
     if (p.color) out.color = p.color;
+    if (p.help) out.help = p.help;
     if (p.image) out.image = p.image;
     return out;
   });
@@ -519,11 +643,12 @@ async function publishModal() {
   const url = normalizeUrl($('fUrl').value);
   if (!name || !url) { $(name ? 'fUrl' : 'fName').focus(); return; }
   const group = $('fGroup').value.trim() || 'Anna';
+  const help = $('fHelp').value.trim();
 
   const typed = $('fImageUrl').value.trim();
   if (typed) pickedImage = await shrinkImage(normalizeUrl(typed));
 
-  const felt = { name, url, group, color: pickedColor, image: pickedImage };
+  const felt = { name, url, group, color: pickedColor, image: pickedImage, help };
   let list;
   let message;
 
@@ -663,7 +788,8 @@ function pruneOverrides() {
       normalizeUrl(o.url || '') === normalizeUrl(p.url || '') &&
       (o.group || '') === (p.group || '') &&
       (o.color || '') === (p.color || '') &&
-      (o.image || '') === (p.image || '');
+      (o.image || '') === (p.image || '') &&
+      (o.help || '') === (p.help || '');
     if (likt) delete data.overrides[p.id];
   }
 }
@@ -728,6 +854,9 @@ $('fCancel').addEventListener('click', closeModal);
 $('fSave').addEventListener('click', saveModal);
 $('fDelete').addEventListener('click', deleteCurrent);
 $('fReset').addEventListener('click', resetCurrent);
+$('fLoginSave').addEventListener('click', lagreLogin);
+$('fLoginClear').addEventListener('click', fjernLogin);
+$('btnFill').addEventListener('click', () => fyllInnlogging());
 $('fPublish').addEventListener('click', publishModal);
 $('fDeleteAll').addEventListener('click', deleteForAll);
 
@@ -810,6 +939,11 @@ $('btnExternal').addEventListener('click', () => {
   if (wv) window.hm.openExternal(wv.getURL());
 });
 $('btnEdit').addEventListener('click', () => { if (activeId) openModal(activeId); });
+$('btnHelp').addEventListener('click', openHelp);
+$('helpClose').addEventListener('click', () => { $('helpModal').hidden = true; });
+$('helpModal').addEventListener('click', (e) => {
+  if (e.target === $('helpModal')) $('helpModal').hidden = true;
+});
 
 $('btnMin').addEventListener('click', () => window.hm.minimize());
 $('btnMax').addEventListener('click', () => window.hm.toggleMaximize());
@@ -842,9 +976,11 @@ $('sImport').addEventListener('click', async () => {
 });
 
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'F1') { e.preventDefault(); openHelp(); }
   if (e.key === 'Escape') {
     if (!$('modal').hidden) closeModal();
     else if (!$('settingsModal').hidden) $('settingsModal').hidden = true;
+    else if (!$('helpModal').hidden) $('helpModal').hidden = true;
   }
   if (e.ctrlKey && e.key.toLowerCase() === 'r') { e.preventDefault(); activeWebview()?.reload(); }
   if (e.ctrlKey && e.key.toLowerCase() === 'f') { e.preventDefault(); $('search').focus(); }
@@ -913,4 +1049,5 @@ $('sCheckUpdate').addEventListener('click', async () => {
 
   $('version').textContent = 'Versjon ' + (await window.hm.appVersion());
   await refreshAdmin();
+  await refreshLogins();
 })();

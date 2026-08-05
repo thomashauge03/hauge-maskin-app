@@ -77,39 +77,51 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .brand-text strong { font-size: 15px; font-weight: 900; letter-spacing: .06em; }
 .brand-text span { font-size: 15px; font-weight: 900; letter-spacing: .06em; color: var(--red); }
 
-/* Sida som er open: ikonet stort og tydeleg øvst i menyen */
-.brand-active {
-  flex-direction: column; gap: 14px; align-items: center;
-  padding: 22px 18px 18px; width: 100%;
-}
+/* Sida som er open: lite ikon, og namnet med ei raud bølgje som glir over */
+.brand-active { gap: 13px; }
 .active-icon {
-  width: 100%; height: 122px; border-radius: 16px;
-  background: #ffffff0a; border: 1px solid var(--line);
+  width: 44px; height: 44px; flex: 0 0 auto; border-radius: 11px;
+  background: #ffffff0d; border: 1px solid var(--line);
   display: grid; place-items: center; overflow: hidden;
-  box-shadow: inset 0 1px 0 #ffffff0f;
 }
 /* Aldri blås opp eit lite ikon – heller lite og skarpt enn stort og uskarpt */
 .active-icon img {
-  width: auto; height: auto; max-width: calc(100% - 28px); max-height: calc(100% - 28px);
+  width: auto; height: auto; max-width: calc(100% - 12px); max-height: calc(100% - 12px);
   object-fit: contain;
-  filter: drop-shadow(0 4px 14px #0008);
 }
-.active-icon .letter {
-  font-size: 58px; font-weight: 900; font-style: italic; color: #fff;
-  text-shadow: 0 4px 14px #0006;
-}
-.active-text {
-  width: 100%; min-width: 0; display: flex; flex-direction: column;
-  gap: 4px; align-items: center; text-align: center;
-}
+.active-icon .letter { font-size: 19px; font-weight: 900; font-style: italic; color: #fff; }
+
+.active-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .active-text strong {
-  font-size: 15px; font-weight: 800; line-height: 1.25; width: 100%;
+  font-size: 14.5px; font-weight: 800; line-height: 1.25;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+
+  /* Kvit tekst med ei raud stripe som vandrar frå høgre mot venstre */
+  background-image: linear-gradient(
+    100deg,
+    #ffffff 0%, #ffffff 40%,
+    var(--red) 50%,
+    #ffffff 60%, #ffffff 100%
+  );
+  /* 300 % brei, så teksten er alltid heilt dekt uansett kvar bølgja står */
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: bolge 4.5s linear infinite;
+}
+@keyframes bolge {
+  from { background-position: 100% center; }
+  to   { background-position: 0% center; }
 }
 .active-text span {
-  font-size: 9.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
-  color: var(--red); width: 100%;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 9.5px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--red); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active-text strong { animation: none; background: none; color: var(--text); }
 }
 
 .search-wrap { position: relative; padding: 14px 14px 8px; }
@@ -257,6 +269,44 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .icon-buttons .btn { flex: none; }
 #fImageUrl { margin-top: 10px; }
 
+.modal textarea {
+  display: block; width: 100%; margin-top: 6px; padding: 10px 12px;
+  background: var(--bg-3); border: 1px solid var(--line); border-radius: 9px;
+  color: var(--text); font-size: 13.5px; font-family: inherit; line-height: 1.5;
+  outline: none; resize: vertical; user-select: text;
+}
+.modal textarea:focus { border-color: var(--red); }
+
+.modal-wide { width: 560px; }
+.help-current {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: #ffffff0a; border-left: 3px solid var(--red);
+  border-radius: 0 10px 10px 0; padding: 14px 16px; margin-bottom: 18px;
+}
+.help-current .help-icon {
+  width: 40px; height: 40px; flex: 0 0 auto; border-radius: 10px;
+  background: #ffffff0d; display: grid; place-items: center; overflow: hidden;
+}
+.help-current .help-icon img { max-width: 30px; max-height: 30px; object-fit: contain; }
+.help-current h3 { margin: 0 0 4px; font-size: 14.5px; font-weight: 800; }
+.help-current p { margin: 0; font-size: 13px; line-height: 1.55; color: #c9c9d3; }
+
+.help-list { display: flex; flex-direction: column; }
+.help-row {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 11px 2px; border-top: 1px solid var(--line);
+}
+.help-row:first-child { border-top: 0; }
+.help-row .help-icon {
+  width: 26px; height: 26px; flex: 0 0 auto; border-radius: 7px;
+  background: #ffffff0d; display: grid; place-items: center; overflow: hidden;
+}
+.help-row .help-icon img { max-width: 20px; max-height: 20px; object-fit: contain; }
+.help-row .help-dot { width: 9px; height: 9px; border-radius: 50%; }
+.help-row strong { display: block; font-size: 13.5px; font-weight: 700; margin-bottom: 2px; }
+.help-row p { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+.help-row p.tom { font-style: italic; color: #5c5c68; }
+
 .colors { display: flex; gap: 8px; margin-top: 8px; }
 .swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
 .swatch.sel { border-color: #fff; }
@@ -287,6 +337,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .hidden-row .btn { flex: 0 0 auto; }
 
 .edited-mark { color: var(--red); font-size: 18px; line-height: 1; flex: 0 0 auto; }
+
+.login-box { margin-top: 4px; border-top: 1px solid var(--line); padding-top: 14px; }
+.login-box .hint.small { font-size: 11.5px; margin: 8px 0 12px; }
 
 .admin-box { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
 .admin-box .hint.small { font-size: 11.5px; margin: 10px 0 0; }

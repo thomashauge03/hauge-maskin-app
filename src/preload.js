@@ -7,6 +7,11 @@ contextBridge.exposeInMainWorld('hm', {
   importData: () => ipcRenderer.invoke('data:import'),
   pickImage: () => ipcRenderer.invoke('image:pick'),
   syncShared: () => ipcRenderer.invoke('shared:sync'),
+  listLogins: () => ipcRenderer.invoke('login:list'),
+  setLogin: (payload) => ipcRenderer.invoke('login:set', payload),
+  clearLogin: (id) => ipcRenderer.invoke('login:clear', id),
+  fillLogin: (payload) => ipcRenderer.invoke('login:fill', payload),
+
   adminStatus: () => ipcRenderer.invoke('admin:status'),
   setAdminToken: (token) => ipcRenderer.invoke('admin:setToken', token),
   publishShared: (payload) => ipcRenderer.invoke('shared:publish', payload),

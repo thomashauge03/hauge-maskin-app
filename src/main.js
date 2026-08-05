@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, webContents } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
@@ -71,6 +71,7 @@ async function fetchShared(url) {
       group: p.group ? String(p.group) : 'Felles',
       color: p.color ? String(p.color) : '#e2001a',
       image: p.image ? String(p.image) : '',
+      help: p.help ? String(p.help) : '',
       shared: true
     }));
 }
@@ -131,6 +132,111 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+/* ---------- Lagra innlogging ---------- */
+// Brukarnamn og passord blir krypterte med Windows sin eigen nøkkelkvelv og
+// ligg berre på maskina til den enkelte. Dei blir aldri sende til GitHub, blir
+// ikkje med i eksport, og blir aldri sende til grensesnittet – berre
+// hovudprosessen les dei, og berre for å fylle inn i rett innloggingsside.
+const loginFile = () => path.join(app.getPath('userData'), 'logins.bin');
+
+function readLogins() {
+  try {
+    const buf = fs.readFileSync(loginFile());
+    const tekst = safeStorage.isEncryptionAvailable()
+      ? safeStorage.decryptString(buf)
+      : buf.toString('utf8');
+    return JSON.parse(tekst);
+  } catch {
+    return {};
+  }
+}
+
+function writeLogins(alle) {
+  const tekst = JSON.stringify(alle);
+  const data = safeStorage.isEncryptionAvailable()
+    ? safeStorage.encryptString(tekst)
+    : Buffer.from(tekst, 'utf8');
+  fs.writeFileSync(loginFile(), data);
+}
+
+const originOf = (url) => { try { return new URL(url).origin; } catch { return null; } };
+
+ipcMain.handle('login:list', () => {
+  const alle = readLogins();
+  // Berre kva sider som har innlogging, og brukarnamnet – aldri passordet
+  const ut = {};
+  for (const [id, v] of Object.entries(alle)) ut[id] = { user: v.user || '', origin: v.origin || '' };
+  return ut;
+});
+
+ipcMain.handle('login:set', (_e, { id, url, user, pass }) => {
+  const origin = originOf(url);
+  if (!id || !origin) return { ok: false, error: 'Manglar side eller adresse.' };
+  const alle = readLogins();
+  if (!user && !pass) { delete alle[id]; writeLogins(alle); return { ok: true, removed: true }; }
+  // Passord som ikkje blir endra, skal ikkje overskrivast med tomt
+  const gammal = alle[id] || {};
+  alle[id] = { origin, user: user || gammal.user || '', pass: pass || gammal.pass || '' };
+  writeLogins(alle);
+  return { ok: true };
+});
+
+ipcMain.handle('login:clear', (_e, id) => {
+  const alle = readLogins();
+  delete alle[id];
+  writeLogins(alle);
+  return { ok: true };
+});
+
+// Fyller inn brukarnamn og passord i sida. Vi sender aldri passordet til
+// grensesnittet – det går rett frå hovudprosessen inn i innloggingsskjemaet.
+// Vi trykkjer heller ikkje «logg inn» automatisk; det gjer brukaren sjølv.
+const FYLL_SKRIPT = `(function (bruker, passord) {
+  function settVerdi(el, verdi) {
+    const proto = el instanceof HTMLTextAreaElement
+      ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+    setter.call(el, verdi);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  function synleg(el) {
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 && !el.disabled && !el.readOnly;
+  }
+  const passordFelt = [...document.querySelectorAll('input[type="password"]')].filter(synleg);
+  const brukarFelt = [...document.querySelectorAll(
+    'input[type="email"], input[type="text"], input:not([type])'
+  )].filter(synleg);
+
+  let n = 0;
+  if (bruker && brukarFelt.length) { settVerdi(brukarFelt[0], bruker); n++; }
+  if (passord && passordFelt.length) { settVerdi(passordFelt[0], passord); n++; }
+  return n;
+})`;
+
+ipcMain.handle('login:fill', async (_e, { id, webContentsId }) => {
+  const alle = readLogins();
+  const lagra = alle[id];
+  if (!lagra) return { ok: false, error: 'Inga lagra innlogging.' };
+
+  const wc = webContents.fromId(webContentsId);
+  if (!wc || wc.isDestroyed()) return { ok: false, error: 'Fann ikkje sida.' };
+
+  // Fyll berre inn på den nettstaden innlogginga vart lagra for
+  if (originOf(wc.getURL()) !== lagra.origin) {
+    return { ok: false, error: 'Adressa stemmer ikkje med den lagra innlogginga.' };
+  }
+
+  try {
+    const kall = `${FYLL_SKRIPT}(${JSON.stringify(lagra.user || '')}, ${JSON.stringify(lagra.pass || '')})`;
+    const felt = await wc.executeJavaScript(kall, true);
+    return { ok: true, felt };
+  } catch (err) {
+    return { ok: false, error: String(err.message || err) };
+  }
 });
 
 /* ---------- Admin: skrive til den felles lista ---------- */
