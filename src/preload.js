@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('hm', {
   syncShared: () => ipcRenderer.invoke('shared:sync'),
   listLogins: () => ipcRenderer.invoke('login:list'),
   setLogin: (payload) => ipcRenderer.invoke('login:set', payload),
+  setSharedLogin: (payload) => ipcRenderer.invoke('login:setShared', payload),
   clearLogin: (id) => ipcRenderer.invoke('login:clear', id),
   fillLogin: (payload) => ipcRenderer.invoke('login:fill', payload),
 

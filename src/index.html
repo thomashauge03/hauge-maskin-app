@@ -191,6 +191,27 @@
       <div class="settings-info" id="sInfo"></div>
       <div class="hidden-list" id="hiddenList" hidden></div>
 
+      <div class="login-box">
+        <div class="hidden-label">Felles innlogging</div>
+        <p class="hint small">
+          Brukar du same brukarnamn og passord på alle sidene, legg du det inn
+          her éin gong. Appen fyller det då inn på alle – men berre på sidene som
+          står i menyen, og han trykkjer aldri «logg inn» sjølv.
+          Alt blir kryptert og lagra berre på denne maskina.
+        </p>
+        <label>Brukarnamn eller e-post
+          <input id="sUser" type="text" autocomplete="off" spellcheck="false" />
+        </label>
+        <label>Passord
+          <input id="sPass" type="password" autocomplete="new-password" />
+        </label>
+        <div class="footer-row">
+          <button id="sLoginSave" class="btn btn-ghost btn-sm" type="button">Lagre for alle sider</button>
+          <button id="sLoginClear" class="btn btn-ghost btn-sm" type="button">Fjern</button>
+        </div>
+        <div class="settings-info" id="sLoginState"></div>
+      </div>
+
       <div class="admin-box">
         <div class="hidden-label">Admin</div>
         <div id="adminState" class="settings-info">Ikkje admin på denne maskina.</div>

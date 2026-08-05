@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-1.7.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.7.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-1.7.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.7.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-1.8.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.8.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-1.8.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.8.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -107,15 +107,19 @@ du står på er, og ei liste over alle dei andre. Som admin skriv du teksten und
 
 ## Lagra innlogging
 
-Kvar brukar kan lagre brukarnamn og passord til ei side under
-**Innlogging på denne maskina** i sideredigeringa. Appen fyller då inn feltet
-automatisk når innloggingssida blir lasta.
+Brukar du same brukarnamn og passord overalt, legg du det inn **éin gong** under
+**Innstillingar → Felles innlogging**. Appen fyller det då inn på alle sidene.
+
+Treng ei enkelt side noko anna, legg du det inn under **Innlogging på denne
+maskina** i sideredigeringa. Det går føre den felles innlogginga for den sida.
 
 - Passorda blir krypterte med Windows sin eigen nøkkelkvelv og ligg **berre** på
   den maskina. Dei blir aldri sende til GitHub, kjem ikkje med i eksport, og
   passerer aldri grensesnittet – berre hovudprosessen les dei.
-- Innlogginga blir berre fylt inn på den **nettstaden ho vart lagra for**.
-  Endrar sida adresse, blir ingenting fylt inn.
+- Ei innlogging lagra for ei enkelt side blir berre fylt inn på den
+  **nettstaden ho vart lagra for**.
+- Den felles innlogginga blir berre fylt inn på **sider som står i menyen** –
+  aldri på ei tilfeldig side du har navigert deg fram til.
 - Appen trykkjer **ikkje** «logg inn» sjølv. Du ser kva som blir fylt inn og
   bekreftar sjølv.
 - Sider som brukar «Logg inn med Google/GitHub» har ikkje passordfelt. Der er

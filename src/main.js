@@ -163,12 +163,42 @@ function writeLogins(alle) {
 
 const originOf = (url) => { try { return new URL(url).origin; } catch { return null; } };
 
+// Ei felles innlogging gjeld alle sidene i appen. Ho er ikkje bunden til éin
+// nettstad, men blir berre brukt på sider som faktisk står i sidelista –
+// aldri på ei tilfeldig side brukaren har navigert seg fram til.
+const FELLES = '__felles__';
+
+function tillatteOrigin() {
+  const data = readData();
+  const alle = [...(data.shared || []), ...(data.pages || [])];
+  const sett = new Set();
+  for (const p of alle) {
+    const o = originOf(p.url);
+    if (o) sett.add(o);
+  }
+  // Lokale overstyringar kan peike ein annan stad
+  for (const o of Object.values(data.overrides || {})) {
+    const org = o && o.url ? originOf(o.url) : null;
+    if (org) sett.add(org);
+  }
+  return sett;
+}
+
 ipcMain.handle('login:list', () => {
   const alle = readLogins();
   // Berre kva sider som har innlogging, og brukarnamnet – aldri passordet
   const ut = {};
   for (const [id, v] of Object.entries(alle)) ut[id] = { user: v.user || '', origin: v.origin || '' };
   return ut;
+});
+
+ipcMain.handle('login:setShared', (_e, { user, pass }) => {
+  const alle = readLogins();
+  if (!user && !pass) { delete alle[FELLES]; writeLogins(alle); return { ok: true, removed: true }; }
+  const gammal = alle[FELLES] || {};
+  alle[FELLES] = { user: user || gammal.user || '', pass: pass || gammal.pass || '' };
+  writeLogins(alle);
+  return { ok: true };
 });
 
 ipcMain.handle('login:set', (_e, { id, url, user, pass }) => {
@@ -219,15 +249,22 @@ const FYLL_SKRIPT = `(function (bruker, passord) {
 
 ipcMain.handle('login:fill', async (_e, { id, webContentsId }) => {
   const alle = readLogins();
-  const lagra = alle[id];
+  // Innlogging lagra for sjølve sida går føre den felles
+  const lagra = alle[id] || alle[FELLES];
   if (!lagra) return { ok: false, error: 'Inga lagra innlogging.' };
 
   const wc = webContents.fromId(webContentsId);
   if (!wc || wc.isDestroyed()) return { ok: false, error: 'Fann ikkje sida.' };
 
-  // Fyll berre inn på den nettstaden innlogginga vart lagra for
-  if (originOf(wc.getURL()) !== lagra.origin) {
-    return { ok: false, error: 'Adressa stemmer ikkje med den lagra innlogginga.' };
+  const naa = originOf(wc.getURL());
+  if (alle[id]) {
+    // Fyll berre inn på den nettstaden innlogginga vart lagra for
+    if (naa !== lagra.origin) {
+      return { ok: false, error: 'Adressa stemmer ikkje med den lagra innlogginga.' };
+    }
+  } else if (!naa || !tillatteOrigin().has(naa)) {
+    // Den felles innlogginga gjeld berre sidene som står i lista
+    return { ok: false, error: 'Denne adressa er ikkje ei av sidene i appen.' };
   }
 
   try {

@@ -228,7 +228,7 @@ function webviewFor(page, create = false) {
     if (page.id !== activeId) return;
     setLoading(false);
     syncToolbar();
-    if (logins[page.id]) fyllInnlogging(true);
+    if (harInnlogging(page.id)) fyllInnlogging(true);
   });
   wv.addEventListener('did-navigate', () => { if (page.id === activeId) syncToolbar(); });
   wv.addEventListener('did-navigate-in-page', () => { if (page.id === activeId) syncToolbar(); });
@@ -506,15 +506,47 @@ async function refreshLogins() {
   oppdaterFyllKnapp();
 }
 
+const FELLES = '__felles__';
+const harInnlogging = (id) => !!(logins[id] || logins[FELLES]);
+
 function oppdaterFyllKnapp() {
-  $('btnFill').hidden = !(activeId && logins[activeId]);
+  $('btnFill').hidden = !(activeId && harInnlogging(activeId));
 }
 
 function visLoginStatus() {
   const l = editingId ? logins[editingId] : null;
+  const felles = logins[FELLES];
   $('loginState').textContent = l
     ? `Lagra for ${l.user || '(utan brukarnamn)'} på ${l.origin}`
-    : 'Inga innlogging lagra for denne sida.';
+    : felles
+      ? `Brukar den felles innlogginga (${felles.user || 'utan brukarnamn'}). Legg inn her for å bruke noko anna på denne sida.`
+      : 'Inga innlogging lagra for denne sida.';
+}
+
+function visFellesStatus() {
+  const f = logins[FELLES];
+  $('sLoginState').textContent = f
+    ? `Lagra som ${f.user || '(utan brukarnamn)'} – blir brukt på alle sidene.`
+    : 'Inga felles innlogging lagra.';
+  $('sUser').value = f ? f.user : '';
+  $('sPass').value = '';
+}
+
+async function lagreFelles() {
+  const res = await window.hm.setSharedLogin({
+    user: $('sUser').value.trim(),
+    pass: $('sPass').value
+  });
+  $('sPass').value = '';
+  if (!res.ok) { $('sLoginState').textContent = res.error; return; }
+  await refreshLogins();
+  visFellesStatus();
+}
+
+async function fjernFelles() {
+  await window.hm.setSharedLogin({ user: '', pass: '' });
+  await refreshLogins();
+  visFellesStatus();
 }
 
 async function lagreLogin() {
@@ -542,7 +574,7 @@ async function fjernLogin() {
 
 async function fyllInnlogging(stille = false) {
   const wv = activeWebview();
-  if (!wv || !activeId || !logins[activeId]) return;
+  if (!wv || !activeId || !harInnlogging(activeId)) return;
   try {
     const res = await window.hm.fillLogin({ id: activeId, webContentsId: wv.getWebContentsId() });
     if (!res.ok && !stille) alert(res.error);
@@ -829,6 +861,7 @@ function openSettings() {
     `${(data.shared || []).length} felles sider · ${lastSyncText()}` +
     (endra ? ` · ${endra} endra lokalt` : '');
   renderHidden();
+  visFellesStatus();
   refreshAdmin();
   $('settingsModal').hidden = false;
   setTimeout(() => $('sSharedUrl').focus(), 30);
@@ -871,6 +904,8 @@ $('sSaveToken').addEventListener('click', async () => {
 });
 
 $('sPublishAll').addEventListener('click', publishEverything);
+$('sLoginSave').addEventListener('click', lagreFelles);
+$('sLoginClear').addEventListener('click', fjernFelles);
 
 $('sClearToken').addEventListener('click', async () => {
   await window.hm.setAdminToken('');
