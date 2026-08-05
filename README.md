@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-1.9.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.9.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-1.9.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.9.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-1.9.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.9.1.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-1.9.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.9.1.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -120,6 +120,11 @@ maskina** i sideredigeringa. Det går føre den felles innlogginga for den sida.
   **nettstaden ho vart lagra for**.
 - Den felles innlogginga blir berre fylt inn på **sider som står i menyen** –
   aldri på ei tilfeldig side du har navigert deg fram til.
+- Utfyllinga skjer **berre når du trykkjer nøkkelknappen** i verktøylinja, aldri
+  av seg sjølv når ei side blir lasta.
+- Appen fyller berre inn i eit ekte innloggingsskjema. Finst det ikkje eit
+  passordfelt på sida, blir ingenting rørt – og søke- og filterfelt blir hoppa
+  over.
 - Appen trykkjer **ikkje** «logg inn» sjølv. Du ser kva som blir fylt inn og
   bekreftar sjølv.
 - Sider som brukar «Logg inn med Google/GitHub» har ikkje passordfelt. Der er

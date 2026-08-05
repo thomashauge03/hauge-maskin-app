@@ -238,6 +238,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .tb svg { width: 17px; height: 17px; }
 .tb:hover { background: #ffffff10; color: #fff; }
 .tb:disabled { opacity: .3; cursor: default; background: transparent; }
+.tb.fylt { background: #22c55e26; color: #22c55e; }
 
 .urlbar {
   flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px;

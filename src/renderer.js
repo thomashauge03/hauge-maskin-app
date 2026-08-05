@@ -228,7 +228,6 @@ function webviewFor(page, create = false) {
     if (page.id !== activeId) return;
     setLoading(false);
     syncToolbar();
-    if (harInnlogging(page.id)) fyllInnlogging(true);
   });
   wv.addEventListener('did-navigate', () => { if (page.id === activeId) syncToolbar(); });
   wv.addEventListener('did-navigate-in-page', () => { if (page.id === activeId) syncToolbar(); });
@@ -663,13 +662,24 @@ async function fjernLogin() {
   visLoginStatus();
 }
 
-async function fyllInnlogging(stille = false) {
+// Blir berre køyrt når brukaren trykkjer nøkkelknappen – aldri av seg sjølv
+async function fyllInnlogging() {
   const wv = activeWebview();
   if (!wv || !activeId || !harInnlogging(activeId)) return;
+  const knapp = $('btnFill');
   try {
     const res = await window.hm.fillLogin({ id: activeId, webContentsId: wv.getWebContentsId() });
-    if (!res.ok && !stille) alert(res.error);
-  } catch { /* sida er ikkje klar */ }
+    if (!res.ok) { alert(res.error); return; }
+    if (!res.felt) {
+      alert('Fann ikkje noko innloggingsskjema på denne sida.');
+      return;
+    }
+    // Kort kvittering på at det gjekk
+    knapp.classList.add('fylt');
+    setTimeout(() => knapp.classList.remove('fylt'), 1200);
+  } catch {
+    alert('Sida er ikkje klar enno. Prøv igjen om eit augeblikk.');
+  }
 }
 
 /* ---------- Hjelp ---------- */

@@ -367,9 +367,7 @@ ipcMain.handle('login:clear', async (_e, id) => {
 // Vi trykkjer heller ikkje «logg inn» automatisk; det gjer brukaren sjølv.
 const FYLL_SKRIPT = `(function (bruker, passord) {
   function settVerdi(el, verdi) {
-    const proto = el instanceof HTMLTextAreaElement
-      ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-    const setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
     setter.call(el, verdi);
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
@@ -378,14 +376,34 @@ const FYLL_SKRIPT = `(function (bruker, passord) {
     const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0 && !el.disabled && !el.readOnly;
   }
+  // Sørgje for at vi aldri skriv i eit søkefelt
+  const SØK = /(search|søk|sok|query|filter|finn)/i;
+  function erSøkefelt(el) {
+    if (el.type === 'search') return true;
+    const tekst = [el.name, el.id, el.placeholder, el.getAttribute('aria-label'),
+                   el.getAttribute('autocomplete')].filter(Boolean).join(' ');
+    return SØK.test(tekst);
+  }
+
+  // Utan eit passordfelt er dette ikkje ei innloggingsside, og vi rører ingenting
   const passordFelt = [...document.querySelectorAll('input[type="password"]')].filter(synleg);
-  const brukarFelt = [...document.querySelectorAll(
-    'input[type="email"], input[type="text"], input:not([type])'
-  )].filter(synleg);
+  if (!passordFelt.length) return 0;
+  const pf = passordFelt[0];
+
+  // Brukarfeltet er det tekstfeltet som står rett før passordfeltet i skjemaet
+  const område = pf.form || document;
+  const kandidatar = [...område.querySelectorAll(
+    'input[type="email"], input[type="text"], input[type="tel"], input:not([type])'
+  )].filter((el) => synleg(el) && !erSøkefelt(el));
+
+  const alle = [...document.querySelectorAll('input')];
+  const posPassord = alle.indexOf(pf);
+  const før = kandidatar.filter((el) => alle.indexOf(el) < posPassord);
+  const bf = før.length ? før[før.length - 1] : null;
 
   let n = 0;
-  if (bruker && brukarFelt.length) { settVerdi(brukarFelt[0], bruker); n++; }
-  if (passord && passordFelt.length) { settVerdi(passordFelt[0], passord); n++; }
+  if (bruker && bf) { settVerdi(bf, bruker); n++; }
+  if (passord) { settVerdi(pf, passord); pf.focus(); n++; }
   return n;
 })`;
 
