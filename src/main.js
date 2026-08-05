@@ -41,7 +41,23 @@ function readData() {
 // Hentar den delte sidelista. Alle som brukar appen peikar på same adressa,
 // så nye sider dukkar opp hjå alle utan at nokon må gjere noko.
 async function fetchShared(url) {
-  const res = await fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
+  // raw.githubusercontent.com blir mellomlagra i nokre minutt. Har vi eit token,
+  // les vi heller direkte frå GitHub-API-et, som alltid gir den nyaste versjonen.
+  const token = readToken();
+  const loc = token ? parseSharedUrl(url) : null;
+
+  let res;
+  if (loc) {
+    res = await gh(
+      token,
+      `https://api.github.com/repos/${loc.owner}/${loc.repo}/contents/${loc.filePath}?ref=${loc.branch}`,
+      { headers: { Accept: 'application/vnd.github.raw' } }
+    );
+  } else {
+    const fresh = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+    res = await fetch(fresh, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
+  }
+
   if (!res.ok) throw new Error(`Fekk ${res.status} frå tenaren`);
   const json = await res.json();
   const list = Array.isArray(json) ? json : json.pages;

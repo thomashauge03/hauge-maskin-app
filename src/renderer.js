@@ -252,10 +252,12 @@ function renderColors() {
 function renderIconPreview() {
   const box = $('iconPreview');
   box.innerHTML = '';
-  if (pickedImage) {
+  const auto = editingId ? (data.icons || {})[editingId] : '';
+  if (pickedImage || auto) {
     const img = document.createElement('img');
-    img.src = pickedImage;
+    img.src = pickedImage || auto;
     img.alt = '';
+    if (!pickedImage) img.title = 'Ikon henta automatisk frå nettsida';
     box.appendChild(img);
   } else {
     const ph = document.createElement('span');
@@ -276,7 +278,9 @@ function openModal(id = null) {
   $('fGroup').value = page ? page.group || '' : '';
   $('fImageUrl').value = '';
   pickedColor = page ? page.color || COLORS[0] : COLORS[0];
-  pickedImage = page ? (page.image || (data.icons || {})[id] || '') : '';
+  // Berre eit bilde du sjølv har valt. Ikon appen har henta automatisk blir
+  // vist i førehandsvisninga, men skal ikkje lagrast som ei endring.
+  pickedImage = page ? (page.image || '') : '';
 
   $('sharedNote').hidden = !shared;
   $('sharedNote').innerHTML = isAdmin
@@ -477,10 +481,15 @@ async function publishModal() {
   if (editingId && isShared(editingId)) delete data.overrides[editingId];
   else if (editingId) data.pages = data.pages.filter((p) => p.id !== editingId);
 
+  // Vi veit kva vi nettopp lagra, så vi brukar det med ein gong i staden for
+  // å vente på at GitHub skal servere den nye fila
+  data.shared = list.map((p) => ({ ...p, shared: true }));
+  data.settings.lastSync = new Date().toISOString();
+
   await persist();
-  await doSync();
   closeModal();
   renderNav();
+  showSyncStatus(`${data.shared.length} felles sider · ${lastSyncText()}`);
 }
 
 async function deleteForAll() {
@@ -496,10 +505,13 @@ async function deleteForAll() {
     $('empty').style.display = '';
     syncToolbar();
   }
+  data.shared = list.map((p) => ({ ...p, shared: true }));
+  data.settings.lastSync = new Date().toISOString();
+
   await persist();
-  await doSync();
   closeModal();
   renderNav();
+  showSyncStatus(`${data.shared.length} felles sider · ${lastSyncText()}`);
 }
 
 async function refreshAdmin() {
@@ -538,6 +550,22 @@ function lastSyncText() {
   return 'Sist henta ' + d.toLocaleString('nb-NO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
+// Ei overstyring som er blitt lik den felles lista har ingen funksjon lenger,
+// og ville berre stå att med ein raud «endra»-prikk
+function pruneOverrides() {
+  for (const p of data.shared || []) {
+    const o = (data.overrides || {})[p.id];
+    if (!o || o.hidden) continue;
+    const likt =
+      o.name === p.name &&
+      normalizeUrl(o.url || '') === normalizeUrl(p.url || '') &&
+      (o.group || '') === (p.group || '') &&
+      (o.color || '') === (p.color || '') &&
+      (o.image || '') === (p.image || '');
+    if (likt) delete data.overrides[p.id];
+  }
+}
+
 async function doSync(quiet = false) {
   if (!(data.settings.sharedUrl || '').trim()) {
     if (!quiet) showSyncStatus('Inga delt liste er satt opp', true);
@@ -548,6 +576,8 @@ async function doSync(quiet = false) {
   if (res.ok) {
     data.shared = res.shared;
     data.settings.lastSync = res.lastSync;
+    pruneOverrides();
+    await persist();
     renderNav();
     showSyncStatus(`${res.count} felles sider · ${lastSyncText()}`);
   } else {
