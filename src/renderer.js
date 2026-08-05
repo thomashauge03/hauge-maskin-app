@@ -514,6 +514,45 @@ async function deleteForAll() {
   showSyncStatus(`${data.shared.length} felles sider · ${lastSyncText()}`);
 }
 
+// Sender heile den lista du ser lokalt ut til alle: namn, adresser, grupper,
+// fargar og ikon – òg dei ikona appen har henta automatisk.
+async function publishEverything() {
+  const btn = $('sPublishAll');
+  const list = (data.shared || []).map((p) => {
+    const o = data.overrides[p.id] || {};
+    if (o.hidden) return { ...p }; // skjult hjå deg, men blir verande for dei andre
+    return { ...p, ...o, image: o.image || p.image || (data.icons || {})[p.id] || '' };
+  });
+
+  const storleik = JSON.stringify(toSharedJson(list)).length;
+  if (storleik > 400000) {
+    $('sInfo').textContent = 'Lista blir for stor (over 400 kB). Fjern nokre bilde først.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sender…';
+  const res = await window.hm.publishShared({
+    pages: toSharedJson(list),
+    message: 'Oppdater felles sideliste med ikon og endringar'
+  });
+  btn.disabled = false;
+  btn.textContent = 'Send alt ut til alle';
+
+  if (!res.ok) { $('sInfo').textContent = res.error; return; }
+
+  // Endringane er no offisielle, så dei lokale overstyringane har ingen funksjon
+  for (const id of Object.keys(data.overrides)) {
+    if (!data.overrides[id].hidden) delete data.overrides[id];
+  }
+  data.shared = list.map((p) => ({ ...p, shared: true }));
+  data.settings.lastSync = new Date().toISOString();
+  await persist();
+  renderNav();
+  $('sInfo').textContent =
+    `Sendt. ${list.length} sider (${Math.round(storleik / 1024)} kB) gjeld no for alle.`;
+}
+
 async function refreshAdmin() {
   const res = await window.hm.adminStatus();
   isAdmin = !!res.admin;
@@ -529,10 +568,12 @@ async function refreshAdmin() {
     state.appendChild(badge);
     $('sClearToken').hidden = false;
     $('adminTokenRow').hidden = true;
+    $('sPublishAll').hidden = false;
   } else {
     state.textContent = res.error || 'Ikkje admin på denne maskina.';
     $('sClearToken').hidden = true;
     $('adminTokenRow').hidden = false;
+    $('sPublishAll').hidden = true;
   }
 }
 
@@ -639,6 +680,8 @@ $('sSaveToken').addEventListener('click', async () => {
   await refreshAdmin();
 });
 
+$('sPublishAll').addEventListener('click', publishEverything);
+
 $('sClearToken').addEventListener('click', async () => {
   await window.hm.setAdminToken('');
   await refreshAdmin();
@@ -663,6 +706,10 @@ $('fClearImage').addEventListener('click', () => {
   renderIconPreview();
 });
 $('fAutoIcon').addEventListener('click', async () => {
+  // Har appen alt fanga opp ikonet då sida vart lasta, er det det beste vi har
+  const fanga = editingId ? (data.icons || {})[editingId] : '';
+  if (fanga) { pickedImage = fanga; renderIconPreview(); return; }
+
   const url = normalizeUrl($('fUrl').value);
   if (!url) { $('fUrl').focus(); return; }
   try {

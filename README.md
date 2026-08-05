@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-1.3.2.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.3.2.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-1.3.2.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.3.2.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-1.4.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-1.4.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-1.4.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-1.4.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -47,6 +47,15 @@ felles lista utan å røre GitHub manuelt. Då får dialogen to lagreknappar:
 
 Du kan òg **Legg til for alle** når du lagar ei ny side, og **Fjern for alle**
 for å ta ei side ut av lista.
+
+**Send alt ut til alle** (Innstillingar → Admin) sender heile lista slik du ser
+ho: namn, adresser, grupper, fargar **og ikon** – inkludert dei ikona appen har
+henta automatisk. Bruk denne når du har finpussa fleire sider og vil at alle
+skal få akkurat den same oppsettet. Dei lokale endringane dine blir samtidig
+gjort offisielle, så «endra»-prikkane forsvinn.
+
+Ikon blir lagra som små 64×64-bilde direkte i `sider.json`, så dei virkar òg
+utan nett. Appen stoppar deg om lista skulle bli større enn 400 kB.
 
 Slik lagar du tokenet:
 

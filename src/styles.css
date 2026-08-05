@@ -255,6 +255,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 
 .admin-box { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
 .admin-box .hint.small { font-size: 11.5px; margin: 10px 0 0; }
+.admin-box #sPublishAll { margin-top: 10px; }
 .admin-box label { margin-bottom: 8px; }
 .admin-badge {
   display: inline-block; margin-left: 8px; padding: 2px 7px; border-radius: 20px;
