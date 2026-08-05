@@ -91,7 +91,40 @@ function colorDot(p) {
   return dot;
 }
 
+// Toppen av sidemenyen viser sida som er open, med ikonet i stort format
+function renderBrand() {
+  const page = activeId ? findPage(activeId) : null;
+  $('brandDefault').hidden = !!page;
+  $('brandActive').hidden = !page;
+  if (!page) return;
+
+  $('activeName').textContent = page.name;
+  $('activeGroup').textContent = page.group || '';
+
+  const box = $('activeIcon');
+  box.innerHTML = '';
+  const src = page.image || (data.icons || {})[page.id];
+  if (src) {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = '';
+    img.addEventListener('error', () => { box.innerHTML = ''; box.appendChild(letterFor(page)); });
+    box.appendChild(img);
+  } else {
+    box.appendChild(letterFor(page));
+  }
+  box.style.background = src ? '#ffffff0d' : (page.color || '#8a8a97');
+}
+
+function letterFor(page) {
+  const span = document.createElement('span');
+  span.className = 'letter';
+  span.textContent = (page.name || '?').trim().charAt(0).toUpperCase();
+  return span;
+}
+
 function renderNav() {
+  renderBrand();
   const q = $('search').value.trim().toLowerCase();
   const pages = allPages().filter(
     (p) => !q || p.name.toLowerCase().includes(q) || p.url.toLowerCase().includes(q)

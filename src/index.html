@@ -24,10 +24,19 @@
   <div class="app">
     <!-- Sidemeny -->
     <aside class="sidebar" id="sidebar">
-      <div class="brand">
+      <div class="brand" id="brandDefault">
         <img class="logo" src="../assets/logo-trim.png" alt="Hauge Maskin" />
         <div class="brand-text">
           <strong>HAUGE</strong><span>MASKIN</span>
+        </div>
+      </div>
+
+      <!-- Viser kva side som er open -->
+      <div class="brand brand-active" id="brandActive" hidden>
+        <div class="active-icon" id="activeIcon"></div>
+        <div class="active-text">
+          <strong id="activeName"></strong>
+          <span id="activeGroup"></span>
         </div>
       </div>
 
