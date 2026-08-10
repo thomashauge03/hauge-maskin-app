@@ -222,6 +222,7 @@ function webviewFor(page, create = false) {
   wv.setAttribute('src', normalizeUrl(page.url));
   wv.setAttribute('allowpopups', '');
   wv.setAttribute('partition', 'persist:hm');
+  wv.setAttribute('plugins', ''); // innebygd PDF-visning
 
   wv.addEventListener('did-start-loading', () => { if (page.id === activeId) setLoading(true); });
   wv.addEventListener('did-stop-loading', () => {

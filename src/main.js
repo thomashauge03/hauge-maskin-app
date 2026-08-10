@@ -115,11 +115,38 @@ function createWindow() {
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
-// Lenker som prøver å opne nytt vindu frå ein webview -> opne i standardnettlesar
+// Lenker som opnar nytt vindu blir verande inne i appen. Sender vi dei ut til
+// systemnettlesaren, hamnar PDF-ar og andre filer utanfor appen, og
+// innloggingsvindauge (Google, GitHub) sluttar å verke.
 app.on('web-contents-created', (_e, contents) => {
   contents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:/i.test(url)) shell.openExternal(url);
-    return { action: 'deny' };
+    if (!/^https?:/i.test(url)) return { action: 'deny' };
+    return {
+      action: 'allow',
+      overrideBrowserWindowOptions: {
+        width: 1100,
+        height: 820,
+        backgroundColor: '#0d0d0f',
+        autoHideMenuBar: true,
+        icon: path.join(__dirname, '..', 'assets', 'icon.ico'),
+        webPreferences: {
+          contextIsolation: true,
+          nodeIntegration: false,
+          plugins: true // så PDF-ar blir viste i staden for berre lasta ned
+        }
+      }
+    };
+  });
+
+  // Eit vindauge som berre vart opna for å laste ned ei fil, har ingenting
+  // å vise. Det lukkar vi sjølve.
+  contents.on('did-create-window', (vindu) => {
+    setTimeout(() => {
+      if (vindu.isDestroyed()) return;
+      const url = vindu.webContents.getURL();
+      // Tomt vindauge = fila vart lasta ned i staden for vist
+      if (!url || url === 'about:blank') vindu.close();
+    }, 3000);
   });
 });
 
@@ -247,7 +274,13 @@ function ryddVedlegg() {
 }
 
 function fangNedlastingar() {
-  const ses = session.fromPartition('persist:hm');
+  // Sideøkta, og standardøkta for vindauge som blir opna frå ei side
+  for (const ses of [session.fromPartition('persist:hm'), session.defaultSession]) {
+    lyttPaaNedlasting(ses);
+  }
+}
+
+function lyttPaaNedlasting(ses) {
   ses.on('will-download', (_e, item) => {
     const namn = item.getFilename();
     const mål = path.join(attachDir(), `${Date.now()}-${namn}`);
