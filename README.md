@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.4.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.4.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-2.4.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.4.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-2.5.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.5.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-2.5.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.5.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -86,6 +86,9 @@ endringane gjeld berre den maskina. Sida får ein raud prikk i menyen.
   lista igjen.
 - **Skjul** tek sida vekk frå menyen utan å slette ho. Ho hamnar nedst i menyen
   bak «N skjulte sider», merkt **meg**, og eitt trykk hentar ho fram igjen.
+
+Det same gjeld sidene du har lagt til sjølv: dei blir ikkje kasta, men lagde i
+ei papirkorg og merkte **sletta** i same lista. Dei 25 siste blir tekne vare på.
 - Nye sider i den delte lista dukkar opp uansett, og overstyringane overlever
   synkroniseringa.
 

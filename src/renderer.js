@@ -169,6 +169,7 @@ function renderNav() {
     div.className = 'group-label';
     div.textContent = q ? 'Ingen treff' : 'Ingen sider enno';
     nav.appendChild(div);
+    renderSkjulte(); // òg når alt er skjult – elles er det ingen veg tilbake
     return;
   }
 
@@ -219,9 +220,11 @@ function renderNav() {
 let visSkjulte = false;
 
 function renderSkjulte() {
-  const mine = hiddenShared();
-  const forAlle = isAdmin ? (data.shared || []).filter((p) => p.hidden) : [];
-  const alle = [...mine, ...forAlle];
+  const alle = [
+    ...hiddenShared().map((p) => ({ p, slag: 'meg' })),
+    ...(isAdmin ? (data.shared || []).filter((x) => x.hidden).map((p) => ({ p, slag: 'alle' })) : []),
+    ...(data.deleted || []).map((p) => ({ p, slag: 'sletta' }))
+  ];
   if (!alle.length) return;
 
   const bryt = document.createElement('button');
@@ -231,25 +234,44 @@ function renderSkjulte() {
   nav.appendChild(bryt);
   if (!visSkjulte) return;
 
-  for (const p of alle) {
-    const forAlleNo = p.hidden;
+  const forklaring = {
+    meg: 'skjult hjå deg. Trykk for å vise igjen.',
+    alle: 'skjult for alle. Trykk for å vise for alle igjen.',
+    sletta: 'sletta hjå deg. Trykk for å hente ho tilbake.'
+  };
+
+  for (const { p, slag } of alle) {
     const rad = document.createElement('button');
     rad.className = 'nav-item skjult';
-    rad.title = forAlleNo
-      ? `${p.name} – skjult for alle. Trykk for å vise for alle igjen.`
-      : `${p.name} – skjult hjå deg. Trykk for å vise igjen.`;
+    rad.title = `${p.name} – ${forklaring[slag]}`;
     rad.appendChild(pageIconEl(p));
     const namn = document.createElement('span');
     namn.className = 'nav-name';
     namn.textContent = p.name;
     rad.appendChild(namn);
     const merke = document.createElement('span');
-    merke.className = 'skjult-merke';
-    merke.textContent = forAlleNo ? 'alle' : 'meg';
+    merke.className = 'skjult-merke' + (slag === 'sletta' ? ' sletta' : '');
+    merke.textContent = slag;
     rad.appendChild(merke);
-    rad.addEventListener('click', () => (forAlleNo ? showForAll(p.id) : unhideShared(p.id)));
+    rad.addEventListener('click', () => {
+      if (slag === 'alle') showForAll(p.id);
+      else if (slag === 'sletta') gjenopprettSide(p.id);
+      else unhideShared(p.id);
+    });
     nav.appendChild(rad);
   }
+}
+
+// Hentar ei sletta eiga side tilbake i menyen
+async function gjenopprettSide(id) {
+  const side = (data.deleted || []).find((p) => p.id === id);
+  if (!side) return;
+  data.deleted = data.deleted.filter((p) => p.id !== id);
+  const { slettaTid, ...rein } = side;
+  data.pages.push(rein);
+  await persist();
+  renderNav();
+  openPage(rein.id);
 }
 
 /* ---------- Webviews ---------- */
@@ -398,10 +420,8 @@ function openModal(id = null) {
     : 'Dette er ei <strong>felles side</strong>. Endringane du gjer her gjeld berre denne maskina – den delte lista blir ikkje rørt.';
   $('fReset').hidden = !(shared && data.overrides[id]);
   $('fDelete').style.display = page ? '' : 'none';
-  $('fDelete').textContent = shared ? 'Skjul' : 'Slett';
-  $('fDelete').title = shared
-    ? 'Skjuler sida på denne maskina. Du kan hente ho fram igjen i Innstillingar.'
-    : '';
+  $('fDelete').textContent = 'Skjul';
+  $('fDelete').title = 'Tek sida ut av menyen på denne maskina. Du finn ho igjen nedst i menyen under «skjulte sider».';
 
   // Som admin kan endringa sendast ut til alle
   $('fPublish').hidden = !isAdmin;
@@ -477,6 +497,12 @@ async function deleteCurrent() {
     // Felles sider blir skjulte, ikkje sletta – dei kjem tilbake ved neste synk elles
     data.overrides[editingId] = { ...(data.overrides[editingId] || {}), hidden: true };
   } else {
+    // Eigne sider blir lagde i papirkorga, ikkje kasta. Da kan dei hentast
+    // fram igjen frå menyen i staden for å vere borte for godt.
+    const side = data.pages.find((p) => p.id === editingId);
+    if (side) {
+      data.deleted = [{ ...side, slettaTid: Date.now() }, ...(data.deleted || [])].slice(0, 25);
+    }
     data.pages = data.pages.filter((p) => p.id !== editingId);
   }
 
@@ -1222,6 +1248,7 @@ $('sImport').addEventListener('click', async () => {
   data.shared = data.shared || [];
   data.overrides = data.overrides || {};
   data.icons = data.icons || {};
+  data.deleted = data.deleted || [];
   activeId = null;
   $('empty').style.display = '';
   $('settingsModal').hidden = true;
@@ -1285,6 +1312,7 @@ $('sCheckUpdate').addEventListener('click', async () => {
   data.shared = data.shared || [];
   data.overrides = data.overrides || {};
   data.icons = data.icons || {};
+  data.deleted = data.deleted || [];
   // Ikon lagra av eldre versjonar er berre 64 px og blir uskarpe i det store
   // formatet. Vi kastar dei, så blir dei henta på nytt i full oppløysing.
   if (data.iconVersion !== 2) {

@@ -18,6 +18,8 @@ const DEFAULT_DATA = {
     { id: 'kalender', name: 'Kalender', url: 'https://calendar.google.com', color: '#4285f4', group: 'Mine sider' }
   ],
   shared: [],
+  // Eigne sider som er sletta, men kan hentast tilbake
+  deleted: [],
   // Lokale endringar på felles sider: { "shared:id": { name, url, group, color, image, hidden } }
   overrides: {},
   settings: { activeId: null, sharedUrl: SHARED_URL, syncMinutes: 15, lastSync: null }
@@ -30,6 +32,7 @@ function readData() {
     if (!Array.isArray(data.pages)) throw new Error('ugyldig format');
     data.shared = Array.isArray(data.shared) ? data.shared : [];
     data.overrides = (data.overrides && typeof data.overrides === 'object') ? data.overrides : {};
+    data.deleted = Array.isArray(data.deleted) ? data.deleted : [];
     data.settings = Object.assign({}, DEFAULT_DATA.settings, data.settings || {});
     // Tomt felt = bruk den felles lista (gjeld òg oppgraderingar frå eldre versjonar)
     if (!data.settings.sharedUrl) data.settings.sharedUrl = SHARED_URL;
