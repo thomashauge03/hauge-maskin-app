@@ -132,7 +132,10 @@ app.on('web-contents-created', (_e, contents) => {
       contents.downloadURL(url);
       return { action: 'deny' };
     }
-    if (!/^(https?|file):/i.test(url)) return { action: 'deny' };
+    // window.open("") blir brukt av system som byggjer dokumentet i eit tomt
+    // vindauge og skriv det ut. Nektar vi det, skjer det ingenting i det heile.
+    const tomt = !url || url === 'about:blank';
+    if (!tomt && !/^(https?|file):/i.test(url)) return { action: 'deny' };
     return {
       action: 'allow',
       overrideBrowserWindowOptions: {
@@ -153,12 +156,7 @@ app.on('web-contents-created', (_e, contents) => {
   // Eit vindauge som berre vart opna for å laste ned ei fil, har ingenting
   // å vise. Det lukkar vi sjølve.
   contents.on('did-create-window', (vindu) => {
-    setTimeout(() => {
-      if (vindu.isDestroyed()) return;
-      const url = vindu.webContents.getURL();
-      // Tomt vindauge = fila vart lasta ned i staden for vist
-      if (!url || url === 'about:blank') vindu.close();
-    }, 3000);
+    fangUtskrift(vindu);
   });
 });
 
@@ -299,15 +297,82 @@ function lyttPaaNedlasting(ses) {
     item.setSavePath(mål);
     item.once('done', (_ev, state) => {
       if (state !== 'completed') return;
-      vedlegg.unshift({ path: mål, name: namn, size: item.getTotalBytes(), time: Date.now() });
-      // Vi held på dei ti siste; eldre blir sletta så mappa ikkje veks
-      for (const gammal of vedlegg.slice(10)) {
-        try { fs.rmSync(gammal.path, { force: true }); } catch { /* alt sletta */ }
-      }
-      vedlegg = vedlegg.slice(0, 10);
-      sendVedlegg();
+      leggTilVedlegg(mål, namn, item.getTotalBytes());
     });
   });
+}
+
+function leggTilVedlegg(filPath, namn, storleik) {
+  vedlegg.unshift({ path: filPath, name: namn, size: storleik, time: Date.now() });
+  // Vi held på dei ti siste; eldre blir sletta så mappa ikkje veks
+  for (const gammal of vedlegg.slice(10)) {
+    try { fs.rmSync(gammal.path, { force: true }); } catch { /* alt sletta */ }
+  }
+  vedlegg = vedlegg.slice(0, 10);
+  sendVedlegg();
+}
+
+// Fleire system lagar dokumentet ved å skrive HTML i eit tomt vindauge og
+// kalle window.print(). Det er ikkje ei nedlasting, så fila ville aldri nå
+// dra-menyen. Vi tek over utskrifta og lagar PDF-en sjølve i staden.
+const UTSKRIFT_SIGNAL = '__hm_skriv_ut__';
+
+function fangUtskrift(vindu) {
+  const wc = vindu.webContents;
+  let alt_gjort = false;
+
+  const injiser = () => {
+    wc.executeJavaScript(
+      `window.print = function () { console.log(${JSON.stringify(UTSKRIFT_SIGNAL)}); };`,
+      true
+    ).catch(() => { /* sida er ikkje klar */ });
+  };
+  injiser();
+  wc.on('dom-ready', injiser);
+  wc.on('did-finish-load', injiser);
+
+  const påUtskrift = async () => {
+    if (alt_gjort || wc.isDestroyed()) return;
+    alt_gjort = true;
+    try {
+      const pdf = await wc.printToPDF({
+        printBackground: true,
+        pageSize: 'A4',
+        margins: { marginType: 'none' }
+      });
+      const reint = (wc.getTitle() || 'dokument')
+        .replace(/[\\/:*?"<>|]/g, '-')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 80) || 'dokument';
+      const namn = reint.toLowerCase().endsWith('.pdf') ? reint : reint + '.pdf';
+      const mål = path.join(attachDir(), `${Date.now()}-${namn}`);
+      fs.writeFileSync(mål, pdf);
+      leggTilVedlegg(mål, namn, pdf.length);
+    } catch (err) {
+      console.error('Klarte ikkje lage PDF av utskrifta:', err.message);
+    }
+    if (!vindu.isDestroyed()) vindu.close();
+  };
+
+  // Signaturen på console-message er ulik mellom Electron-versjonar
+  wc.on('console-message', (...args) => {
+    const melding = typeof args[0] === 'object' && args[0] !== null && 'message' in args[0]
+      ? args[0].message
+      : args[1];
+    if (String(melding).includes(UTSKRIFT_SIGNAL)) påUtskrift();
+  });
+
+  // Eit tomt vindauge som aldri fekk innhald har ingenting å vise
+  setTimeout(() => {
+    if (alt_gjort || vindu.isDestroyed()) return;
+    const url = wc.getURL();
+    if (!url || url === 'about:blank') {
+      wc.executeJavaScript('document.body && document.body.innerHTML.length', true)
+        .then((n) => { if (!n && !vindu.isDestroyed()) vindu.close(); })
+        .catch(() => { if (!vindu.isDestroyed()) vindu.close(); });
+    }
+  }, 4000);
 }
 
 ipcMain.handle('attach:list', () => { ryddVedlegg(); return vedlegg; });
