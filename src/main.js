@@ -13,10 +13,9 @@ const storeFile = () => path.join(app.getPath('userData'), 'pages.json');
 const SHARED_URL = 'https://raw.githubusercontent.com/thomashauge03/hauge-maskin-app/main/sider.json';
 
 const DEFAULT_DATA = {
-  pages: [
-    { id: 'gmail', name: 'E-post', url: 'https://mail.google.com', color: '#ea4335', group: 'Mine sider' },
-    { id: 'kalender', name: 'Kalender', url: 'https://calendar.google.com', color: '#4285f4', group: 'Mine sider' }
-  ],
+  // Ingen sider frå oss. Alt kjem frå den felles lista, og brukaren legg
+  // eventuelt til sine eigne.
+  pages: [],
   shared: [],
   // Eigne sider som er sletta, men kan hentast tilbake
   deleted: [],
