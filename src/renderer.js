@@ -536,58 +536,50 @@ async function unhideShared(id) {
   renderHidden();
 }
 
-// Sider admin har skjult for alle. Dei ligg ikkje i menyen, så det er berre
-// her dei kan hentast fram igjen.
-function renderHiddenForAll() {
-  const wrap = $('hiddenAllList');
-  wrap.innerHTML = '';
-  const skjulte = (data.shared || []).filter((p) => p.hidden);
-  if (!isAdmin || !skjulte.length) { wrap.hidden = true; return; }
-  wrap.hidden = false;
-
-  const label = document.createElement('div');
-  label.className = 'hidden-label';
-  label.textContent = 'Skjult for alle';
-  wrap.appendChild(label);
-
-  for (const p of skjulte) {
-    const row = document.createElement('div');
-    row.className = 'hidden-row';
-    const name = document.createElement('span');
-    name.textContent = p.name;
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-ghost btn-sm';
-    btn.type = 'button';
-    btn.textContent = 'Vis for alle';
-    btn.addEventListener('click', () => showForAll(p.id));
-    row.append(name, btn);
-    wrap.appendChild(row);
-  }
-}
-
+// Ein fast plass å leite etter alt som er teke ut av menyen. Denne står
+// alltid, òg når ho er tom – elles veit ein ikkje kvar ein skal sjå.
 function renderHidden() {
-  renderHiddenForAll();
+  $('hiddenAllList').hidden = true;
+
   const wrap = $('hiddenList');
-  const hidden = hiddenShared();
   wrap.innerHTML = '';
-  if (!hidden.length) { wrap.hidden = true; return; }
   wrap.hidden = false;
 
   const label = document.createElement('div');
   label.className = 'hidden-label';
-  label.textContent = 'Skjulte felles sider';
+  label.textContent = 'Skjulte og sletta sider';
   wrap.appendChild(label);
 
-  for (const p of hidden) {
+  const rader = [
+    ...hiddenShared().map((p) => ({ p, tekst: 'Vis igjen', gjer: () => unhideShared(p.id) })),
+    ...(isAdmin
+      ? (data.shared || [])
+          .filter((p) => p.hidden)
+          .map((p) => ({ p, tekst: 'Vis for alle', merke: 'skjult for alle', gjer: () => showForAll(p.id) }))
+      : []),
+    ...(data.deleted || []).map((p) => ({
+      p, tekst: 'Hent tilbake', merke: 'sletta', gjer: () => gjenopprettSide(p.id)
+    }))
+  ];
+
+  if (!rader.length) {
+    const tom = document.createElement('div');
+    tom.className = 'settings-info';
+    tom.textContent = 'Ingenting er skjult eller sletta. Sider du tek vekk hamnar her.';
+    wrap.appendChild(tom);
+    return;
+  }
+
+  for (const { p, tekst, merke, gjer } of rader) {
     const row = document.createElement('div');
     row.className = 'hidden-row';
     const name = document.createElement('span');
-    name.textContent = p.name;
+    name.textContent = merke ? `${p.name} (${merke})` : p.name;
     const btn = document.createElement('button');
     btn.className = 'btn btn-ghost btn-sm';
     btn.type = 'button';
-    btn.textContent = 'Vis igjen';
-    btn.addEventListener('click', () => unhideShared(p.id));
+    btn.textContent = tekst;
+    btn.addEventListener('click', async () => { await gjer(); renderHidden(); });
     row.append(name, btn);
     wrap.appendChild(row);
   }
