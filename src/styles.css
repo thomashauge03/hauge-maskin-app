@@ -375,6 +375,21 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 
 .edited-mark { color: var(--red); font-size: 18px; line-height: 1; flex: 0 0 auto; }
 
+.skjulte-bryt {
+  display: block; width: 100%; text-align: left;
+  background: none; border: 0; color: #5c5c68;
+  font-size: 10px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase;
+  padding: 16px 8px 6px; border-radius: 8px;
+}
+.skjulte-bryt:hover { color: #9a9aa6; }
+.nav-item.skjult { opacity: .5; }
+.nav-item.skjult:hover { opacity: 1; }
+.skjult-merke {
+  font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: #5c5c68; border: 1px solid var(--line); border-radius: 20px;
+  padding: 1px 6px; flex: 0 0 auto;
+}
+
 .login-box { margin-top: 4px; border-top: 1px solid var(--line); padding-top: 14px; }
 .login-box .hint.small { font-size: 11.5px; margin: 8px 0 12px; }
 

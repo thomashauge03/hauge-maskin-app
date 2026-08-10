@@ -38,7 +38,7 @@ const allPages = () =>
 
 const findPage = (id) => allPages().find((p) => p.id === id);
 const hiddenShared = () =>
-  (data.shared || []).filter((p) => (data.overrides || {})[p.id]?.hidden);
+  (data.shared || []).filter((p) => !p.hidden && (data.overrides || {})[p.id]?.hidden);
 
 async function persist() {
   data.settings.activeId = activeId;
@@ -203,12 +203,52 @@ function renderNav() {
     }
   }
 
+  renderSkjulte();
+
   const list = $('groupList');
   list.innerHTML = '';
   for (const g of new Set(allPages().map((p) => p.group).filter(Boolean))) {
     const opt = document.createElement('option');
     opt.value = g;
     list.appendChild(opt);
+  }
+}
+
+// Skjulte sider skal vere til å finne igjen i menyen, ikkje berre gøymde
+// inne i Innstillingar.
+let visSkjulte = false;
+
+function renderSkjulte() {
+  const mine = hiddenShared();
+  const forAlle = isAdmin ? (data.shared || []).filter((p) => p.hidden) : [];
+  const alle = [...mine, ...forAlle];
+  if (!alle.length) return;
+
+  const bryt = document.createElement('button');
+  bryt.className = 'skjulte-bryt';
+  bryt.textContent = `${visSkjulte ? '▾' : '▸'} ${alle.length} skjulte sider`;
+  bryt.addEventListener('click', () => { visSkjulte = !visSkjulte; renderNav(); });
+  nav.appendChild(bryt);
+  if (!visSkjulte) return;
+
+  for (const p of alle) {
+    const forAlleNo = p.hidden;
+    const rad = document.createElement('button');
+    rad.className = 'nav-item skjult';
+    rad.title = forAlleNo
+      ? `${p.name} – skjult for alle. Trykk for å vise for alle igjen.`
+      : `${p.name} – skjult hjå deg. Trykk for å vise igjen.`;
+    rad.appendChild(pageIconEl(p));
+    const namn = document.createElement('span');
+    namn.className = 'nav-name';
+    namn.textContent = p.name;
+    rad.appendChild(namn);
+    const merke = document.createElement('span');
+    merke.className = 'skjult-merke';
+    merke.textContent = forAlleNo ? 'alle' : 'meg';
+    rad.appendChild(merke);
+    rad.addEventListener('click', () => (forAlleNo ? showForAll(p.id) : unhideShared(p.id)));
+    nav.appendChild(rad);
   }
 }
 
@@ -368,6 +408,7 @@ function openModal(id = null) {
   $('fPublish').textContent = page ? 'Lagre for alle' : 'Legg til for alle';
   $('fSave').textContent = isAdmin && !page ? 'Berre meg' : 'Lagre';
   $('fDeleteAll').hidden = !(isAdmin && shared);
+  $('fHideAll').hidden = !(isAdmin && shared);
   $('publishStatus').hidden = true;
 
   renderColors();
@@ -469,7 +510,37 @@ async function unhideShared(id) {
   renderHidden();
 }
 
+// Sider admin har skjult for alle. Dei ligg ikkje i menyen, så det er berre
+// her dei kan hentast fram igjen.
+function renderHiddenForAll() {
+  const wrap = $('hiddenAllList');
+  wrap.innerHTML = '';
+  const skjulte = (data.shared || []).filter((p) => p.hidden);
+  if (!isAdmin || !skjulte.length) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+
+  const label = document.createElement('div');
+  label.className = 'hidden-label';
+  label.textContent = 'Skjult for alle';
+  wrap.appendChild(label);
+
+  for (const p of skjulte) {
+    const row = document.createElement('div');
+    row.className = 'hidden-row';
+    const name = document.createElement('span');
+    name.textContent = p.name;
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-ghost btn-sm';
+    btn.type = 'button';
+    btn.textContent = 'Vis for alle';
+    btn.addEventListener('click', () => showForAll(p.id));
+    row.append(name, btn);
+    wrap.appendChild(row);
+  }
+}
+
 function renderHidden() {
+  renderHiddenForAll();
   const wrap = $('hiddenList');
   const hidden = hiddenShared();
   wrap.innerHTML = '';
@@ -762,6 +833,7 @@ function toSharedJson(list) {
     if (p.group) out.group = p.group;
     if (p.color) out.color = p.color;
     if (p.help) out.help = p.help;
+    if (p.hidden) out.hidden = true;
     if (p.image) out.image = p.image;
     return out;
   });
@@ -820,6 +892,41 @@ async function publishModal() {
   closeModal();
   renderNav();
   showSyncStatus(`${data.shared.length} felles sider · ${lastSyncText()}`);
+}
+
+// Skjuler sida for alle, men lèt oppsettet stå igjen i lista
+async function hideForAll(skjul = true) {
+  if (!editingId || !isShared(editingId)) return;
+  const page = findPage(editingId) || (data.shared || []).find((p) => p.id === editingId);
+  const list = (data.shared || []).map((p) =>
+    p.id === editingId ? { ...p, hidden: skjul } : p
+  );
+  const namn = page ? page.name : editingId;
+  if (!(await publish(list, `${skjul ? 'Skjul' : 'Vis'} felles side: ${namn}`))) return;
+
+  if (skjul) {
+    viewport.querySelector(`webview[data-id="${CSS.escape(editingId)}"]`)?.remove();
+    if (activeId === editingId) {
+      activeId = null;
+      $('empty').style.display = '';
+      syncToolbar();
+    }
+  }
+  data.shared = list.map((p) => ({ ...p, shared: true }));
+  data.settings.lastSync = new Date().toISOString();
+  await persist();
+  closeModal();
+  renderNav();
+}
+
+async function showForAll(id) {
+  const list = (data.shared || []).map((p) => (p.id === id ? { ...p, hidden: false } : p));
+  const page = (data.shared || []).find((p) => p.id === id);
+  if (!(await publish(list, `Vis felles side: ${page ? page.name : id}`))) return;
+  data.shared = list.map((p) => ({ ...p, shared: true }));
+  await persist();
+  renderNav();
+  renderHidden();
 }
 
 async function deleteForAll() {
@@ -1004,6 +1111,7 @@ $('fLoginClear').addEventListener('click', fjernLogin);
 $('btnFill').addEventListener('click', () => fyllInnlogging());
 $('fPublish').addEventListener('click', publishModal);
 $('fDeleteAll').addEventListener('click', deleteForAll);
+$('fHideAll').addEventListener('click', () => hideForAll(true));
 
 $('sSaveToken').addEventListener('click', async () => {
   const btn = $('sSaveToken');

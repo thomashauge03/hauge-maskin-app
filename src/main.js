@@ -73,6 +73,7 @@ async function fetchShared(url) {
       color: p.color ? String(p.color) : '#e2001a',
       image: p.image ? String(p.image) : '',
       help: p.help ? String(p.help) : '',
+      hidden: p.hidden === true, // skjult for alle, sett av admin
       shared: true
     }));
 }

@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.3.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.3.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-2.3.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.3.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-2.4.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.4.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-2.4.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.4.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -45,8 +45,16 @@ felles lista utan å røre GitHub manuelt. Då får dialogen to lagreknappar:
 | **Berre meg** | Endringa gjeld denne maskina (som før). |
 | **For alle** | Skriv endringa til `sider.json` på GitHub. Alle andre får ho ved neste synk, eller når dei trykkjer **Synk**. |
 
-Du kan òg **Legg til for alle** når du lagar ei ny side, og **Fjern for alle**
-for å ta ei side ut av lista.
+Du kan òg **Legg til for alle** når du lagar ei ny side. To måtar å ta ei side
+ut av menyen på:
+
+| Knapp | Kva skjer |
+| --- | --- |
+| **Skjul for alle** | Sida forsvinn frå menyen hjå alle, men oppsettet står igjen. Hentast fram igjen når som helst. |
+| **Fjern for alle** | Sida blir sletta frå lista. Det er endeleg. |
+
+Skjulte sider ligg nedst i menyen bak **«N skjulte sider»**. Trykk på ei av dei
+for å hente ho fram igjen.
 
 **Send alt ut til alle** (Innstillingar → Admin) sender heile lista slik du ser
 ho: namn, adresser, grupper, fargar **og ikon** – inkludert dei ikona appen har
@@ -76,8 +84,8 @@ endringane gjeld berre den maskina. Sida får ein raud prikk i menyen.
 
 - **Tilbakestill** i dialogen fjernar overstyringa, så sida følgjer den delte
   lista igjen.
-- **Skjul** tek sida vekk frå menyen utan å slette ho. Skjulte sider kan hentast
-  fram igjen under Innstillingar.
+- **Skjul** tek sida vekk frå menyen utan å slette ho. Ho hamnar nedst i menyen
+  bak «N skjulte sider», merkt **meg**, og eitt trykk hentar ho fram igjen.
 - Nye sider i den delte lista dukkar opp uansett, og overstyringane overlever
   synkroniseringa.
 
