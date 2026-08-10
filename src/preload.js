@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('hm', {
   listAttachments: () => ipcRenderer.invoke('attach:list'),
   dragAttachment: (filePath) => ipcRenderer.send('attach:drag', filePath),
   deleteAttachment: (filePath) => ipcRenderer.invoke('attach:delete', filePath),
+  openAttachment: (filePath) => ipcRenderer.invoke('attach:open', filePath),
   revealAttachment: (filePath) => ipcRenderer.invoke('attach:reveal', filePath),
   onAttachments: (cb) => ipcRenderer.on('attach:changed', (_e, liste) => cb(liste)),
 

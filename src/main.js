@@ -120,7 +120,19 @@ function createWindow() {
 // innloggingsvindauge (Google, GitHub) sluttar å verke.
 app.on('web-contents-created', (_e, contents) => {
   contents.setWindowOpenHandler(({ url }) => {
-    if (!/^https?:/i.test(url)) return { action: 'deny' };
+    // e-post og telefon høyrer heime i programma som handterer dei
+    if (/^(mailto|tel|sms):/i.test(url)) {
+      shell.openExternal(url);
+      return { action: 'deny' };
+    }
+    // Mange system lagar dokumentet i sida sjølv og opnar det som blob: eller
+    // data:. Det er alltid ei ferdig fil, så vi tek han rett inn i dra-menyen
+    // i staden for å opne eit vindauge som berre viser han.
+    if (/^(blob|data):/i.test(url)) {
+      contents.downloadURL(url);
+      return { action: 'deny' };
+    }
+    if (!/^(https?|file):/i.test(url)) return { action: 'deny' };
     return {
       action: 'allow',
       overrideBrowserWindowOptions: {
@@ -313,6 +325,12 @@ ipcMain.handle('attach:delete', (_e, filPath) => {
   try { fs.rmSync(filPath, { force: true }); } catch { /* alt borte */ }
   vedlegg = vedlegg.filter((v) => v.path !== filPath);
   sendVedlegg();
+  return true;
+});
+
+ipcMain.handle('attach:open', async (_e, filPath) => {
+  if (!fs.existsSync(filPath)) return false;
+  await shell.openPath(filPath);
   return true;
 });
 

@@ -523,11 +523,19 @@ function renderTray() {
   if (vedlegg.length > 1) {
     meir.append(`${vedlegg.length - 1} eldre fil${vedlegg.length > 2 ? 'er' : ''} · `);
   }
-  const knapp = document.createElement('button');
-  knapp.textContent = 'opne mappa';
-  knapp.title = siste.path;
-  knapp.addEventListener('click', () => window.hm.revealAttachment(siste.path));
-  meir.appendChild(knapp);
+  const opne = document.createElement('button');
+  opne.textContent = 'opne';
+  opne.title = `Opne ${siste.name}`;
+  opne.addEventListener('click', () => window.hm.openAttachment(siste.path));
+  meir.appendChild(opne);
+
+  meir.append(' · ');
+
+  const mappe = document.createElement('button');
+  mappe.textContent = 'opne mappa';
+  mappe.title = siste.path;
+  mappe.addEventListener('click', () => window.hm.revealAttachment(siste.path));
+  meir.appendChild(mappe);
 }
 
 async function refreshTray() {

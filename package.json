@@ -1,6 +1,6 @@
 {
   "name": "hauge-maskin-app",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Hauge Maskin – samlet skrivebordsapp for alle nettsider og verktøy",
   "main": "src/main.js",
   "author": "Hauge Maskin",
