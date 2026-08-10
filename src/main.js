@@ -25,9 +25,28 @@ const DEFAULT_DATA = {
   settings: { activeId: null, sharedUrl: SHARED_URL, syncMinutes: 15, lastSync: null }
 };
 
+// Ei fil som ikkje let seg lese må aldri føre til at oppsettet stille blir
+// bytt ut med standardlista – då kjem sider brukaren har fjerna tilbake, og
+// sider han har lagt til forsvinn.
 function readData() {
+  const fil = storeFile();
+  if (!fs.existsSync(fil)) return JSON.parse(JSON.stringify(DEFAULT_DATA));
+
+  for (const kjelde of [fil, fil + '.bak']) {
+    const d = lesFil(kjelde);
+    if (d) return d;
+  }
+
+  // Begge er ulesbare. Vi tek vare på fila i staden for å skrive over ho.
+  const berga = `${fil}.øydelagd-${Date.now()}`;
+  try { fs.copyFileSync(fil, berga); } catch { /* ingenting å berge */ }
+  console.error('pages.json kunne ikkje lesast. Kopi lagra som', path.basename(berga));
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function lesFil(fil) {
   try {
-    const raw = fs.readFileSync(storeFile(), 'utf8');
+    const raw = fs.readFileSync(fil, 'utf8');
     const data = JSON.parse(raw);
     if (!Array.isArray(data.pages)) throw new Error('ugyldig format');
     data.shared = Array.isArray(data.shared) ? data.shared : [];
@@ -38,7 +57,7 @@ function readData() {
     if (!data.settings.sharedUrl) data.settings.sharedUrl = SHARED_URL;
     return data;
   } catch {
-    return JSON.parse(JSON.stringify(DEFAULT_DATA));
+    return null; // kallaren prøver reservekopien
   }
 }
 
@@ -81,8 +100,18 @@ async function fetchShared(url) {
     }));
 }
 
+// Vi skriv til ei mellombels fil og byter ho inn til slutt. Da kan ikkje ei
+// avbroten skriving etterlate seg ei halv fil. Den førre gode versjonen blir
+// liggande som reservekopi.
 function writeData(data) {
-  fs.writeFileSync(storeFile(), JSON.stringify(data, null, 2), 'utf8');
+  const fil = storeFile();
+  const tmp = fil + '.tmp';
+  const bak = fil + '.bak';
+  const tekst = JSON.stringify(data, null, 2);
+
+  fs.writeFileSync(tmp, tekst, 'utf8');
+  try { if (fs.existsSync(fil)) fs.copyFileSync(fil, bak); } catch { /* ingen kopi enno */ }
+  fs.renameSync(tmp, fil);
   return true;
 }
 
