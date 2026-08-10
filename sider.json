@@ -100,7 +100,7 @@
     {
       "id": "r-rlager",
       "name": "Rørlager",
-      "url": "https://rorlager.vercel.app",
+      "url": "https://rorlager.vercel.app/admin",
       "group": "System",
       "color": "#e2001a",
       "help": "Rørlager ved bestilling og varetelling for Hauge Maskin",
