@@ -31,7 +31,7 @@
     {
       "id": "lagersystem",
       "name": "Lagersystem",
-      "url": "https://vercel.com/thomashauge-s-projects/stock-smart",
+      "url": "https://stock-smart-pi.vercel.app/",
       "group": "System",
       "color": "#22c55e",
       "help": "Lageroversikt – kva vi har inne, kva som er brukt opp og kva som må tingast. (inaktiv)",
