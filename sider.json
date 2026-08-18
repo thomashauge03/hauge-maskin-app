@@ -30,7 +30,7 @@
     },
     {
       "id": "lagersystem",
-      "name": "Lagersystem",
+      "name": "Delelager",
       "url": "https://stock-smart-pi.vercel.app/",
       "group": "System",
       "color": "#22c55e",
