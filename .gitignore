@@ -1,3 +1,16 @@
 node_modules/
 dist/
 *.log
+
+# --- Skal aldri i repoet ---
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+*.keystore
+*.jks
+secrets.json
+*-credentials.json
+service-account*.json
