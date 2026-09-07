@@ -58,7 +58,7 @@
     {
       "id": "hm-web",
       "name": "Hauge Maskin – heimeside",
-      "url": "https://hm-web-craft.lovable.app",
+      "url": "https://hm-web-craft.lovable.app/",
       "group": "Hauge Maskin",
       "color": "#4285f4",
       "help": "Heimesida til Hauge Maskin, slik kundane ser ho.",
