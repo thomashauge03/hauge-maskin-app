@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.5.3.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.5.3.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-2.5.3.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.5.3.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-2.6.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.6.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-2.6.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.6.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -55,6 +55,20 @@ ut av menyen på:
 
 Skjulte sider ligg nedst i menyen bak **«N skjulte sider»**. Trykk på ei av dei
 for å hente ho fram igjen.
+
+### Kvar skal sida visast?
+
+Kvar felles side har eit val for kvar ho høyrer heime:
+
+| Val | Kva det gjer |
+| --- | --- |
+| **PC og mobil** | Standard. Sida står i menyen begge stader. |
+| **Berre PC** | Sida forsvinn frå mobilappen. For system som ikkje er til å bruke på ein liten skjerm. |
+| **Berre mobil** | Sida står berre på telefonen. |
+
+Valet ligg i sideredigeringa og gjeld for alle. Sider merkte **berre mobil**
+står ikkje i PC-menyen, men du finn dei igjen under «skjulte sider» og i
+Innstillingar, så dei kan endrast derifrå.
 
 **Send alt ut til alle** (Innstillingar → Admin) sender heile lista slik du ser
 ho: namn, adresser, grupper, fargar **og ikon** – inkludert dei ikona appen har

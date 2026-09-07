@@ -95,6 +95,8 @@ async function fetchShared(url) {
       image: p.image ? String(p.image) : '',
       help: p.help ? String(p.help) : '',
       hidden: p.hidden === true, // skjult for alle, sett av admin
+      // 'begge' | 'pc' | 'mobil' - kvar sida skal visast
+      plattform: ['pc', 'mobil'].includes(p.plattform) ? p.plattform : 'begge',
       shared: true
     }));
 }

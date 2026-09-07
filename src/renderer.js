@@ -33,10 +33,17 @@ function applyOverride(p) {
 }
 
 // Delte sider først, deretter dine eigne
-const allPages = () =>
-  [...(data.shared || []).map(applyOverride).filter((p) => !p.hidden), ...data.pages];
+const berrePaaMobil = (p) => p.plattform === 'mobil';
 
-const findPage = (id) => allPages().find((p) => p.id === id);
+const allPages = () =>
+  [
+    ...(data.shared || []).map(applyOverride).filter((p) => !p.hidden && !berrePaaMobil(p)),
+    ...data.pages
+  ];
+
+const findPage = (id) =>
+  allPages().find((p) => p.id === id) ||
+  (data.shared || []).map(applyOverride).find((p) => p.id === id);
 const hiddenShared = () =>
   (data.shared || []).filter((p) => !p.hidden && (data.overrides || {})[p.id]?.hidden);
 
@@ -222,6 +229,7 @@ let visSkjulte = false;
 function renderSkjulte() {
   const alle = [
     ...hiddenShared().map((p) => ({ p, slag: 'meg' })),
+    ...(isAdmin ? (data.shared || []).filter(berrePaaMobil).map((p) => ({ p, slag: 'mobil' })) : []),
     ...(isAdmin ? (data.shared || []).filter((x) => x.hidden).map((p) => ({ p, slag: 'alle' })) : []),
     ...(data.deleted || []).map((p) => ({ p, slag: 'sletta' }))
   ];
@@ -237,6 +245,7 @@ function renderSkjulte() {
   const forklaring = {
     meg: 'skjult hjå deg. Trykk for å vise igjen.',
     alle: 'skjult for alle. Trykk for å vise for alle igjen.',
+    mobil: 'blir berre vist på mobil. Trykk for å endre.',
     sletta: 'sletta hjå deg. Trykk for å hente ho tilbake.'
   };
 
@@ -255,6 +264,7 @@ function renderSkjulte() {
     rad.appendChild(merke);
     rad.addEventListener('click', () => {
       if (slag === 'alle') showForAll(p.id);
+      else if (slag === 'mobil') openModal(p.id);
       else if (slag === 'sletta') gjenopprettSide(p.id);
       else unhideShared(p.id);
     });
@@ -424,6 +434,8 @@ function openModal(id = null) {
   $('fDelete').title = 'Tek sida ut av menyen på denne maskina. Du finn ho igjen nedst i menyen under «skjulte sider».';
 
   // Som admin kan endringa sendast ut til alle
+  $('fPlattformRad').hidden = !(isAdmin && shared);
+  $('fPlattform').value = (page && page.plattform) || 'begge';
   $('fPublish').hidden = !isAdmin;
   $('fPublish').textContent = page ? 'Lagre for alle' : 'Legg til for alle';
   $('fSave').textContent = isAdmin && !page ? 'Berre meg' : 'Lagre';
@@ -556,6 +568,12 @@ function renderHidden() {
       ? (data.shared || [])
           .filter((p) => p.hidden)
           .map((p) => ({ p, tekst: 'Vis for alle', merke: 'skjult for alle', gjer: () => showForAll(p.id) }))
+      : []),
+    ...(isAdmin
+      ? (data.shared || []).filter(berrePaaMobil).map((p) => ({
+          p, tekst: 'Endre', merke: 'berre mobil',
+          gjer: async () => { $('settingsModal').hidden = true; openModal(p.id); }
+        }))
       : []),
     ...(data.deleted || []).map((p) => ({
       p, tekst: 'Hent tilbake', merke: 'sletta', gjer: () => gjenopprettSide(p.id)
@@ -852,6 +870,7 @@ function toSharedJson(list) {
     if (p.color) out.color = p.color;
     if (p.help) out.help = p.help;
     if (p.hidden) out.hidden = true;
+    if (p.plattform && p.plattform !== 'begge') out.plattform = p.plattform;
     if (p.image) out.image = p.image;
     return out;
   });
@@ -882,7 +901,8 @@ async function publishModal() {
   const typed = $('fImageUrl').value.trim();
   if (typed) pickedImage = await shrinkImage(normalizeUrl(typed));
 
-  const felt = { name, url, group, color: pickedColor, image: pickedImage, help };
+  const plattform = $('fPlattform').value || 'begge';
+  const felt = { name, url, group, color: pickedColor, image: pickedImage, help, plattform };
   let list;
   let message;
 
