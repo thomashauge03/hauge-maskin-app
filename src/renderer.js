@@ -166,7 +166,7 @@ function renderNav() {
   nav.innerHTML = '';
   const groups = new Map();
   for (const p of pages) {
-    const g = (p.group || 'Anna').trim() || 'Anna';
+    const g = (p.group || 'Annet').trim() || 'Annet';
     if (!groups.has(g)) groups.set(g, []);
     groups.get(g).push(p);
   }
@@ -456,7 +456,7 @@ async function saveModal() {
   const name = $('fName').value.trim();
   const url = normalizeUrl($('fUrl').value);
   if (!name || !url) { $(name ? 'fUrl' : 'fName').focus(); return; }
-  const group = $('fGroup').value.trim() || 'Anna';
+  const group = $('fGroup').value.trim() || 'Annet';
   const help = $('fHelp').value.trim();
 
   const typedImage = $('fImageUrl').value.trim();
@@ -895,7 +895,7 @@ async function publishModal() {
   const name = $('fName').value.trim();
   const url = normalizeUrl($('fUrl').value);
   if (!name || !url) { $(name ? 'fUrl' : 'fName').focus(); return; }
-  const group = $('fGroup').value.trim() || 'Anna';
+  const group = $('fGroup').value.trim() || 'Annet';
   const help = $('fHelp').value.trim();
 
   const typed = $('fImageUrl').value.trim();
