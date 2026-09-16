@@ -12,7 +12,7 @@
     },
     {
       "id": "leveringseddel",
-      "name": "Leveringseddel",
+      "name": "Leveringseddel System",
       "url": "https://haugemaskin-grus.vercel.app/admin",
       "group": "System",
       "color": "#ff8a00",
