@@ -125,7 +125,15 @@
       "id": "leveringseddel-2",
       "name": "Leveringseddel",
       "url": "https://haugemaskin-grus.vercel.app",
-      "group": "System"
+      "group": "System",
+      "color": "#e2001a"
+    },
+    {
+      "id": "varslingskontroll",
+      "name": "Varslingskontroll",
+      "url": "https://varslingskontroll.vercel.app/",
+      "group": "Anna",
+      "color": "#e2001a"
     }
   ]
 }
