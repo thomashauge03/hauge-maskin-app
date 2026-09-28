@@ -860,21 +860,10 @@ function openHelp() {
 }
 
 /* ---------- Admin: endre den felles lista for alle ---------- */
-const bareId = (id) => String(id).replace(/^shared:/, '');
-
-// Gjer den interne lista om til formatet som ligg i sider.json
-function toSharedJson(list) {
-  return list.map((p) => {
-    const out = { id: bareId(p.id), name: p.name, url: p.url };
-    if (p.group) out.group = p.group;
-    if (p.color) out.color = p.color;
-    if (p.help) out.help = p.help;
-    if (p.hidden) out.hidden = true;
-    if (p.plattform && p.plattform !== 'begge') out.plattform = p.plattform;
-    if (p.image) out.image = p.image;
-    return out;
-  });
-}
+// Gjer den interne lista om til formatet som ligg i sider.json. Står i
+// delt.js, der det er testa – og der felt appen ikkje kjenner blir tekne vare
+// på i staden for å bli sletta ved publisering.
+const { tilDelt: toSharedJson } = window.HM_DELT;
 
 function setPublishStatus(text, kind = '') {
   const el = $('publishStatus');

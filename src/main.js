@@ -3,6 +3,7 @@ const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const { execFile } = require('child_process');
+const { lesDelt } = require('./delt');
 
 let mainWindow = null;
 
@@ -84,21 +85,8 @@ async function fetchShared(url) {
   const json = await res.json();
   const list = Array.isArray(json) ? json : json.pages;
   if (!Array.isArray(list)) throw new Error('Lista manglar feltet "pages"');
-  return list
-    .filter((p) => p && p.name && p.url)
-    .map((p, i) => ({
-      id: 'shared:' + (p.id || String(i)),
-      name: String(p.name),
-      url: String(p.url),
-      group: p.group ? String(p.group) : 'Felles',
-      color: p.color ? String(p.color) : '#e2001a',
-      image: p.image ? String(p.image) : '',
-      help: p.help ? String(p.help) : '',
-      hidden: p.hidden === true, // skjult for alle, sett av admin
-      // 'begge' | 'pc' | 'mobil' - kvar sida skal visast
-      plattform: ['pc', 'mobil'].includes(p.plattform) ? p.plattform : 'begge',
-      shared: true
-    }));
+  // Sjå delt.js: felt vi ikkje kjenner blir tekne vare på, ikkje kasta
+  return lesDelt(list);
 }
 
 // Vi skriv til ei mellombels fil og byter ho inn til slutt. Da kan ikkje ei
