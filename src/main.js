@@ -3,7 +3,7 @@ const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const { execFile } = require('child_process');
-const { lesDelt } = require('./delt');
+const { lesDelt, flettUkjende } = require('./delt');
 
 let mainWindow = null;
 
@@ -651,11 +651,24 @@ ipcMain.handle('shared:publish', async (_e, { pages, message }) => {
     // Hentar sha-en til den versjonen som ligg der no
     const cur = await gh(token, `${api}?ref=${loc.branch}`);
     if (!cur.ok) return { ok: false, error: `Fann ikkje fila på GitHub (${cur.status}).` };
-    const sha = (await cur.json()).sha;
+    const fil = await cur.json();
+    const sha = fil.sha;
+
+    // Felt appen ikkje kjenner (t.d. nokkel frå adminbordet) blir tekne frå
+    // fila slik ho ligg no, ikkje frå den mellomlagra lista. Sjå delt.js.
+    // GitHub sender innhaldet med når fila er under 1 MB; elles går vi vidare
+    // med lista slik ho er.
+    let ut = pages;
+    if (fil.encoding === 'base64' && fil.content) {
+      try {
+        const noverande = JSON.parse(Buffer.from(fil.content, 'base64').toString('utf8'));
+        ut = flettUkjende(pages, Array.isArray(noverande) ? noverande : noverande.pages);
+      } catch { /* uleseleg fil – publiser lista slik ho er */ }
+    }
 
     const body = {
       _om: 'Felles sideliste for Hauge Maskin-appen. Endringar herifrå går ut til alle appane.',
-      pages
+      pages: ut
     };
     const res = await gh(token, api, {
       method: 'PUT',

@@ -50,7 +50,31 @@
     });
   }
 
-  eksporter({ lesDelt, tilDelt, bareId });
+  /* Rett før publisering: felt appen ikkje kjenner, blir tekne frå den
+     ferske kopien på GitHub, ikkje frå appen si mellomlagra liste.
+
+     Appen synkar kvart 15. minutt. Slår nokon av nøkkelknappen i
+     adminbordet, og nokon publiserer frå PC før neste synk, ville den gamle
+     verdien elles skrive over den nye – utan feil, fordi appen hentar sha-en
+     rett før den skriv. Dei ukjende felta eig appen aldri sjølv, så den
+     ferske kopien har alltid rett for dei.
+
+     utgaaende – lista slik tilDelt lagar ho
+     ferske    – sidene i sider.json slik dei ligg på GitHub no, eller null */
+  function flettUkjende(utgaaende, ferske) {
+    if (!Array.isArray(ferske)) return utgaaende;
+    const etterId = new Map(ferske.filter((p) => p && p.id).map((p) => [String(p.id), p]));
+    return utgaaende.map((p) => {
+      const fersk = etterId.get(String(p.id));
+      if (!fersk) return p;
+      const ut = {};
+      for (const [k, v] of Object.entries(p)) if (KJENDE.includes(k)) ut[k] = v;
+      for (const [k, v] of Object.entries(fersk)) if (!KJENDE.includes(k)) ut[k] = v;
+      return ut;
+    });
+  }
+
+  eksporter({ lesDelt, tilDelt, bareId, flettUkjende });
 })(typeof module !== 'undefined' && module.exports
   ? (x) => { module.exports = x; }
   : (x) => { window.HM_DELT = x; });

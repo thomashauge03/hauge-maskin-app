@@ -2,7 +2,7 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { lesDelt, tilDelt } = require('../src/delt.js');
+const { lesDelt, tilDelt, flettUkjende } = require('../src/delt.js');
 
 const raa = {
   id: 'rorlager',
@@ -45,6 +45,36 @@ test('lesinga er som før for kjende felt', () => {
   assert.equal(s.plattform, 'begge');
   assert.equal(s.hidden, false);
   assert.equal(s.shared, true);
+});
+
+/* Appen publiserer frå si eiga, mellomlagra kopi. Har adminbordet endra eit
+   felt sidan sist synk, skal den ferske verdien vinne – ikkje den gamle. */
+test('eit felt adminbordet har slått av sidan sist synk, blir ståande av', () => {
+  const ut = [{ id: 'rorlager', name: 'Rørlager', url: 'https://r.no' }];
+  const fersk = [{ id: 'rorlager', name: 'Rørlager', url: 'https://r.no', nokkel: false }];
+  assert.equal(flettUkjende(ut, fersk)[0].nokkel, false);
+});
+
+test('eit felt adminbordet har fjerna sidan sist synk, blir fjerna', () => {
+  const ut = [{ id: 'rorlager', name: 'Rørlager', url: 'https://r.no', nokkel: false }];
+  const fersk = [{ id: 'rorlager', name: 'Rørlager', url: 'https://r.no' }];
+  assert.equal('nokkel' in flettUkjende(ut, fersk)[0], false);
+});
+
+test('kjende felt frå appen vinn over den ferske kopien', () => {
+  const ut = [{ id: 'rorlager', name: 'Nytt namn', url: 'https://r.no' }];
+  const fersk = [{ id: 'rorlager', name: 'Gammalt namn', url: 'https://r.no' }];
+  assert.equal(flettUkjende(ut, fersk)[0].name, 'Nytt namn');
+});
+
+test('ei ny side som ikkje finst i den ferske kopien, blir som ho er', () => {
+  const ut = [{ id: 'ny', name: 'Ny', url: 'https://n.no', nokkel: false }];
+  assert.deepEqual(flettUkjende(ut, []), ut);
+});
+
+test('utan fersk kopi blir lista som ho er', () => {
+  const ut = [{ id: 'a', name: 'A', url: 'https://a.no' }];
+  assert.deepEqual(flettUkjende(ut, null), ut);
 });
 
 test('sider utan namn eller adresse blir hoppa over', () => {
