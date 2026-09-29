@@ -140,7 +140,7 @@
     {
       "id": "roerlager-kunder",
       "name": "Rørlager Kunder",
-      "url": "https://united.no",
+      "url": "https://rorlager.vercel.app/",
       "group": "System",
       "color": "#e2001a"
     },
