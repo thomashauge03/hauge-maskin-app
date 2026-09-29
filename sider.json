@@ -143,6 +143,13 @@
       "url": "https://rorlager.vercel.app/",
       "group": "System",
       "color": "#e2001a"
+    },
+    {
+      "id": "utleie-kundeside",
+      "name": "Utleie Kundeside",
+      "url": "https://utleie-hauge-maskin.vercel.app/",
+      "group": "System",
+      "color": "#e2001a"
     }
   ]
 }
