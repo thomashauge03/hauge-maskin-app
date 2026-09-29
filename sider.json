@@ -136,6 +136,13 @@
       "url": "https://varslingskontroll.vercel.app/",
       "group": "System",
       "color": "#e2001a"
+    },
+    {
+      "id": "roerlager-kunder",
+      "name": "Rørlager Kunder",
+      "url": "https://rorlager.vercel.app/",
+      "group": "System",
+      "color": "#e2001a"
     }
   ]
 }
