@@ -1,4 +1,4 @@
-/* QR-koden som sender folk vidare til mobilappen. Køyrast med `npm test`. */
+/* QR-koden som sender folk videre til mobilappen. Kjøres med `npm test`. */
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -9,21 +9,21 @@ const jsQR = require('jsqr');
 const src = path.join(__dirname, '..', 'src');
 const html = fs.readFileSync(path.join(src, 'index.html'), 'utf8');
 
-// Taggen med denne id-en i index.html, og teksten som står i han.
+// Taggen med denne id-en i index.html, og teksten som står i den.
 function element(id) {
   const m = html.match(new RegExp(`<[^>]*\\sid="${id}"[^>]*>([^<]*)`));
-  assert.ok(m, `fann ikkje #${id} i index.html`);
+  assert.ok(m, `fant ikke #${id} i index.html`);
   return { tagg: m[0], tekst: m[1].trim() };
 }
 
-// Fila som bildet i dialogen viser, funne same vegen som appen finn ho.
+// Filen som bildet i dialogen viser, funnet på samme måte som appen finner den.
 function qrFil() {
   return path.join(src, element('mobilQr').tagg.match(/\ssrc="([^"]+)"/)[1]);
 }
 
-// Teiknar QR-koden ut som pikslar og les han med ein vanleg QR-lesar, slik
-// kameraet på telefonen gjer. SVG-en kjem frå `qrcode` og er vassrette
-// strekar: M og m flyttar, h teiknar så mange ruter bortover.
+// Tegner QR-koden ut som piksler og leser den med en vanlig QR-leser, slik
+// kameraet på telefonen gjør. SVG-en kommer fra `qrcode` og består av
+// vannrette streker: M og m flytter, h tegner så mange ruter bortover.
 function skann(fil) {
   const svg = fs.readFileSync(fil, 'utf8');
   const [, b, h] = svg.match(/viewBox="0 0 (\d+) (\d+)"/).map(Number);
@@ -48,10 +48,12 @@ function skann(fil) {
   return jsQR(px, w, h * skala)?.data;
 }
 
-test('QR-koden i dialogen leier til nedlastingssida for mobilappen', () => {
-  assert.equal(skann(qrFil()), 'https://thomashauge03.github.io/hauge-maskin-mobil/last-ned.html');
+// haugemaskin.vercel.app, ikke haugemaskin.no: domenet er ikke koblet til
+// Vercel ennå, og sertifikatet der gikk ut i 2025.
+test('QR-koden i dialogen leder til app-siden på nettsiden', () => {
+  assert.equal(skann(qrFil()), 'https://haugemaskin.vercel.app/app');
 });
 
-test('dialogen viser same adresse som QR-koden leier til', () => {
+test('dialogen viser samme adresse som QR-koden leder til', () => {
   assert.equal(element('mobilAdresse').tekst, skann(qrFil()));
 });

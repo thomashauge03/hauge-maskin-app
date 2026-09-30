@@ -30,6 +30,8 @@ contextBridge.exposeInMainWorld('hm', {
   onWindowState: (cb) => ipcRenderer.on('window:state', (_e, s) => cb(s)),
 
   appVersion: () => ipcRenderer.invoke('app:version'),
+  nyttStatus: () => ipcRenderer.invoke('nytt:status'),
+  nyttSett: () => ipcRenderer.invoke('nytt:sett'),
   checkUpdate: () => ipcRenderer.invoke('update:check'),
   installUpdate: () => ipcRenderer.invoke('update:install'),
   onUpdate: (cb) => {

@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.7.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.7.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-2.7.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.7.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-2.8.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.8.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-2.8.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.8.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -126,8 +126,10 @@ skal leite.
   «opne i nettlesar».
 - **Søk** – filtrer sidene med Ctrl+F.
 - **Import / eksport** – ta med sidene dine over til ei anna maskin (JSON-fil).
-- **Mobilappen** – knappen nedst i sidemenyen viser ein QR-kode. Skann han med
-  telefonen, så kjem du rett til nedlastingssida.
+- **Mobilappen** – knappen nederst i sidemenyen viser en QR-kode. Skann den med
+  telefonen, så kommer du til app-siden på nettsiden.
+- **Hva er nytt** – etter hver oppdatering viser appen hva som er nytt, én gang.
+  Trykk på versjonsnummeret nederst i sidemenyen for å se det igjen.
 - **Moderne mørkt design** i svart, kvitt og HM-raudt.
 
 ## Hjelpemeny
@@ -138,21 +140,42 @@ du står på er, og ei liste over alle dei andre. Som admin skriv du teksten und
 
 ## Mobilappen
 
-Knappen **Mobilappen** nedst i sidemenyen opnar ein QR-kode til
-[nedlastingssida](https://thomashauge03.github.io/hauge-maskin-mobil/last-ned.html)
-for [hauge-maskin-mobil](https://github.com/thomashauge03/hauge-maskin-mobil).
-Sida viser rett framgangsmåte for Android og iPhone, og peikar alltid på den
-nyaste APK-en – så koden treng ikkje endrast når det kjem ein ny versjon.
-**Kopier lenke** i same dialog er for å sende adressa på SMS eller e-post.
+Knappen **Mobilappen** nederst i sidemenyen åpner en QR-kode til
+[app-siden på nettsiden](https://haugemaskin.vercel.app/app). Siden spør etter
+tilgangskoden for ansatte, og viser så nedlasting for Android, iPhone og PC –
+alltid nyeste versjon, så koden trenger ikke endres når det kommer en ny versjon.
+**Kopier lenke** i samme dialog er for å sende adressen på SMS eller e-post.
 
-QR-koden er ei fast fil, `assets/mobil-qr.svg`. Flyttar nedlastingssida, lagar
-du ho på nytt og endrar adressa i `src/index.html` og `test/mobil.test.js`:
+Adressen er `haugemaskin.vercel.app`, ikke `haugemaskin.no`: domenet peker
+fortsatt til en gammel server med utløpt sertifikat. `vercel.app`-adressen
+fortsetter å virke når domenet en gang blir koblet til Vercel.
+
+QR-koden er en fast fil, `assets/mobil-qr.svg`. Flytter app-siden, lager du den
+på nytt og endrer adressen i `src/index.html` og `test/mobil.test.js`:
 
 ```bash
 npx qrcode@1.5.4 -e M -o assets/mobil-qr.svg https://ny-adresse
 ```
 
-`npm test` skannar koden og sjekkar at han leier dit dialogen seier.
+`npm test` skanner koden og sjekker at den leder dit dialogen sier.
+
+## Hva er nytt
+
+Første gang en ny versjon starter, åpner appen en liste over hva som er nytt.
+Versjoner du ikke har sett før, er merket **NY** – har du hoppet over en
+versjon, ser du også det som kom i mellomtiden. Nyinstallerte apper får ikke
+listen. **Versjon X · Hva er nytt** nederst i sidemenyen åpner den når som helst.
+
+Loggen ligger i [`src/endringer.json`](src/endringer.json), nyeste versjon øverst:
+
+```json
+{ "versjon": "2.8.0", "dato": "2026-09-30", "punkt": ["Kort og konkret, for dem som bruker appen"] }
+```
+
+**Før hver nye versjon:** legg til en oppføring øverst. `npm test` – og dermed
+`npm run dist` – stopper hvis versjonen i `package.json` mangler i loggen.
+Utgivelsesnotatet på GitHub lages fra samme oppføring (`somMarkdown` i
+`src/nytt.js`), så appen og GitHub sier det samme.
 
 ## Lagra innlogging
 
@@ -224,7 +247,8 @@ npm start
 npm run dist
 ```
 
-Resultatet hamnar i `dist/` – både ein NSIS-installer og ein portabel .exe.
+Testene kjøres først. Resultatet havner i `dist/` – både en NSIS-installer og
+en portabel .exe.
 
 ## Kvar blir sidene lagra?
 
@@ -240,4 +264,6 @@ Electron 43, utan andre køyretidsavhengnader. Kjeldekode i `src/`:
 | `src/preload.js` | Sikker bru mellom hovudprosess og grensesnitt |
 | `src/index.html` | Grensesnittet |
 | `src/renderer.js` | Logikk for sider, navigasjon og dialogar |
+| `src/endringer.json` | Endringsloggen – hva som er nytt i hver versjon |
+| `src/nytt.js` | Hva «Hva er nytt» skal vise etter en oppdatering |
 | `src/styles.css` | Design |

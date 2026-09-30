@@ -1227,8 +1227,8 @@ $('helpModal').addEventListener('click', (e) => {
   if (e.target === $('helpModal')) $('helpModal').hidden = true;
 });
 
-// QR-koden til mobilappen. Lenka blir kopiert frå dialogen, så det er alltid
-// same adresse som står der – og som testen sjekkar at QR-koden leier til.
+// QR-koden til mobilappen. Lenken kopieres fra dialogen, så det er alltid
+// samme adresse som står der – og som testen sjekker at QR-koden leder til.
 $('btnMobil').addEventListener('click', () => { $('mobilModal').hidden = false; });
 $('mobilLukk').addEventListener('click', () => { $('mobilModal').hidden = true; });
 $('mobilModal').addEventListener('click', (e) => {
@@ -1238,6 +1238,45 @@ $('mobilKopier').addEventListener('click', async () => {
   await navigator.clipboard.writeText($('mobilAdresse').textContent.trim());
   $('mobilKopier').textContent = 'Kopiert';
   setTimeout(() => { $('mobilKopier').textContent = 'Kopier lenke'; }, 1500);
+});
+
+/* ---------- Hva er nytt ---------- */
+// Hele loggen, nyeste først. Versjoner brukeren ikke har sett før, er merket NY.
+async function apneNytt(status) {
+  const s = status || await window.hm.nyttStatus();
+  const liste = $('nyttListe');
+  liste.innerHTML = '';
+  for (const o of s.logg) {
+    const blokk = document.createElement('section');
+    blokk.className = 'nytt-versjon';
+    const h = document.createElement('h3');
+    h.textContent = o.versjon;
+    const dato = document.createElement('span');
+    dato.className = 'nytt-dato';
+    dato.textContent = new Date(o.dato).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' });
+    h.appendChild(dato);
+    if (s.nye.includes(o.versjon)) {
+      const ny = document.createElement('span');
+      ny.className = 'nytt-merke';
+      ny.textContent = 'NY';
+      h.appendChild(ny);
+    }
+    const ul = document.createElement('ul');
+    for (const p of o.punkt) {
+      const li = document.createElement('li');
+      li.textContent = p;
+      ul.appendChild(li);
+    }
+    blokk.append(h, ul);
+    liste.appendChild(blokk);
+  }
+  $('nyttModal').hidden = false;
+}
+
+$('version').addEventListener('click', () => apneNytt());
+$('nyttLukk').addEventListener('click', () => { $('nyttModal').hidden = true; });
+$('nyttModal').addEventListener('click', (e) => {
+  if (e.target === $('nyttModal')) $('nyttModal').hidden = true;
 });
 
 $('btnMin').addEventListener('click', () => window.hm.minimize());
@@ -1278,6 +1317,7 @@ document.addEventListener('keydown', (e) => {
     else if (!$('settingsModal').hidden) $('settingsModal').hidden = true;
     else if (!$('helpModal').hidden) $('helpModal').hidden = true;
     else if (!$('mobilModal').hidden) $('mobilModal').hidden = true;
+    else if (!$('nyttModal').hidden) $('nyttModal').hidden = true;
   }
   if (e.ctrlKey && e.key.toLowerCase() === 'r') { e.preventDefault(); activeWebview()?.reload(); }
   if (e.ctrlKey && e.key.toLowerCase() === 'f') { e.preventDefault(); $('search').focus(); }
@@ -1345,7 +1385,11 @@ $('sCheckUpdate').addEventListener('click', async () => {
   restartSyncTimer();
   if ((data.settings.sharedUrl || '').trim()) doSync(true);
 
-  $('version').textContent = 'Versjon ' + (await window.hm.appVersion());
+  $('version').textContent = 'Versjon ' + (await window.hm.appVersion()) + ' · Hva er nytt';
+  // Første oppstart etter en oppdatering: vis hva som er nytt, én gang.
+  const nytt = await window.hm.nyttStatus();
+  if (nytt.vis) apneNytt(nytt);
+  await window.hm.nyttSett();
   await refreshAdmin();
   await refreshLogins();
   await refreshTray();

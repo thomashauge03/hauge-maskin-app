@@ -4,10 +4,18 @@ const path = require('path');
 const fs = require('fs');
 const { execFile } = require('child_process');
 const { lesDelt, flettUkjende } = require('./delt');
+const { hvaErNytt } = require('./nytt');
+const ENDRINGER = require('./endringer.json');
 
 let mainWindow = null;
 
 const storeFile = () => path.join(app.getPath('userData'), 'pages.json');
+
+// Hva er nytt: versjonen brukeren sist fikk se loggen for (se nytt.js).
+const sistSettFil = () => path.join(app.getPath('userData'), 'sist-sett.json');
+// Settes før noe rekker å skrive pages.json, så en ny installasjon ikke blir
+// forvekslet med en oppdatering.
+let hadDataVedOppstart = false;
 
 // Den felles sidelista. Rediger sider.json i GitHub-repoet, så får alle
 // installasjonane dei nye sidene automatisk ved neste synk.
@@ -194,6 +202,7 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 app.whenReady().then(async () => {
+  hadDataVedOppstart = fs.existsSync(storeFile());
   await lastHemmelegheiter();
   createWindow();
   setupAutoUpdate();
@@ -727,6 +736,24 @@ ipcMain.handle('update:check', async () => {
 });
 
 ipcMain.handle('app:version', () => app.getVersion());
+
+// Grensesnittet spør ved oppstart, viser loggen hvis det er noe nytt, og sier
+// så fra at denne versjonen er sett.
+ipcMain.handle('nytt:status', () => {
+  let sistSett = null;
+  try { sistSett = JSON.parse(fs.readFileSync(sistSettFil(), 'utf8')).versjon || null; } catch { /* aldri sett */ }
+  const gjeldende = app.getVersion();
+  return {
+    logg: ENDRINGER,
+    ...hvaErNytt({ logg: ENDRINGER, gjeldende, sistSett, hadData: hadDataVedOppstart })
+  };
+});
+
+ipcMain.handle('nytt:sett', () => {
+  try {
+    fs.writeFileSync(sistSettFil(), JSON.stringify({ versjon: app.getVersion() }), 'utf8');
+  } catch { /* da kommer loggen bare opp igjen neste gang */ }
+});
 
 ipcMain.handle('data:load', () => readData());
 ipcMain.handle('data:save', (_e, data) => writeData(data));

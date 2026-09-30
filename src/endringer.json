@@ -1,0 +1,27 @@
+[
+  {
+    "versjon": "2.8.0",
+    "dato": "2026-09-30",
+    "punkt": [
+      "Hva er nytt: denne listen kommer opp én gang etter hver oppdatering. Trykk på versjonsnummeret nederst i sidemenyen for å se den igjen.",
+      "QR-koden under Mobilappen går nå til app-siden på nettsiden. Der skriver du inn tilgangskoden og får appen til Android, iPhone og PC."
+    ]
+  },
+  {
+    "versjon": "2.7.0",
+    "dato": "2026-09-30",
+    "punkt": [
+      "Ny knapp nederst i sidemenyen: Mobilappen. Den viser en QR-kode du skanner med telefonen for å få appen.",
+      "Publisering fra PC-en tar vare på det adminbordet har satt – for eksempel at nøkkelknappen er av for SmartDok og Tripletex. Før kunne en publisering slå den på igjen uten varsel.",
+      "Sider uten gruppe havner i «Annet», samme som i mobilappen."
+    ]
+  },
+  {
+    "versjon": "2.6.0",
+    "dato": "2026-09-07",
+    "punkt": [
+      "Velg hvor hver felles side skal vises: på PC og mobil, bare på PC eller bare på mobil. Valget ligger i sideredigeringen og gjelder for alle.",
+      "Sider som bare skal vises på mobil, står ikke i PC-menyen, men du finner dem under «skjulte sider» og i innstillingene."
+    ]
+  }
+]

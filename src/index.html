@@ -83,7 +83,7 @@
           <span id="updateText"></span>
           <button id="updateBtn" class="btn btn-primary btn-sm" hidden>Start på nytt</button>
         </div>
-        <div class="version" id="version"></div>
+        <button class="version" id="version" title="Se hva som er nytt i denne og tidligere versjoner"></button>
       </div>
     </aside>
 
@@ -296,17 +296,31 @@
   <div class="modal-backdrop" id="mobilModal" hidden>
     <div class="modal modal-mobil">
       <h2>Hauge Maskin på telefonen</h2>
-      <img class="qr" id="mobilQr" src="../assets/mobil-qr.svg" alt="QR-kode til nedlastingssida for mobilappen" />
+      <img class="qr" id="mobilQr" src="../assets/mobil-qr.svg" alt="QR-kode til app-siden på nettsiden" />
       <p class="qr-tekst">
-        Skann koden med kameraet på telefonen. Sida viser korleis du får appen
-        på Android og iPhone.
+        Skann koden med kameraet på telefonen. Du trenger tilgangskoden for å
+        åpne siden.
       </p>
-      <div class="qr-adresse" id="mobilAdresse">https://thomashauge03.github.io/hauge-maskin-mobil/last-ned.html</div>
+      <div class="qr-adresse" id="mobilAdresse">https://haugemaskin.vercel.app/app</div>
       <div class="modal-actions">
         <div class="actions-left"></div>
         <div class="actions-right">
           <button id="mobilKopier" class="btn btn-ghost">Kopier lenke</button>
           <button id="mobilLukk" class="btn btn-primary">Lukk</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialog: hva er nytt -->
+  <div class="modal-backdrop" id="nyttModal" hidden>
+    <div class="modal modal-wide">
+      <h2>Hva er nytt</h2>
+      <div id="nyttListe" class="nytt-liste"></div>
+      <div class="modal-actions">
+        <div class="actions-left"></div>
+        <div class="actions-right">
+          <button id="nyttLukk" class="btn btn-primary">Lukk</button>
         </div>
       </div>
     </div>
