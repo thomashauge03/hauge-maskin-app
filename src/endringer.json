@@ -1,5 +1,13 @@
 [
   {
+    "versjon": "2.9.1",
+    "dato": "2026-09-30",
+    "punkt": [
+      "Feltene for passord og GitHub-token har fått samme mørke utseende som resten av skjemaene.",
+      "Hjelpetekstene bak spørsmålstegnet øverst til høyre er nå også på bokmål."
+    ]
+  },
+  {
     "versjon": "2.9.0",
     "dato": "2026-09-30",
     "punkt": [
