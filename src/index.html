@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <!-- Viser kva side som er open -->
+      <!-- Viser hvilken side som er åpen -->
       <div class="brand brand-active" id="brandActive" hidden>
         <div class="active-icon" id="activeIcon"></div>
         <div class="active-text">
@@ -47,7 +47,7 @@
 
       <nav id="nav" class="nav"></nav>
 
-      <!-- Filer lasta ned frå ei side, klare til å dragast inn i ei anna -->
+      <!-- Filer lastet ned fra en side, klare til å dras inn i en annen -->
       <div class="tray" id="tray" hidden>
         <div class="tray-head">
           <span id="trayLabel">Klar til å dra over</span>
@@ -69,7 +69,7 @@
           Legg til side
         </button>
         <div class="footer-row">
-          <button id="btnSettings" class="btn btn-ghost btn-sm" title="Innstillingar og delt sideliste">Innstillingar</button>
+          <button id="btnSettings" class="btn btn-ghost btn-sm" title="Innstillinger og delt sideliste">Innstillinger</button>
           <button id="btnSync" class="btn btn-ghost btn-sm" title="Hent delte sider på nytt">Synk</button>
         </div>
         <div class="footer-row">
@@ -87,14 +87,14 @@
       </div>
     </aside>
 
-    <!-- Innhald -->
+    <!-- Innhold -->
     <main class="content">
       <div class="toolbar">
         <div class="nav-buttons">
           <button id="btnBack" class="tb" title="Tilbake"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
           <button id="btnForward" class="tb" title="Fram"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
           <button id="btnReload" class="tb" title="Last på nytt"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
-          <button id="btnHome" class="tb" title="Til startadressa"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M6 10v10h12V10"/></svg></button>
+          <button id="btnHome" class="tb" title="Til startadressen"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M6 10v10h12V10"/></svg></button>
         </div>
         <div class="urlbar" id="urlbar">
           <span class="dot" id="urlDot"></span>
@@ -102,18 +102,18 @@
         </div>
         <div class="toolbar-actions">
           <button id="btnCopy" class="tb" title="Kopier adresse"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h8"/></svg></button>
-          <button id="btnExternal" class="tb" title="Opne i nettlesar"><svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></svg></button>
-          <button id="btnFill" class="tb" title="Fyll inn lagra innlogging (berre når du trykkjer her)" hidden><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><path d="M12 12h9"/><path d="M17 12v4"/><path d="M20.5 12v3"/></svg></button>
-          <button id="btnHelp" class="tb" title="Kva er dette? (F1)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 1.8-2.5 3.5"/><path d="M12 17h.01"/></svg></button>
-          <button id="btnEdit" class="tb" title="Rediger sida"><svg viewBox="0 0 24 24"><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>
+          <button id="btnExternal" class="tb" title="Åpne i nettleser"><svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></svg></button>
+          <button id="btnFill" class="tb" title="Fyll inn lagret innlogging (bare når du trykker her)" hidden><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4"/><path d="M12 12h9"/><path d="M17 12v4"/><path d="M20.5 12v3"/></svg></button>
+          <button id="btnHelp" class="tb" title="Hva er dette? (F1)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 1.8-2.5 3.5"/><path d="M12 17h.01"/></svg></button>
+          <button id="btnEdit" class="tb" title="Rediger siden"><svg viewBox="0 0 24 24"><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>
         </div>
       </div>
 
       <div class="viewport" id="viewport">
         <div class="empty" id="empty">
           <img class="logo-big" src="../assets/logo-trim.png" alt="Hauge Maskin" />
-          <h1>Velkomen til Hauge Maskin</h1>
-          <p>Vel ei side i menyen til venstre, eller legg til ei ny nettside.</p>
+          <h1>Velkommen til Hauge Maskin</h1>
+          <p>Velg en side i menyen til venstre, eller legg til en ny nettside.</p>
           <button class="btn btn-primary" id="btnAddEmpty">Legg til side</button>
         </div>
         <div class="loadbar" id="loadbar"></div>
@@ -126,51 +126,51 @@
     <div class="modal">
       <h2 id="modalTitle">Legg til side</h2>
       <p class="shared-note" id="sharedNote" hidden>
-        Dette er ei <strong>felles side</strong>. Endringane du gjer her gjeld berre
-        denne maskina – den delte lista blir ikkje rørt.
+        Dette er en <strong>felles side</strong>. Endringene du gjør her gjelder bare
+        denne maskinen – den delte listen blir ikke rørt.
       </p>
-      <label>Namn
-        <input id="fName" type="text" placeholder="T.d. Ordrar" />
+      <label>Navn
+        <input id="fName" type="text" placeholder="F.eks. Ordrer" />
       </label>
       <label>Nettadresse (URL)
         <input id="fUrl" type="text" placeholder="https://…" />
       </label>
       <label>Gruppe
-        <input id="fGroup" type="text" list="groupList" placeholder="T.d. Verktøy" />
+        <input id="fGroup" type="text" list="groupList" placeholder="F.eks. Verktøy" />
         <datalist id="groupList"></datalist>
       </label>
       <label>Bilde / ikon
         <div class="icon-row">
           <div class="icon-preview" id="iconPreview"></div>
           <div class="icon-buttons">
-            <button id="fPickImage" class="btn btn-ghost btn-sm" type="button">Vel bilde…</button>
-            <button id="fAutoIcon" class="btn btn-ghost btn-sm" type="button" title="Hent ikonet frå nettsida">Hent frå nettsida</button>
+            <button id="fPickImage" class="btn btn-ghost btn-sm" type="button">Velg bilde…</button>
+            <button id="fAutoIcon" class="btn btn-ghost btn-sm" type="button" title="Hent ikonet fra nettsiden">Hent fra nettsiden</button>
             <button id="fClearImage" class="btn btn-ghost btn-sm" type="button">Fjern</button>
           </div>
         </div>
-        <input id="fImageUrl" type="text" placeholder="…eller lim inn ei bildeadresse (https://…)" />
+        <input id="fImageUrl" type="text" placeholder="…eller lim inn en bildeadresse (https://…)" />
       </label>
-      <label>Farge (blir brukt når det ikkje er bilde)
+      <label>Farge (brukes når det ikke er bilde)
         <div class="colors" id="colors"></div>
       </label>
-      <label id="fPlattformRad" hidden>Kvar skal sida visast?
+      <label id="fPlattformRad" hidden>Hvor skal siden vises?
         <select id="fPlattform">
           <option value="begge">PC og mobil</option>
-          <option value="pc">Berre PC</option>
-          <option value="mobil">Berre mobil</option>
+          <option value="pc">Bare PC</option>
+          <option value="mobil">Bare mobil</option>
         </select>
       </label>
-      <label>Forklaring – kva er dette systemet?
-        <textarea id="fHelp" rows="3" placeholder="Kort forklaring som dukkar opp i hjelpemenyen…"></textarea>
+      <label>Forklaring – hva er dette systemet?
+        <textarea id="fHelp" rows="3" placeholder="Kort forklaring som dukker opp i hjelpemenyen…"></textarea>
       </label>
 
       <div class="login-box">
-        <div class="hidden-label">Innlogging på denne maskina</div>
+        <div class="hidden-label">Innlogging på denne maskinen</div>
         <p class="hint small">
-          Blir kryptert og lagra berre her – aldri sendt til dei andre.
-          Appen fyller inn feltet for deg, men trykkjer ikkje «logg inn» sjølv.
+          Krypteres og lagres bare her – aldri sendt til de andre.
+          Appen fyller inn feltet for deg, men trykker ikke «logg inn» selv.
         </p>
-        <label>Brukarnamn eller e-post
+        <label>Brukernavn eller e-post
           <input id="fUser" type="text" autocomplete="off" spellcheck="false" />
         </label>
         <label>Passord
@@ -186,36 +186,36 @@
       <div class="modal-actions">
         <div class="actions-left">
           <button id="fDelete" class="btn btn-danger">Slett</button>
-          <button id="fHideAll" class="btn btn-ghost" hidden title="Tek sida ut av menyen for alle, men beheld oppsettet">Skjul for alle</button>
-          <button id="fDeleteAll" class="btn btn-danger" hidden title="Fjernar sida frå den felles lista, for alle">Fjern for alle</button>
-          <button id="fReset" class="btn btn-ghost" hidden title="Fjern dei lokale endringane">Tilbakestill</button>
+          <button id="fHideAll" class="btn btn-ghost" hidden title="Tar siden ut av menyen for alle, men beholder oppsettet">Skjul for alle</button>
+          <button id="fDeleteAll" class="btn btn-danger" hidden title="Fjerner siden fra den felles listen, for alle">Fjern for alle</button>
+          <button id="fReset" class="btn btn-ghost" hidden title="Fjern de lokale endringene">Tilbakestill</button>
         </div>
         <div class="actions-right">
           <button id="fCancel" class="btn btn-ghost">Avbryt</button>
           <button id="fSave" class="btn btn-ghost">Lagre</button>
-          <button id="fPublish" class="btn btn-primary" hidden title="Sender endringa ut til alle">Lagre for alle</button>
+          <button id="fPublish" class="btn btn-primary" hidden title="Sender endringen ut til alle">Lagre for alle</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Dialog: innstillingar -->
+  <!-- Dialog: innstillinger -->
   <div class="modal-backdrop" id="settingsModal" hidden>
     <div class="modal">
-      <h2>Innstillingar</h2>
+      <h2>Innstillinger</h2>
       <p class="hint">
-        Legg inn adressa til ei delt sideliste (JSON). Alle som har appen får dei same
-        sidene automatisk, og nye sider dukkar opp av seg sjølv når lista blir oppdatert.
+        Legg inn adressen til en delt sideliste (JSON). Alle som har appen får de samme
+        sidene automatisk, og nye sider dukker opp av seg selv når listen blir oppdatert.
       </p>
       <label>Adresse til delt sideliste
         <input id="sSharedUrl" type="text" placeholder="https://…/sider.json" />
       </label>
-      <label>Hent på nytt kvart
+      <label>Hent på nytt hvert
         <select id="sInterval">
-          <option value="0">Berre ved oppstart</option>
+          <option value="0">Bare ved oppstart</option>
           <option value="5">5. minutt</option>
           <option value="15">15. minutt</option>
-          <option value="60">Kvar time</option>
+          <option value="60">Hver time</option>
         </select>
       </label>
       <div class="settings-info" id="sInfo"></div>
@@ -225,12 +225,12 @@
       <div class="login-box">
         <div class="hidden-label">Felles innlogging</div>
         <p class="hint small">
-          Brukar du same brukarnamn og passord på alle sidene, legg du det inn
-          her éin gong. Appen fyller det då inn på alle – men berre på sidene som
-          står i menyen, og han trykkjer aldri «logg inn» sjølv.
-          Alt blir kryptert og lagra berre på denne maskina.
+          Bruker du samme brukernavn og passord på alle sidene, legger du det inn
+          her én gang. Appen fyller det da inn på alle – men bare på sidene som
+          står i menyen, og den trykker aldri «logg inn» selv.
+          Alt krypteres og lagres bare på denne maskinen.
         </p>
-        <label>Brukarnamn eller e-post
+        <label>Brukernavn eller e-post
           <input id="sUser" type="text" autocomplete="off" spellcheck="false" />
         </label>
         <label>Passord
@@ -245,7 +245,7 @@
 
       <div class="admin-box">
         <div class="hidden-label">Admin</div>
-        <div id="adminState" class="settings-info">Ikkje admin på denne maskina.</div>
+        <div id="adminState" class="settings-info">Ikke admin på denne maskinen.</div>
         <label id="adminTokenRow">GitHub-token
           <input id="sToken" type="password" placeholder="github_pat_… eller ghp_…" autocomplete="off" />
         </label>
@@ -254,16 +254,16 @@
           <button id="sClearToken" class="btn btn-ghost btn-sm" type="button" hidden>Fjern admin</button>
         </div>
         <button id="sPublishAll" class="btn btn-primary btn-block" type="button" hidden
-          title="Sender namn, adresser, grupper, fargar og ikon ut til alle">
+          title="Sender navn, adresser, grupper, farger og ikoner ut til alle">
           Send alt ut til alle
         </button>
         <p class="hint small">
-          Som admin kan du endre den felles lista rett frå appen. Tokenet blir
-          kryptert og lagra berre på denne maskina.
+          Som admin kan du endre den felles listen rett fra appen. Tokenet
+          krypteres og lagres bare på denne maskinen.
         </p>
       </div>
       <div class="modal-actions">
-        <button id="sCheckUpdate" class="btn btn-ghost">Sjå etter oppdatering</button>
+        <button id="sCheckUpdate" class="btn btn-ghost">Se etter oppdatering</button>
         <button id="sImport" class="btn btn-ghost">Importer fil</button>
         <button id="sExport" class="btn btn-ghost">Eksporter</button>
         <span class="spacer"></span>
@@ -276,11 +276,11 @@
   <!-- Dialog: hjelp -->
   <div class="modal-backdrop" id="helpModal" hidden>
     <div class="modal modal-wide">
-      <h2>Kva er dei ulike sidene?</h2>
+      <h2>Hva er de ulike sidene?</h2>
       <div id="helpCurrent" class="help-current" hidden></div>
       <div id="helpList" class="help-list"></div>
       <p class="hint small" id="helpAdminHint" hidden>
-        Du er admin: opne ei side, trykk blyanten, og skriv under «Forklaring».
+        Du er admin: åpne en side, trykk på blyanten, og skriv under «Forklaring».
         <strong>Lagre for alle</strong> sender teksten ut til alle.
       </p>
       <div class="modal-actions">

@@ -1,8 +1,8 @@
-/* Den felles sidelista inn og ut av appen. Køyrast med `npm test`. */
+/* Den felles sidelisten inn og ut av appen. Kjøres med `npm test`. */
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { lesDelt, tilDelt, flettUkjende } = require('../src/delt.js');
+const { lesDelt, tilDelt, flettUkjente } = require('../src/delt.js');
 
 const raa = {
   id: 'rorlager',
@@ -12,32 +12,32 @@ const raa = {
   nytt: { a: 1 }
 };
 
-test('felt appen ikkje kjenner, overlever ein runde', () => {
+test('felt appen ikke kjenner, overlever en runde', () => {
   const ut = tilDelt(lesDelt([raa]))[0];
   assert.equal(ut.nokkel, false);
   assert.deepEqual(ut.nytt, { a: 1 });
 });
 
-test('lokale felt blir ikkje sende ut', () => {
+test('lokale felt blir ikke sendt ut', () => {
   const ut = tilDelt(lesDelt([raa]))[0];
   assert.equal('shared' in ut, false);
   assert.equal('ekstra' in ut, false);
   assert.equal(ut.id, 'rorlager');
 });
 
-test('kjende felt går føre gamle verdiar i ekstra', () => {
+test('kjente felt går foran gamle verdier i ekstra', () => {
   const [side] = lesDelt([raa]);
-  side.name = 'Nytt namn';
-  assert.equal(tilDelt([side])[0].name, 'Nytt namn');
+  side.name = 'Nytt navn';
+  assert.equal(tilDelt([side])[0].name, 'Nytt navn');
 });
 
-test('begge blir ikkje skrive ut, pc og mobil blir det', () => {
+test('begge skrives ikke ut, pc og mobil gjør det', () => {
   const [a, b] = lesDelt([{ ...raa, plattform: 'pc' }, { ...raa, id: 'x' }]);
   assert.equal(tilDelt([a])[0].plattform, 'pc');
   assert.equal('plattform' in tilDelt([b])[0], false);
 });
 
-test('lesinga er som før for kjende felt', () => {
+test('lesingen er som før for kjente felt', () => {
   const [s] = lesDelt([{ id: 'a', name: 'A', url: 'https://a.no' }]);
   assert.equal(s.id, 'shared:a');
   assert.equal(s.group, 'Felles');
@@ -47,36 +47,36 @@ test('lesinga er som før for kjende felt', () => {
   assert.equal(s.shared, true);
 });
 
-/* Appen publiserer frå si eiga, mellomlagra kopi. Har adminbordet endra eit
-   felt sidan sist synk, skal den ferske verdien vinne – ikkje den gamle. */
-test('eit felt adminbordet har slått av sidan sist synk, blir ståande av', () => {
+/* Appen publiserer fra sin egen, mellomlagrede kopi. Har adminbordet endret et
+   felt siden sist synk, skal den ferske verdien vinne – ikke den gamle. */
+test('et felt adminbordet har slått av siden sist synk, blir stående av', () => {
   const ut = [{ id: 'rorlager', name: 'Rørlager', url: 'https://r.no' }];
   const fersk = [{ id: 'rorlager', name: 'Rørlager', url: 'https://r.no', nokkel: false }];
-  assert.equal(flettUkjende(ut, fersk)[0].nokkel, false);
+  assert.equal(flettUkjente(ut, fersk)[0].nokkel, false);
 });
 
-test('eit felt adminbordet har fjerna sidan sist synk, blir fjerna', () => {
+test('et felt adminbordet har fjernet siden sist synk, blir fjernet', () => {
   const ut = [{ id: 'rorlager', name: 'Rørlager', url: 'https://r.no', nokkel: false }];
   const fersk = [{ id: 'rorlager', name: 'Rørlager', url: 'https://r.no' }];
-  assert.equal('nokkel' in flettUkjende(ut, fersk)[0], false);
+  assert.equal('nokkel' in flettUkjente(ut, fersk)[0], false);
 });
 
-test('kjende felt frå appen vinn over den ferske kopien', () => {
-  const ut = [{ id: 'rorlager', name: 'Nytt namn', url: 'https://r.no' }];
-  const fersk = [{ id: 'rorlager', name: 'Gammalt namn', url: 'https://r.no' }];
-  assert.equal(flettUkjende(ut, fersk)[0].name, 'Nytt namn');
+test('kjente felt fra appen vinner over den ferske kopien', () => {
+  const ut = [{ id: 'rorlager', name: 'Nytt navn', url: 'https://r.no' }];
+  const fersk = [{ id: 'rorlager', name: 'Gammelt navn', url: 'https://r.no' }];
+  assert.equal(flettUkjente(ut, fersk)[0].name, 'Nytt navn');
 });
 
-test('ei ny side som ikkje finst i den ferske kopien, blir som ho er', () => {
+test('en ny side som ikke finnes i den ferske kopien, blir som den er', () => {
   const ut = [{ id: 'ny', name: 'Ny', url: 'https://n.no', nokkel: false }];
-  assert.deepEqual(flettUkjende(ut, []), ut);
+  assert.deepEqual(flettUkjente(ut, []), ut);
 });
 
-test('utan fersk kopi blir lista som ho er', () => {
+test('uten fersk kopi blir listen som den er', () => {
   const ut = [{ id: 'a', name: 'A', url: 'https://a.no' }];
-  assert.deepEqual(flettUkjende(ut, null), ut);
+  assert.deepEqual(flettUkjente(ut, null), ut);
 });
 
-test('sider utan namn eller adresse blir hoppa over', () => {
+test('sider uten navn eller adresse blir hoppet over', () => {
   assert.equal(lesDelt([{ id: 'a', name: 'A' }, { id: 'b', url: 'https://b.no' }]).length, 0);
 });

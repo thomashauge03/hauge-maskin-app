@@ -1,142 +1,142 @@
 # Hauge Maskin – skrivebordsapp
 
-Ein Windows-skrivebordsapp som samlar alle nettsidene og verktøya til Hauge Maskin
-på éin stad. Kvar side ligg i sidemenyen, og du kan legge til dine eigne
+En Windows-skrivebordsapp som samler alle nettsidene og verktøyene til Hauge Maskin
+på ett sted. Hver side ligger i sidemenyen, og du kan legge til dine egne
 nettadresser når som helst.
 
 ![Logo](assets/logo.png)
 
 ## Last ned
 
-| Fil | Når du brukar den |
+| Fil | Når du bruker den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.8.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.8.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-2.8.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.8.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-2.9.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.9.0.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
+| [**Hauge-Maskin-2.9.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.9.0.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
 
-Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
+Alle versjoner ligger under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
-> Windows SmartScreen kan gi ei åtvaring første gongen, fordi fila ikkje er
-> kodesignert. Vel **Meir info → Køyr likevel**.
+> Windows SmartScreen kan gi en advarsel første gangen, fordi filen ikke er
+> kodesignert. Velg **Mer info → Kjør likevel**.
 
 ## Felles sider for alle
 
-Appen hentar ei felles sideliste frå [`sider.json`](sider.json) i dette repoet.
-Du legg sider inn **éin** stad, og alle som har appen får dei automatisk – med
-mindre dei har endra adressa i Innstillingar.
+Appen henter en felles sideliste fra [`sider.json`](sider.json) i dette repoet.
+Du legger sider inn **ett** sted, og alle som har appen får dem automatisk – med
+mindre de har endret adressen i Innstillinger.
 
-Slik legg du til ei ny felles side:
+Slik legger du til en ny felles side:
 
-1. Rediger [`sider.json`](sider.json) og legg til eit objekt i `pages`:
+1. Rediger [`sider.json`](sider.json) og legg til et objekt i `pages`:
    ```json
    { "id": "ordre", "name": "Ordresystem", "url": "https://…", "group": "Verktøy", "color": "#e2001a", "image": "https://…/ikon.png" }
    ```
-   `id` må vere unik. `group`, `color` og `image` er valfrie.
+   `id` må være unik. `group`, `color` og `image` er valgfrie.
 2. Commit og push til `main`.
-3. Appane hentar lista på nytt ved oppstart og kvart 15. minutt (kan endrast i
-   Innstillingar). Knappen **Synk** hentar med ein gong.
+3. Appene henter listen på nytt ved oppstart og hvert 15. minutt (kan endres i
+   Innstillinger). Knappen **Synk** henter med en gang.
 
-### Adminmodus – endre lista for alle rett frå appen
+### Adminmodus – endre listen for alle rett fra appen
 
-Med eit GitHub-token lagt inn under **Innstillingar → Admin** kan du endre den
-felles lista utan å røre GitHub manuelt. Då får dialogen to lagreknappar:
+Med et GitHub-token lagt inn under **Innstillinger → Admin** kan du endre den
+felles listen uten å røre GitHub manuelt. Da får dialogen to lagreknapper:
 
-| Knapp | Kva skjer |
+| Knapp | Hva skjer |
 | --- | --- |
-| **Berre meg** | Endringa gjeld denne maskina (som før). |
-| **For alle** | Skriv endringa til `sider.json` på GitHub. Alle andre får ho ved neste synk, eller når dei trykkjer **Synk**. |
+| **Bare meg** | Endringen gjelder denne maskinen (som før). |
+| **For alle** | Skriver endringen til `sider.json` på GitHub. Alle andre får den ved neste synk, eller når de trykker **Synk**. |
 
-Du kan òg **Legg til for alle** når du lagar ei ny side. To måtar å ta ei side
+Du kan også **Legg til for alle** når du lager en ny side. To måter å ta en side
 ut av menyen på:
 
-| Knapp | Kva skjer |
+| Knapp | Hva skjer |
 | --- | --- |
-| **Skjul for alle** | Sida forsvinn frå menyen hjå alle, men oppsettet står igjen. Hentast fram igjen når som helst. |
-| **Fjern for alle** | Sida blir sletta frå lista. Det er endeleg. |
+| **Skjul for alle** | Siden forsvinner fra menyen hos alle, men oppsettet står igjen. Hentes fram igjen når som helst. |
+| **Fjern for alle** | Siden blir slettet fra listen. Det er endelig. |
 
-Skjulte sider ligg nedst i menyen bak **«N skjulte sider»**. Trykk på ei av dei
-for å hente ho fram igjen.
+Skjulte sider ligger nederst i menyen bak **«N skjulte sider»**. Trykk på en av dem
+for å hente den fram igjen.
 
-### Kvar skal sida visast?
+### Hvor skal siden vises?
 
-Kvar felles side har eit val for kvar ho høyrer heime:
+Hver felles side har et valg for hvor den hører hjemme:
 
-| Val | Kva det gjer |
+| Valg | Hva det gjør |
 | --- | --- |
-| **PC og mobil** | Standard. Sida står i menyen begge stader. |
-| **Berre PC** | Sida forsvinn frå mobilappen. For system som ikkje er til å bruke på ein liten skjerm. |
-| **Berre mobil** | Sida står berre på telefonen. |
+| **PC og mobil** | Standard. Siden står i menyen begge steder. |
+| **Bare PC** | Siden forsvinner fra mobilappen. For systemer som ikke er til å bruke på en liten skjerm. |
+| **Bare mobil** | Siden står bare på telefonen. |
 
-Valet ligg i sideredigeringa og gjeld for alle. Sider merkte **berre mobil**
-står ikkje i PC-menyen, men du finn dei igjen under «skjulte sider» og i
-Innstillingar, så dei kan endrast derifrå.
+Valget ligger i sideredigeringen og gjelder for alle. Sider merket **bare mobil**
+står ikke i PC-menyen, men du finner dem igjen under «skjulte sider» og i
+Innstillinger, så de kan endres derfra.
 
-**Send alt ut til alle** (Innstillingar → Admin) sender heile lista slik du ser
-ho: namn, adresser, grupper, fargar **og ikon** – inkludert dei ikona appen har
-henta automatisk. Bruk denne når du har finpussa fleire sider og vil at alle
-skal få akkurat den same oppsettet. Dei lokale endringane dine blir samtidig
-gjort offisielle, så «endra»-prikkane forsvinn.
+**Send alt ut til alle** (Innstillinger → Admin) sender hele listen slik du ser
+den: navn, adresser, grupper, farger **og ikoner** – inkludert de ikonene appen har
+hentet automatisk. Bruk denne når du har finpusset flere sider og vil at alle
+skal få akkurat det samme oppsettet. De lokale endringene dine blir samtidig
+gjort offisielle, så «endret»-prikkene forsvinner.
 
-Ikon blir lagra som små 192×192-bilde direkte i `sider.json`, så dei virkar òg
-utan nett. Appen stoppar deg om lista skulle bli større enn 400 kB.
+Ikoner blir lagret som små 192×192-bilder direkte i `sider.json`, så de virker også
+uten nett. Appen stopper deg om listen skulle bli større enn 400 kB.
 
-Slik lagar du tokenet:
+Slik lager du tokenet:
 
 1. Gå til [github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new)
 2. **Repository access** → *Only select repositories* → `hauge-maskin-app`
 3. **Permissions** → *Repository permissions* → **Contents: Read and write**
-4. Lag tokenet, kopier det, og lim det inn i **Innstillingar → Admin → Lagre token**
+4. Lag tokenet, kopier det, og lim det inn i **Innstillinger → Admin → Lagre token**
 
-Tokenet blir kryptert med Windows sin eigen nøkkelkvelv og ligg berre på di
-maskin. Det følgjer aldri med i eksport eller synkronisering. Berre maskiner med
-token kan endre den felles lista – alle andre kan berre lese ho.
+Tokenet blir kryptert med nøkkelhvelvet i Windows og ligger bare på din
+maskin. Det følger aldri med i eksport eller synkronisering. Bare maskiner med
+token kan endre den felles listen – alle andre kan bare lese den.
 
-### Endre ei felles side på eiga maskin
+### Endre en felles side på egen maskin
 
-Felles sider kan òg endrast lokalt – høgreklikk på sida, eller bruk blyanten i
-verktøylinja. Namn, adresse, gruppe, farge og bilde kan overstyrast, og
-endringane gjeld berre den maskina. Sida får ein raud prikk i menyen.
+Felles sider kan også endres lokalt – høyreklikk på siden, eller bruk blyanten i
+verktøylinjen. Navn, adresse, gruppe, farge og bilde kan overstyres, og
+endringene gjelder bare den maskinen. Siden får en rød prikk i menyen.
 
-- **Tilbakestill** i dialogen fjernar overstyringa, så sida følgjer den delte
-  lista igjen.
-- **Skjul** tek sida vekk frå menyen utan å slette ho. Ho hamnar nedst i menyen
-  bak «N skjulte sider», merkt **meg**, og eitt trykk hentar ho fram igjen.
+- **Tilbakestill** i dialogen fjerner overstyringen, så siden følger den delte
+  listen igjen.
+- **Skjul** tar siden vekk fra menyen uten å slette den. Den havner nederst i menyen
+  bak «N skjulte sider», merket **meg**, og ett trykk henter den fram igjen.
 
-Det same gjeld sidene du har lagt til sjølv: dei blir ikkje kasta, men lagde i
-ei papirkorg og merkte **sletta** i same lista. Dei 25 siste blir tekne vare på.
+Det samme gjelder sidene du har lagt til selv: de blir ikke kastet, men lagt i
+en papirkurv og merket **slettet** i samme liste. De 25 siste blir tatt vare på.
 
-Alt som er teke ut av menyen ligg òg samla under **Innstillingar → Skjulte og
-sletta sider**. Den lista står alltid, òg når ho er tom, så du veit kvar du
-skal leite.
-- Nye sider i den delte lista dukkar opp uansett, og overstyringane overlever
-  synkroniseringa.
+Alt som er tatt ut av menyen ligger også samlet under **Innstillinger → Skjulte og
+slettede sider**. Den listen står alltid, også når den er tom, så du vet hvor du
+skal lete.
+- Nye sider i den delte listen dukker opp uansett, og overstyringene overlever
+  synkroniseringen.
 
-## Funksjonar
+## Funksjoner
 
-- **Sida som er open** – øvst i sidemenyen ser du ikonet og namnet på sida du
-  står på. Ei raud bølgje glir over bokstavane, så det aldri kjennest daudt.
-- **Sidemeny med grupper** – organiser sidene i grupper (t.d. Verktøy, Offentleg).
-- **Legg til / rediger / slett sider** – knappen «Legg til side», eller høgreklikk
-  på ei side i menyen for å redigere.
-- **Bilde på kvar lenke** – vel ei biletfil frå maskina, lim inn ei bildeadresse,
-  eller la appen hente ikonet frå nettsida sjølv. Bilda blir lagra i inntil 192×192.
-- **Felles sideliste** – alle får dei same sidene, automatisk oppdatert.
-- **Ekte nettlesar i appen** – kvar side blir lasta i eit eige vindauge og held
-  innlogging (delt økt), så du slepp å logge inn på nytt kvar gong.
-- **Verktøylinje** – tilbake, fram, last på nytt, heim, kopier adresse og
-  «opne i nettlesar».
+- **Siden som er åpen** – øverst i sidemenyen ser du ikonet og navnet på siden du
+  står på. En rød bølge glir over bokstavene, så det aldri føles dødt.
+- **Sidemeny med grupper** – organiser sidene i grupper (f.eks. Verktøy, Offentlig).
+- **Legg til / rediger / slett sider** – knappen «Legg til side», eller høyreklikk
+  på en side i menyen for å redigere.
+- **Bilde på hver lenke** – velg en bildefil fra maskinen, lim inn en bildeadresse,
+  eller la appen hente ikonet fra nettsiden selv. Bildene blir lagret i inntil 192×192.
+- **Felles sideliste** – alle får de samme sidene, automatisk oppdatert.
+- **Ekte nettleser i appen** – hver side blir lastet i et eget vindu og holder
+  innlogging (delt økt), så du slipper å logge inn på nytt hver gang.
+- **Verktøylinje** – tilbake, fram, last på nytt, hjem, kopier adresse og
+  «åpne i nettleser».
 - **Søk** – filtrer sidene med Ctrl+F.
-- **Import / eksport** – ta med sidene dine over til ei anna maskin (JSON-fil).
+- **Import / eksport** – ta med sidene dine over til en annen maskin (JSON-fil).
 - **Mobilappen** – knappen nederst i sidemenyen viser en QR-kode. Skann den med
   telefonen, så kommer du til app-siden på nettsiden.
 - **Hva er nytt** – etter hver oppdatering viser appen hva som er nytt, én gang.
   Trykk på versjonsnummeret nederst i sidemenyen for å se det igjen.
-- **Moderne mørkt design** i svart, kvitt og HM-raudt.
+- **Moderne mørkt design** i svart, hvitt og HM-rødt.
 
 ## Hjelpemeny
 
-Spørsmålsteiknet i verktøylinja (eller **F1**) opnar ei forklaring på kva sida
-du står på er, og ei liste over alle dei andre. Som admin skriv du teksten under
-**Forklaring** i sideredigeringa, og **Lagre for alle** sender han ut til alle.
+Spørsmålstegnet i verktøylinjen (eller **F1**) åpner en forklaring på hva siden
+du står på er, og en liste over alle de andre. Som admin skriver du teksten under
+**Forklaring** i sideredigeringen, og **Lagre for alle** sender den ut til alle.
 
 ## Mobilappen
 
@@ -172,66 +172,66 @@ Loggen ligger i [`src/endringer.json`](src/endringer.json), nyeste versjon øver
 { "versjon": "2.8.0", "dato": "2026-09-30", "punkt": ["Kort og konkret, for dem som bruker appen"] }
 ```
 
-**Før hver nye versjon:** legg til en oppføring øverst. `npm test` – og dermed
+**Før hver ny versjon:** legg til en oppføring øverst. `npm test` – og dermed
 `npm run dist` – stopper hvis versjonen i `package.json` mangler i loggen.
 Utgivelsesnotatet på GitHub lages fra samme oppføring (`somMarkdown` i
 `src/nytt.js`), så appen og GitHub sier det samme.
 
-## Lagra innlogging
+## Lagret innlogging
 
-Brukar du same brukarnamn og passord overalt, legg du det inn **éin gong** under
-**Innstillingar → Felles innlogging**. Appen fyller det då inn på alle sidene.
+Bruker du samme brukernavn og passord overalt, legger du det inn **én gang** under
+**Innstillinger → Felles innlogging**. Appen fyller det da inn på alle sidene.
 
-Treng ei enkelt side noko anna, legg du det inn under **Innlogging på denne
-maskina** i sideredigeringa. Det går føre den felles innlogginga for den sida.
+Trenger en enkelt side noe annet, legger du det inn under **Innlogging på denne
+maskinen** i sideredigeringen. Det går foran den felles innloggingen for den siden.
 
-- Passorda blir krypterte med Windows sin eigen nøkkelkvelv og ligg **berre** på
-  den maskina. Dei blir aldri sende til GitHub, kjem ikkje med i eksport, og
-  passerer aldri grensesnittet – berre hovudprosessen les dei.
-- Ei innlogging lagra for ei enkelt side blir berre fylt inn på den
-  **nettstaden ho vart lagra for**.
-- Den felles innlogginga blir berre fylt inn på **sider som står i menyen** –
-  aldri på ei tilfeldig side du har navigert deg fram til.
-- Utfyllinga skjer **berre når du trykkjer nøkkelknappen** i verktøylinja, aldri
-  av seg sjølv når ei side blir lasta.
-- Appen fyller berre inn i eit ekte innloggingsskjema. Finst det ikkje eit
-  passordfelt på sida, blir ingenting rørt – og søke- og filterfelt blir hoppa
+- Passordene blir kryptert med nøkkelhvelvet i Windows og ligger **bare** på
+  den maskinen. De blir aldri sendt til GitHub, kommer ikke med i eksport, og
+  passerer aldri grensesnittet – bare hovedprosessen leser dem.
+- En innlogging lagret for en enkelt side blir bare fylt inn på det
+  **nettstedet den ble lagret for**.
+- Den felles innloggingen blir bare fylt inn på **sider som står i menyen** –
+  aldri på en tilfeldig side du har navigert deg fram til.
+- Utfyllingen skjer **bare når du trykker nøkkelknappen** i verktøylinjen, aldri
+  av seg selv når en side blir lastet.
+- Appen fyller bare inn i et ekte innloggingsskjema. Finnes det ikke et
+  passordfelt på siden, blir ingenting rørt – og søke- og filterfelt blir hoppet
   over.
-- Appen trykkjer **ikkje** «logg inn» sjølv. Du ser kva som blir fylt inn og
-  bekreftar sjølv.
-- Sider som brukar «Logg inn med Google/GitHub» har ikkje passordfelt. Der er
-  det den lagra økta i appen som gjer at du slepp å logge inn på nytt.
+- Appen trykker **ikke** «logg inn» selv. Du ser hva som blir fylt inn og
+  bekrefter selv.
+- Sider som bruker «Logg inn med Google/GitHub» har ikke passordfelt. Der er
+  det den lagrede økten i appen som gjør at du slipper å logge inn på nytt.
 
 ## Dra filer mellom sidene
 
-Lastar du ned ei fil frå ei side – eller lagar ein PDF som eigentleg går via
-utskrift – hamnar ho ikkje i
-nedlastingsmappa, men i eit kort nedst i sidemenyen. Derifrå drar du fila rett
-inn i ei anna side.
+Laster du ned en fil fra en side – eller lager en PDF som egentlig går via
+utskrift – havner den ikke i
+nedlastingsmappen, men i et kort nederst i sidemenyen. Derfra drar du filen rett
+inn i en annen side.
 
-Knappane **opne** og **opne mappa** lèt deg sjå fila utan å dra ho nokon stad. Etter at fila er dradd over, blir ho sletta frå maskina. Du får seks sekund med
-**Angre** før det skjer, i tilfelle slippet ikkje gjekk gjennom. Appen tek vare
-på dei ti siste filene; eldre blir rydda bort automatisk.
+Knappene **åpne** og **åpne mappen** lar deg se filen uten å dra den noe sted. Etter at filen er dratt over, blir den slettet fra maskinen. Du får seks sekunder med
+**Angre** før det skjer, i tilfelle slippet ikke gikk gjennom. Appen tar vare
+på de ti siste filene; eldre blir ryddet bort automatisk.
 
-## Kvar blir hemmelegheiter lagra?
+## Hvor lagres hemmeligheter?
 
-GitHub-tokenet og innloggingane blir krypterte med **Windows DPAPI**, knytt til
-brukarkontoen din. Dei ligg i `admin.dat` og `logins.dat` under
-`%APPDATA%\hauge-maskin-app`, og overlever oppdateringar og ominstallasjonar.
+GitHub-tokenet og innloggingene blir kryptert med **Windows DPAPI**, knyttet til
+brukerkontoen din. De ligger i `admin.dat` og `logins.dat` under
+`%APPDATA%\hauge-maskin-app`, og overlever oppdateringer og ominstallasjoner.
 
-Appen tillèt berre **éi køyrande utgåve** om gongen. To utgåver som delte same
-datamappe kunne øydeleggje krypteringsnøkkelen, og då gjekk token og passord
+Appen tillater bare **én kjørende utgave** om gangen. To utgaver som delte samme
+datamappe kunne ødelegge krypteringsnøkkelen, og da gikk token og passord
 tapt ved oppdatering.
 
-## Hurtigtastar
+## Hurtigtaster
 
 | Tast | Handling |
 | --- | --- |
 | `Ctrl` + `N` | Legg til ny side |
 | `Ctrl` + `F` | Søk i sidemenyen |
-| `Ctrl` + `R` | Last sida på nytt |
+| `Ctrl` + `R` | Last siden på nytt |
 | `Alt` + `←` / `→` | Tilbake / fram |
-| `F1` | Opne hjelpemenyen |
+| `F1` | Åpne hjelpemenyen |
 | `Esc` | Lukk dialog |
 
 ## Kom i gang
@@ -250,20 +250,20 @@ npm run dist
 Testene kjøres først. Resultatet havner i `dist/` – både en NSIS-installer og
 en portabel .exe.
 
-## Kvar blir sidene lagra?
+## Hvor lagres sidene?
 
 I `%APPDATA%\hauge-maskin-app\pages.json`.
 
 ## Teknologi
 
-Electron 43, utan andre køyretidsavhengnader. Kjeldekode i `src/`:
+Electron 43, uten andre kjøretidsavhengigheter. Kildekode i `src/`:
 
 | Fil | Rolle |
 | --- | --- |
-| `src/main.js` | Hovudprosess, vindauge, lagring, innlogging, IPC |
-| `src/preload.js` | Sikker bru mellom hovudprosess og grensesnitt |
+| `src/main.js` | Hovedprosess, vindu, lagring, innlogging, IPC |
+| `src/preload.js` | Sikker bro mellom hovedprosess og grensesnitt |
 | `src/index.html` | Grensesnittet |
-| `src/renderer.js` | Logikk for sider, navigasjon og dialogar |
+| `src/renderer.js` | Logikk for sider, navigasjon og dialoger |
 | `src/endringer.json` | Endringsloggen – hva som er nytt i hver versjon |
 | `src/nytt.js` | Hva «Hva er nytt» skal vise etter en oppdatering |
 | `src/styles.css` | Design |

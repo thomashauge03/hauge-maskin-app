@@ -77,14 +77,14 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .brand-text strong { font-size: 15px; font-weight: 900; letter-spacing: .06em; }
 .brand-text span { font-size: 15px; font-weight: 900; letter-spacing: .06em; color: var(--red); }
 
-/* Sida som er open: lite ikon, og namnet med ei raud bølgje som glir over */
+/* Siden som er åpen: lite ikon, og navnet med en rød bølge som glir over */
 .brand-active { gap: 13px; }
 .active-icon {
   width: 44px; height: 44px; flex: 0 0 auto; border-radius: 11px;
   background: #ffffff0d; border: 1px solid var(--line);
   display: grid; place-items: center; overflow: hidden;
 }
-/* Aldri blås opp eit lite ikon – heller lite og skarpt enn stort og uskarpt */
+/* Aldri blås opp et lite ikon – heller lite og skarpt enn stort og uskarpt */
 .active-icon img {
   width: auto; height: auto; max-width: calc(100% - 12px); max-height: calc(100% - 12px);
   object-fit: contain;
@@ -96,14 +96,14 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   font-size: 14.5px; font-weight: 800; line-height: 1.25;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 
-  /* Kvit tekst med ei raud stripe som vandrar frå høgre mot venstre */
+  /* Hvit tekst med en rød stripe som vandrer fra høyre mot venstre */
   background-image: linear-gradient(
     100deg,
     #ffffff 0%, #ffffff 40%,
     var(--red) 50%,
     #ffffff 60%, #ffffff 100%
   );
-  /* 300 % brei, så teksten er alltid heilt dekt uansett kvar bølgja står */
+  /* 300 % bred, så teksten alltid er helt dekket uansett hvor bølgen står */
   background-size: 300% 100%;
   background-repeat: no-repeat;
   -webkit-background-clip: text;
@@ -165,7 +165,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 }
 .nav-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Filer lasta ned frå ei side, klare til å dragast inn i ei anna */
+/* Filer lastet ned fra en side, klare til å dras inn i en annen */
 .tray { padding: 12px 14px; border-top: 1px solid var(--line); }
 .tray-head {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
@@ -204,7 +204,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .sidebar-footer { padding: 12px 14px 16px; border-top: 1px solid var(--line); }
 .footer-row { display: flex; gap: 8px; margin-top: 8px; }
 
-/* ---------- Knappar ---------- */
+/* ---------- Knapper ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   padding: 9px 14px; border-radius: 9px; border: 1px solid transparent;
@@ -222,7 +222,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .btn-danger { background: transparent; border-color: #4a1b21; color: #ff6b7a; }
 .btn-danger:hover { background: #2a1116; }
 
-/* ---------- Innhald ---------- */
+/* ---------- Innhold ---------- */
 .content { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--bg-2); }
 
 .toolbar {
@@ -413,7 +413,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   color: #5c5c68; border: 1px solid var(--line); border-radius: 20px;
   padding: 1px 6px; flex: 0 0 auto;
 }
-.skjult-merke.sletta { color: #ff6b7a; border-color: #4a1b21; }
+.skjult-merke.slettet { color: #ff6b7a; border-color: #4a1b21; }
 
 .login-box { margin-top: 4px; border-top: 1px solid var(--line); padding-top: 14px; }
 .login-box .hint.small { font-size: 11.5px; margin: 8px 0 12px; }
@@ -452,7 +452,7 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 }
 .version:hover { color: #c9c9d3; }
 
-/* [hidden] må slå gjennom mot display-reglane på knappane */
+/* [hidden] må slå gjennom mot display-reglene på knappene */
 [hidden] { display: none !important; }
 
 .modal-actions {

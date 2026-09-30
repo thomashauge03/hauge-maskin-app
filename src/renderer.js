@@ -12,7 +12,7 @@ const $ = (id) => document.getElementById(id);
 const viewport = $('viewport');
 const nav = $('nav');
 
-/* ---------- Hjelparar ---------- */
+/* ---------- Hjelpere ---------- */
 function normalizeUrl(raw) {
   const url = (raw || '').trim();
   if (!url) return '';
@@ -25,19 +25,19 @@ const uid = () => 'p' + Math.random().toString(36).slice(2, 9);
 
 const isShared = (id) => String(id).startsWith('shared:');
 
-// Felles sider kan endrast lokalt. Endringane blir lagra som ei overstyring
-// på denne maskina, medan grunnlaget framleis kjem frå den delte lista.
+// Felles sider kan endres lokalt. Endringene lagres som en overstyring
+// på denne maskinen, mens grunnlaget fortsatt kommer fra den delte listen.
 function applyOverride(p) {
   const o = (data.overrides || {})[p.id];
   return o ? { ...p, ...o, shared: true, edited: true } : p;
 }
 
-// Delte sider først, deretter dine eigne
-const berrePaaMobil = (p) => p.plattform === 'mobil';
+// Delte sider først, deretter dine egne
+const barePaaMobil = (p) => p.plattform === 'mobil';
 
 const allPages = () =>
   [
-    ...(data.shared || []).map(applyOverride).filter((p) => !p.hidden && !berrePaaMobil(p)),
+    ...(data.shared || []).map(applyOverride).filter((p) => !p.hidden && !barePaaMobil(p)),
     ...data.pages
   ];
 
@@ -52,9 +52,9 @@ async function persist() {
   await window.hm.saveData(data);
 }
 
-// Ikona blir viste i stort format øvst i menyen, så dei blir lagra i 192 px.
-// Er kjelda mindre, blir ho ikkje blåst opp – då er det betre å la biletet
-// vere lite og skarpt enn stort og uskarpt.
+// Ikonene vises i stort format øverst i menyen, så de lagres i 192 px.
+// Er kilden mindre, blir den ikke blåst opp – da er det bedre å la bildet
+// være lite og skarpt enn stort og uskarpt.
 const ICON_SIZE = 192;
 
 function loadImage(src) {
@@ -85,13 +85,13 @@ function shrinkImage(src, maxSize = ICON_SIZE) {
       ctx.drawImage(img, (side - w) / 2, (side - h) / 2, w, h);
       resolve(canvas.toDataURL('image/png'));
     } catch {
-      resolve(src); // t.d. bilde frå nettet som ikkje kan lesast av canvas
+      resolve(src); // f.eks. bilde fra nettet som ikke kan leses av canvas
     }
   });
 }
 
-// Nettsider tilbyr ofte fleire ikon (16x16 favicon, 180x180 apple-touch osv.).
-// Vi vil ha det største, ikkje det første.
+// Nettsider tilbyr ofte flere ikoner (16x16 favicon, 180x180 apple-touch osv.).
+// Vi vil ha det største, ikke det første.
 async function bestFavicon(urls) {
   const bilde = await Promise.all(urls.slice(0, 6).map(loadImage));
   let best = null;
@@ -124,7 +124,7 @@ function colorDot(p) {
   return dot;
 }
 
-// Toppen av sidemenyen viser sida som er open, med ikonet i stort format
+// Toppen av sidemenyen viser siden som er åpen, med ikonet i stort format
 function renderBrand() {
   const page = activeId ? findPage(activeId) : null;
   $('brandDefault').hidden = !!page;
@@ -174,9 +174,9 @@ function renderNav() {
   if (!pages.length) {
     const div = document.createElement('div');
     div.className = 'group-label';
-    div.textContent = q ? 'Ingen treff' : 'Ingen sider enno';
+    div.textContent = q ? 'Ingen treff' : 'Ingen sider ennå';
     nav.appendChild(div);
-    renderSkjulte(); // òg når alt er skjult – elles er det ingen veg tilbake
+    renderSkjulte(); // også når alt er skjult – ellers er det ingen vei tilbake
     return;
   }
 
@@ -191,7 +191,7 @@ function renderNav() {
       const btn = document.createElement('button');
       btn.className = 'nav-item' + (p.id === activeId ? ' active' : '');
       btn.title = p.shared
-        ? `${p.url}\n(felles side${p.edited ? ' – endra på denne maskina' : ''})`
+        ? `${p.url}\n(felles side${p.edited ? ' – endret på denne maskinen' : ''})`
         : p.url;
       btn.appendChild(pageIconEl(p));
       const name = document.createElement('span');
@@ -202,7 +202,7 @@ function renderNav() {
         const mark = document.createElement('span');
         mark.className = 'edited-mark';
         mark.textContent = '•';
-        mark.title = 'Endra på denne maskina';
+        mark.title = 'Endret på denne maskinen';
         btn.appendChild(mark);
       }
       btn.addEventListener('click', () => openPage(p.id));
@@ -222,16 +222,16 @@ function renderNav() {
   }
 }
 
-// Skjulte sider skal vere til å finne igjen i menyen, ikkje berre gøymde
-// inne i Innstillingar.
+// Skjulte sider skal være til å finne igjen i menyen, ikke bare gjemt
+// inne i Innstillinger.
 let visSkjulte = false;
 
 function renderSkjulte() {
   const alle = [
     ...hiddenShared().map((p) => ({ p, slag: 'meg' })),
-    ...(isAdmin ? (data.shared || []).filter(berrePaaMobil).map((p) => ({ p, slag: 'mobil' })) : []),
+    ...(isAdmin ? (data.shared || []).filter(barePaaMobil).map((p) => ({ p, slag: 'mobil' })) : []),
     ...(isAdmin ? (data.shared || []).filter((x) => x.hidden).map((p) => ({ p, slag: 'alle' })) : []),
-    ...(data.deleted || []).map((p) => ({ p, slag: 'sletta' }))
+    ...(data.deleted || []).map((p) => ({ p, slag: 'slettet' }))
   ];
   if (!alle.length) return;
 
@@ -243,10 +243,10 @@ function renderSkjulte() {
   if (!visSkjulte) return;
 
   const forklaring = {
-    meg: 'skjult hjå deg. Trykk for å vise igjen.',
+    meg: 'skjult hos deg. Trykk for å vise igjen.',
     alle: 'skjult for alle. Trykk for å vise for alle igjen.',
-    mobil: 'blir berre vist på mobil. Trykk for å endre.',
-    sletta: 'sletta hjå deg. Trykk for å hente ho tilbake.'
+    mobil: 'vises bare på mobil. Trykk for å endre.',
+    slettet: 'slettet hos deg. Trykk for å hente den tilbake.'
   };
 
   for (const { p, slag } of alle) {
@@ -254,34 +254,34 @@ function renderSkjulte() {
     rad.className = 'nav-item skjult';
     rad.title = `${p.name} – ${forklaring[slag]}`;
     rad.appendChild(pageIconEl(p));
-    const namn = document.createElement('span');
-    namn.className = 'nav-name';
-    namn.textContent = p.name;
-    rad.appendChild(namn);
+    const navn = document.createElement('span');
+    navn.className = 'nav-name';
+    navn.textContent = p.name;
+    rad.appendChild(navn);
     const merke = document.createElement('span');
-    merke.className = 'skjult-merke' + (slag === 'sletta' ? ' sletta' : '');
+    merke.className = 'skjult-merke' + (slag === 'slettet' ? ' slettet' : '');
     merke.textContent = slag;
     rad.appendChild(merke);
     rad.addEventListener('click', () => {
       if (slag === 'alle') showForAll(p.id);
       else if (slag === 'mobil') openModal(p.id);
-      else if (slag === 'sletta') gjenopprettSide(p.id);
+      else if (slag === 'slettet') gjenopprettSide(p.id);
       else unhideShared(p.id);
     });
     nav.appendChild(rad);
   }
 }
 
-// Hentar ei sletta eiga side tilbake i menyen
+// Henter en slettet egen side tilbake i menyen
 async function gjenopprettSide(id) {
   const side = (data.deleted || []).find((p) => p.id === id);
   if (!side) return;
   data.deleted = data.deleted.filter((p) => p.id !== id);
-  const { slettaTid, ...rein } = side;
-  data.pages.push(rein);
+  const { slettaTid, ...ren } = side;
+  data.pages.push(ren);
   await persist();
   renderNav();
-  openPage(rein.id);
+  openPage(ren.id);
 }
 
 /* ---------- Webviews ---------- */
@@ -305,8 +305,8 @@ function webviewFor(page, create = false) {
   wv.addEventListener('did-navigate', () => { if (page.id === activeId) syncToolbar(); });
   wv.addEventListener('did-navigate-in-page', () => { if (page.id === activeId) syncToolbar(); });
 
-  // Hentar ikonet frå nettsida automatisk når sida ikkje har eit eige bilde.
-  // Gjeld òg felles sider, og tel ikkje som ei lokal endring.
+  // Henter ikonet fra nettsiden automatisk når siden ikke har et eget bilde.
+  // Gjelder også felles sider, og teller ikke som en lokal endring.
   wv.addEventListener('page-favicon-updated', async (e) => {
     const current = findPage(page.id);
     if (!current || current.image || !e.favicons?.length) return;
@@ -354,7 +354,7 @@ function setLoading(on) {
   }
 }
 
-// Electron 32 flytta canGoBack/goBack til webview.navigationHistory
+// Electron 32 flyttet canGoBack/goBack til webview.navigationHistory
 const navHist = (wv) => (wv && wv.navigationHistory) ? wv.navigationHistory : wv;
 const canGo = (wv, dir) => {
   try {
@@ -370,7 +370,7 @@ function syncToolbar() {
   $('btnForward').disabled = !has || !canGo(wv, 'forward');
   ['btnReload', 'btnHome', 'btnCopy', 'btnExternal', 'btnEdit'].forEach((id) => { $(id).disabled = !has; });
   let url = '—';
-  try { url = has ? wv.getURL() : '—'; } catch { /* ikkje klar enno */ }
+  try { url = has ? wv.getURL() : '—'; } catch { /* ikke klar ennå */ }
   $('urlText').textContent = url;
   if (!has) $('urlDot').className = 'dot';
 }
@@ -396,7 +396,7 @@ function renderIconPreview() {
     const img = document.createElement('img');
     img.src = pickedImage || auto;
     img.alt = '';
-    if (!pickedImage) img.title = 'Ikon henta automatisk frå nettsida';
+    if (!pickedImage) img.title = 'Ikon hentet automatisk fra nettsiden';
     box.appendChild(img);
   } else {
     const ph = document.createElement('span');
@@ -420,25 +420,25 @@ function openModal(id = null) {
   $('fUser').value = (id && logins[id]) ? logins[id].user : '';
   $('fPass').value = '';
   pickedColor = page ? page.color || COLORS[0] : COLORS[0];
-  // Berre eit bilde du sjølv har valt. Ikon appen har henta automatisk blir
-  // vist i førehandsvisninga, men skal ikkje lagrast som ei endring.
+  // Bare et bilde du selv har valgt. Ikoner appen har hentet automatisk blir
+  // vist i forhåndsvisningen, men skal ikke lagres som en endring.
   pickedImage = page ? (page.image || '') : '';
 
   $('sharedNote').hidden = !shared;
   $('sharedNote').innerHTML = isAdmin
-    ? 'Dette er ei <strong>felles side</strong>. <strong>Lagre</strong> endrar berre denne maskina – <strong>Lagre for alle</strong> sender endringa ut til alle.'
-    : 'Dette er ei <strong>felles side</strong>. Endringane du gjer her gjeld berre denne maskina – den delte lista blir ikkje rørt.';
+    ? 'Dette er en <strong>felles side</strong>. <strong>Lagre</strong> endrer bare denne maskinen – <strong>Lagre for alle</strong> sender endringen ut til alle.'
+    : 'Dette er en <strong>felles side</strong>. Endringene du gjør her gjelder bare denne maskinen – den delte listen blir ikke rørt.';
   $('fReset').hidden = !(shared && data.overrides[id]);
   $('fDelete').style.display = page ? '' : 'none';
   $('fDelete').textContent = 'Skjul';
-  $('fDelete').title = 'Tek sida ut av menyen på denne maskina. Du finn ho igjen nedst i menyen under «skjulte sider».';
+  $('fDelete').title = 'Tar siden ut av menyen på denne maskinen. Du finner den igjen nederst i menyen under «skjulte sider».';
 
-  // Som admin kan endringa sendast ut til alle
+  // Som admin kan endringen sendes ut til alle
   $('fPlattformRad').hidden = !(isAdmin && shared);
   $('fPlattform').value = (page && page.plattform) || 'begge';
   $('fPublish').hidden = !isAdmin;
   $('fPublish').textContent = page ? 'Lagre for alle' : 'Legg til for alle';
-  $('fSave').textContent = isAdmin && !page ? 'Berre meg' : 'Lagre';
+  $('fSave').textContent = isAdmin && !page ? 'Bare meg' : 'Lagre';
   $('fDeleteAll').hidden = !(isAdmin && shared);
   $('fHideAll').hidden = !(isAdmin && shared);
   $('publishStatus').hidden = true;
@@ -506,13 +506,14 @@ async function deleteCurrent() {
   viewport.querySelector(`webview[data-id="${CSS.escape(editingId)}"]`)?.remove();
 
   if (isShared(editingId)) {
-    // Felles sider blir skjulte, ikkje sletta – dei kjem tilbake ved neste synk elles
+    // Felles sider blir skjult, ikke slettet – de kommer tilbake ved neste synk ellers
     data.overrides[editingId] = { ...(data.overrides[editingId] || {}), hidden: true };
   } else {
-    // Eigne sider blir lagde i papirkorga, ikkje kasta. Da kan dei hentast
-    // fram igjen frå menyen i staden for å vere borte for godt.
+    // Egne sider blir lagt i papirkurven, ikke kastet. Da kan de hentes
+    // frem igjen fra menyen i stedet for å være borte for godt.
     const side = data.pages.find((p) => p.id === editingId);
     if (side) {
+      // slettaTid heter slik i pages.json fra før – nøkkelen beholder navnet.
       data.deleted = [{ ...side, slettaTid: Date.now() }, ...(data.deleted || [])].slice(0, 25);
     }
     data.pages = data.pages.filter((p) => p.id !== editingId);
@@ -528,7 +529,7 @@ async function deleteCurrent() {
   renderNav();
 }
 
-// Fjernar den lokale overstyringa så sida følgjer den delte lista igjen
+// Fjerner den lokale overstyringen så siden følger den delte listen igjen
 async function resetCurrent() {
   if (!editingId || !isShared(editingId)) return;
   delete data.overrides[editingId];
@@ -548,8 +549,8 @@ async function unhideShared(id) {
   renderHidden();
 }
 
-// Ein fast plass å leite etter alt som er teke ut av menyen. Denne står
-// alltid, òg når ho er tom – elles veit ein ikkje kvar ein skal sjå.
+// En fast plass å lete etter alt som er tatt ut av menyen. Denne står
+// alltid, også når den er tom – ellers vet man ikke hvor man skal se.
 function renderHidden() {
   $('hiddenAllList').hidden = true;
 
@@ -559,36 +560,36 @@ function renderHidden() {
 
   const label = document.createElement('div');
   label.className = 'hidden-label';
-  label.textContent = 'Skjulte og sletta sider';
+  label.textContent = 'Skjulte og slettede sider';
   wrap.appendChild(label);
 
   const rader = [
-    ...hiddenShared().map((p) => ({ p, tekst: 'Vis igjen', gjer: () => unhideShared(p.id) })),
+    ...hiddenShared().map((p) => ({ p, tekst: 'Vis igjen', gjør: () => unhideShared(p.id) })),
     ...(isAdmin
       ? (data.shared || [])
           .filter((p) => p.hidden)
-          .map((p) => ({ p, tekst: 'Vis for alle', merke: 'skjult for alle', gjer: () => showForAll(p.id) }))
+          .map((p) => ({ p, tekst: 'Vis for alle', merke: 'skjult for alle', gjør: () => showForAll(p.id) }))
       : []),
     ...(isAdmin
-      ? (data.shared || []).filter(berrePaaMobil).map((p) => ({
-          p, tekst: 'Endre', merke: 'berre mobil',
-          gjer: async () => { $('settingsModal').hidden = true; openModal(p.id); }
+      ? (data.shared || []).filter(barePaaMobil).map((p) => ({
+          p, tekst: 'Endre', merke: 'bare mobil',
+          gjør: async () => { $('settingsModal').hidden = true; openModal(p.id); }
         }))
       : []),
     ...(data.deleted || []).map((p) => ({
-      p, tekst: 'Hent tilbake', merke: 'sletta', gjer: () => gjenopprettSide(p.id)
+      p, tekst: 'Hent tilbake', merke: 'slettet', gjør: () => gjenopprettSide(p.id)
     }))
   ];
 
   if (!rader.length) {
     const tom = document.createElement('div');
     tom.className = 'settings-info';
-    tom.textContent = 'Ingenting er skjult eller sletta. Sider du tek vekk hamnar her.';
+    tom.textContent = 'Ingenting er skjult eller slettet. Sider du tar bort, havner her.';
     wrap.appendChild(tom);
     return;
   }
 
-  for (const { p, tekst, merke, gjer } of rader) {
+  for (const { p, tekst, merke, gjør } of rader) {
     const row = document.createElement('div');
     row.className = 'hidden-row';
     const name = document.createElement('span');
@@ -597,19 +598,19 @@ function renderHidden() {
     btn.className = 'btn btn-ghost btn-sm';
     btn.type = 'button';
     btn.textContent = tekst;
-    btn.addEventListener('click', async () => { await gjer(); renderHidden(); });
+    btn.addEventListener('click', async () => { await gjør(); renderHidden(); });
     row.append(name, btn);
     wrap.appendChild(row);
   }
 }
 
 /* ---------- Vedlegg ---------- */
-// Filer som blir lasta ned frå ei side hamnar her, klare til å dragast rett
-// inn i ei anna side. Etter at fila er dradd over, blir ho sletta.
+// Filer som lastes ned fra en side, havner her, klare til å dras rett
+// inn i en annen side. Etter at filen er dratt over, blir den slettet.
 let vedlegg = [];
 let slettTimer = null;
 
-const visStorleik = (b) =>
+const visStørrelse = (b) =>
   b >= 1024 * 1024 ? (b / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' kB';
 
 function renderTray() {
@@ -619,30 +620,30 @@ function renderTray() {
   const siste = vedlegg[0];
   boks.hidden = false;
   $('trayName').textContent = siste.name;
-  $('traySize').textContent = visStorleik(siste.size);
+  $('traySize').textContent = visStørrelse(siste.size);
   $('trayFile').classList.remove('brukt');
   $('trayLabel').textContent = 'Klar til å dra over';
-  // Namnet blir ofte for langt for kortet, så heile står i hjelpeteksten
-  $('trayFile').title = `${siste.name}\nDra fila inn i ei anna side`;
+  // Navnet blir ofte for langt for kortet, så hele står i hjelpeteksten
+  $('trayFile').title = `${siste.name}\nDra filen inn i en annen side`;
 
-  const meir = $('trayMore');
-  meir.innerHTML = '';
+  const mer = $('trayMore');
+  mer.innerHTML = '';
   if (vedlegg.length > 1) {
-    meir.append(`${vedlegg.length - 1} eldre fil${vedlegg.length > 2 ? 'er' : ''} · `);
+    mer.append(`${vedlegg.length - 1} eldre fil${vedlegg.length > 2 ? 'er' : ''} · `);
   }
-  const opne = document.createElement('button');
-  opne.textContent = 'opne';
-  opne.title = `Opne ${siste.name}`;
-  opne.addEventListener('click', () => window.hm.openAttachment(siste.path));
-  meir.appendChild(opne);
+  const åpne = document.createElement('button');
+  åpne.textContent = 'åpne';
+  åpne.title = `Åpne ${siste.name}`;
+  åpne.addEventListener('click', () => window.hm.openAttachment(siste.path));
+  mer.appendChild(åpne);
 
-  meir.append(' · ');
+  mer.append(' · ');
 
   const mappe = document.createElement('button');
-  mappe.textContent = 'opne mappa';
+  mappe.textContent = 'åpne mappen';
   mappe.title = siste.path;
   mappe.addEventListener('click', () => window.hm.revealAttachment(siste.path));
-  meir.appendChild(mappe);
+  mer.appendChild(mappe);
 }
 
 async function refreshTray() {
@@ -652,13 +653,13 @@ async function refreshTray() {
 
 $('trayFile').addEventListener('dragstart', (e) => {
   if (!vedlegg.length) return;
-  // Elektron tek over dradraget, så nettlesaren sitt eige må stoppast
+  // Electron tar over dradraget, så nettleserens eget må stoppes
   e.preventDefault();
   window.hm.dragAttachment(vedlegg[0].path);
 });
 
-// Vi får ikkje vite om slippet faktisk gjekk gjennom, så fila blir liggande
-// nokre sekund med moglegheit for å angre før ho blir sletta.
+// Vi får ikke vite om slippet faktisk gikk gjennom, så filen blir liggende
+// noen sekunder med mulighet for å angre før den blir slettet.
 $('trayFile').addEventListener('dragend', () => startSletting());
 
 function startSletting() {
@@ -666,21 +667,21 @@ function startSletting() {
   const fil = vedlegg[0];
   $('trayFile').classList.add('brukt');
 
-  let att = 6;
+  let igjen = 6;
   const tikk = () => {
-    $('trayLabel').textContent = `Slettar om ${att} s`;
-    const meir = $('trayMore');
-    meir.innerHTML = '';
+    $('trayLabel').textContent = `Sletter om ${igjen} s`;
+    const mer = $('trayMore');
+    mer.innerHTML = '';
     const angre = document.createElement('button');
     angre.textContent = 'Angre';
     angre.addEventListener('click', stoppSletting);
-    meir.appendChild(angre);
+    mer.appendChild(angre);
   };
   tikk();
 
   slettTimer = setInterval(async () => {
-    att -= 1;
-    if (att > 0) return tikk();
+    igjen -= 1;
+    if (igjen > 0) return tikk();
     clearInterval(slettTimer);
     slettTimer = null;
     await window.hm.deleteAttachment(fil.path);
@@ -704,9 +705,9 @@ window.hm.onAttachments((liste) => {
   renderTray();
 });
 
-/* ---------- Lagra innlogging ---------- */
-// Renderer kjenner berre til KVA sider som har innlogging, og brukarnamnet.
-// Passorda ligg kryptert i hovudprosessen og kjem aldri hit.
+/* ---------- Lagret innlogging ---------- */
+// Renderer kjenner bare til HVILKE sider som har innlogging, og brukernavnet.
+// Passordene ligger kryptert i hovedprosessen og kommer aldri hit.
 let logins = {};
 
 async function refreshLogins() {
@@ -725,17 +726,17 @@ function visLoginStatus() {
   const l = editingId ? logins[editingId] : null;
   const felles = logins[FELLES];
   $('loginState').textContent = l
-    ? `Lagra for ${l.user || '(utan brukarnamn)'} på ${l.origin}`
+    ? `Lagret for ${l.user || '(uten brukernavn)'} på ${l.origin}`
     : felles
-      ? `Brukar den felles innlogginga (${felles.user || 'utan brukarnamn'}). Legg inn her for å bruke noko anna på denne sida.`
-      : 'Inga innlogging lagra for denne sida.';
+      ? `Bruker den felles innloggingen (${felles.user || 'uten brukernavn'}). Legg inn her for å bruke noe annet på denne siden.`
+      : 'Ingen innlogging lagret for denne siden.';
 }
 
 function visFellesStatus() {
   const f = logins[FELLES];
   $('sLoginState').textContent = f
-    ? `Lagra som ${f.user || '(utan brukarnamn)'} – blir brukt på alle sidene.`
-    : 'Inga felles innlogging lagra.';
+    ? `Lagret som ${f.user || '(uten brukernavn)'} – brukes på alle sidene.`
+    : 'Ingen felles innlogging lagret.';
   $('sUser').value = f ? f.user : '';
   $('sPass').value = '';
 }
@@ -780,7 +781,7 @@ async function fjernLogin() {
   visLoginStatus();
 }
 
-// Blir berre køyrt når brukaren trykkjer nøkkelknappen – aldri av seg sjølv
+// Kjøres bare når brukeren trykker på nøkkelknappen – aldri av seg selv
 async function fyllInnlogging() {
   const wv = activeWebview();
   if (!wv || !activeId || !harInnlogging(activeId)) return;
@@ -789,14 +790,14 @@ async function fyllInnlogging() {
     const res = await window.hm.fillLogin({ id: activeId, webContentsId: wv.getWebContentsId() });
     if (!res.ok) { alert(res.error); return; }
     if (!res.felt) {
-      alert('Fann ikkje noko innloggingsskjema på denne sida.');
+      alert('Fant ikke noe innloggingsskjema på denne siden.');
       return;
     }
-    // Kort kvittering på at det gjekk
+    // Kort kvittering på at det gikk
     knapp.classList.add('fylt');
     setTimeout(() => knapp.classList.remove('fylt'), 1200);
   } catch {
-    alert('Sida er ikkje klar enno. Prøv igjen om eit augeblikk.');
+    alert('Siden er ikke klar ennå. Prøv igjen om et øyeblikk.');
   }
 }
 
@@ -832,7 +833,7 @@ function openHelp() {
     const h = document.createElement('h3');
     h.textContent = aktiv.name;
     const p = document.createElement('p');
-    p.textContent = aktiv.help || 'Ingen forklaring er lagt inn for denne sida enno.';
+    p.textContent = aktiv.help || 'Ingen forklaring er lagt inn for denne siden ennå.';
     tekst.append(h, p);
     current.appendChild(tekst);
   }
@@ -849,7 +850,7 @@ function openHelp() {
     n.textContent = p.name;
     const b = document.createElement('p');
     if (p.help) b.textContent = p.help;
-    else { b.textContent = 'Ingen forklaring lagt inn enno.'; b.className = 'tom'; }
+    else { b.textContent = 'Ingen forklaring lagt inn ennå.'; b.className = 'tom'; }
     tekst.append(n, b);
     rad.appendChild(tekst);
     liste.appendChild(rad);
@@ -859,10 +860,10 @@ function openHelp() {
   $('helpModal').hidden = false;
 }
 
-/* ---------- Admin: endre den felles lista for alle ---------- */
-// Gjer den interne lista om til formatet som ligg i sider.json. Står i
-// delt.js, der det er testa – og der felt appen ikkje kjenner blir tekne vare
-// på i staden for å bli sletta ved publisering.
+/* ---------- Admin: endre den felles listen for alle ---------- */
+// Gjør den interne listen om til formatet som ligger i sider.json. Står i
+// delt.js, der det er testet – og der felt appen ikke kjenner blir tatt vare
+// på i stedet for å bli slettet ved publisering.
 const { tilDelt: toSharedJson } = window.HM_DELT;
 
 function setPublishStatus(text, kind = '') {
@@ -876,7 +877,7 @@ async function publish(list, message) {
   setPublishStatus('Sender til alle…');
   const res = await window.hm.publishShared({ pages: toSharedJson(list), message });
   if (!res.ok) { setPublishStatus(res.error, 'error'); return false; }
-  setPublishStatus('Sendt. Alle får endringa ved neste synk.', 'ok');
+  setPublishStatus('Sendt. Alle får endringen ved neste synk.', 'ok');
   return true;
 }
 
@@ -906,12 +907,12 @@ async function publishModal() {
 
   if (!(await publish(list, message))) return;
 
-  // Lokale overstyringar og lokale kopiar ville berre skygge for det nye
+  // Lokale overstyringer og lokale kopier ville bare skygge for det nye
   if (editingId && isShared(editingId)) delete data.overrides[editingId];
   else if (editingId) data.pages = data.pages.filter((p) => p.id !== editingId);
 
-  // Vi veit kva vi nettopp lagra, så vi brukar det med ein gong i staden for
-  // å vente på at GitHub skal servere den nye fila
+  // Vi vet hva vi nettopp lagret, så vi bruker det med en gang i stedet for
+  // å vente på at GitHub skal servere den nye filen
   data.shared = list.map((p) => ({ ...p, shared: true }));
   data.settings.lastSync = new Date().toISOString();
 
@@ -921,15 +922,15 @@ async function publishModal() {
   showSyncStatus(`${data.shared.length} felles sider · ${lastSyncText()}`);
 }
 
-// Skjuler sida for alle, men lèt oppsettet stå igjen i lista
+// Skjuler siden for alle, men lar oppsettet stå igjen i listen
 async function hideForAll(skjul = true) {
   if (!editingId || !isShared(editingId)) return;
   const page = findPage(editingId) || (data.shared || []).find((p) => p.id === editingId);
   const list = (data.shared || []).map((p) =>
     p.id === editingId ? { ...p, hidden: skjul } : p
   );
-  const namn = page ? page.name : editingId;
-  if (!(await publish(list, `${skjul ? 'Skjul' : 'Vis'} felles side: ${namn}`))) return;
+  const navn = page ? page.name : editingId;
+  if (!(await publish(list, `${skjul ? 'Skjul' : 'Vis'} felles side: ${navn}`))) return;
 
   if (skjul) {
     viewport.querySelector(`webview[data-id="${CSS.escape(editingId)}"]`)?.remove();
@@ -978,19 +979,19 @@ async function deleteForAll() {
   showSyncStatus(`${data.shared.length} felles sider · ${lastSyncText()}`);
 }
 
-// Sender heile den lista du ser lokalt ut til alle: namn, adresser, grupper,
-// fargar og ikon – òg dei ikona appen har henta automatisk.
+// Sender hele listen du ser lokalt ut til alle: navn, adresser, grupper,
+// farger og ikoner – også ikonene appen har hentet automatisk.
 async function publishEverything() {
   const btn = $('sPublishAll');
   const list = (data.shared || []).map((p) => {
     const o = data.overrides[p.id] || {};
-    if (o.hidden) return { ...p }; // skjult hjå deg, men blir verande for dei andre
+    if (o.hidden) return { ...p }; // skjult hos deg, men blir værende for de andre
     return { ...p, ...o, image: o.image || p.image || (data.icons || {})[p.id] || '' };
   });
 
-  const storleik = JSON.stringify(toSharedJson(list)).length;
-  if (storleik > 400000) {
-    $('sInfo').textContent = 'Lista blir for stor (over 400 kB). Fjern nokre bilde først.';
+  const størrelse = JSON.stringify(toSharedJson(list)).length;
+  if (størrelse > 400000) {
+    $('sInfo').textContent = 'Listen blir for stor (over 400 kB). Fjern noen bilder først.';
     return;
   }
 
@@ -998,14 +999,14 @@ async function publishEverything() {
   btn.textContent = 'Sender…';
   const res = await window.hm.publishShared({
     pages: toSharedJson(list),
-    message: 'Oppdater felles sideliste med ikon og endringar'
+    message: 'Oppdater felles sideliste med ikoner og endringer'
   });
   btn.disabled = false;
   btn.textContent = 'Send alt ut til alle';
 
   if (!res.ok) { $('sInfo').textContent = res.error; return; }
 
-  // Endringane er no offisielle, så dei lokale overstyringane har ingen funksjon
+  // Endringene er nå offisielle, så de lokale overstyringene har ingen funksjon
   for (const id of Object.keys(data.overrides)) {
     if (!data.overrides[id].hidden) delete data.overrides[id];
   }
@@ -1014,7 +1015,7 @@ async function publishEverything() {
   await persist();
   renderNav();
   $('sInfo').textContent =
-    `Sendt. ${list.length} sider (${Math.round(storleik / 1024)} kB) gjeld no for alle.`;
+    `Sendt. ${list.length} sider (${Math.round(størrelse / 1024)} kB) gjelder nå for alle.`;
 }
 
 async function refreshAdmin() {
@@ -1024,7 +1025,7 @@ async function refreshAdmin() {
   if (isAdmin) {
     state.innerHTML = '';
     state.append(
-      res.login ? `Innlogga som ${res.login}.` : 'Admin (får ikkje kontakt med GitHub no).'
+      res.login ? `Innlogget som ${res.login}.` : 'Admin (får ikke kontakt med GitHub nå).'
     );
     const badge = document.createElement('span');
     badge.className = 'admin-badge';
@@ -1034,7 +1035,7 @@ async function refreshAdmin() {
     $('adminTokenRow').hidden = true;
     $('sPublishAll').hidden = false;
   } else {
-    state.textContent = res.error || 'Ikkje admin på denne maskina.';
+    state.textContent = res.error || 'Ikke admin på denne maskinen.';
     $('sClearToken').hidden = true;
     $('adminTokenRow').hidden = false;
     $('sPublishAll').hidden = true;
@@ -1050,13 +1051,13 @@ function showSyncStatus(text, isError = false) {
 
 function lastSyncText() {
   const t = data.settings.lastSync;
-  if (!t) return 'Ikkje henta enno';
+  if (!t) return 'Ikke hentet ennå';
   const d = new Date(t);
-  return 'Sist henta ' + d.toLocaleString('nb-NO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  return 'Sist hentet ' + d.toLocaleString('nb-NO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-// Ei overstyring som er blitt lik den felles lista har ingen funksjon lenger,
-// og ville berre stå att med ein raud «endra»-prikk
+// En overstyring som er blitt lik den felles listen har ingen funksjon lenger,
+// og ville bare bli stående igjen med en rød «endret»-prikk
 function pruneOverrides() {
   for (const p of data.shared || []) {
     const o = (data.overrides || {})[p.id];
@@ -1074,10 +1075,10 @@ function pruneOverrides() {
 
 async function doSync(quiet = false) {
   if (!(data.settings.sharedUrl || '').trim()) {
-    if (!quiet) showSyncStatus('Inga delt liste er satt opp', true);
+    if (!quiet) showSyncStatus('Ingen delt liste er satt opp', true);
     return;
   }
-  if (!quiet) showSyncStatus('Hentar…');
+  if (!quiet) showSyncStatus('Henter…');
   const res = await window.hm.syncShared();
   if (res.ok) {
     data.shared = res.shared;
@@ -1102,10 +1103,10 @@ function restartSyncTimer() {
 function openSettings() {
   $('sSharedUrl').value = data.settings.sharedUrl || '';
   $('sInterval').value = String(data.settings.syncMinutes ?? 15);
-  const endra = Object.values(data.overrides || {}).filter((o) => !o.hidden).length;
+  const endret = Object.values(data.overrides || {}).filter((o) => !o.hidden).length;
   $('sInfo').textContent =
     `${(data.shared || []).length} felles sider · ${lastSyncText()}` +
-    (endra ? ` · ${endra} endra lokalt` : '');
+    (endret ? ` · ${endret} endret lokalt` : '');
   renderHidden();
   visFellesStatus();
   refreshAdmin();
@@ -1126,7 +1127,7 @@ async function saveSettings() {
   else showSyncStatus('');
 }
 
-/* ---------- Hendingar ---------- */
+/* ---------- Hendelser ---------- */
 $('btnAdd').addEventListener('click', () => openModal());
 $('btnAddEmpty').addEventListener('click', () => openModal());
 $('fCancel').addEventListener('click', closeModal);
@@ -1178,9 +1179,9 @@ $('fClearImage').addEventListener('click', () => {
   renderIconPreview();
 });
 $('fAutoIcon').addEventListener('click', async () => {
-  // Har appen alt fanga opp ikonet då sida vart lasta, er det det beste vi har
-  const fanga = editingId ? (data.icons || {})[editingId] : '';
-  if (fanga) { pickedImage = fanga; renderIconPreview(); return; }
+  // Har appen allerede fanget opp ikonet da siden ble lastet, er det det beste vi har
+  const fanget = editingId ? (data.icons || {})[editingId] : '';
+  if (fanget) { pickedImage = fanget; renderIconPreview(); return; }
 
   const url = normalizeUrl($('fUrl').value);
   if (!url) { $('fUrl').focus(); return; }
@@ -1242,7 +1243,7 @@ $('mobilKopier').addEventListener('click', async () => {
 
 /* ---------- Hva er nytt ---------- */
 // Hele loggen, nyeste først. Versjoner brukeren ikke har sett før, er merket NY.
-async function apneNytt(status) {
+async function åpneNytt(status) {
   const s = status || await window.hm.nyttStatus();
   const liste = $('nyttListe');
   liste.innerHTML = '';
@@ -1273,7 +1274,7 @@ async function apneNytt(status) {
   $('nyttModal').hidden = false;
 }
 
-$('version').addEventListener('click', () => apneNytt());
+$('version').addEventListener('click', () => åpneNytt());
 $('nyttLukk').addEventListener('click', () => { $('nyttModal').hidden = true; });
 $('nyttModal').addEventListener('click', (e) => {
   if (e.target === $('nyttModal')) $('nyttModal').hidden = true;
@@ -1334,10 +1335,10 @@ function showUpdate(text, showButton = false) {
 }
 
 window.hm.onUpdate((event, d) => {
-  if (event === 'available') showUpdate(`Lastar ned versjon ${d.version}…`);
-  if (event === 'progress') showUpdate(`Lastar ned oppdatering… ${d.percent} %`);
+  if (event === 'available') showUpdate(`Laster ned versjon ${d.version}…`);
+  if (event === 'progress') showUpdate(`Laster ned oppdatering… ${d.percent} %`);
   if (event === 'ready') showUpdate(`Versjon ${d.version} er klar.`, true);
-  if (event === 'error') $('updateBox').hidden = true; // t.d. ingen nettilgang
+  if (event === 'error') $('updateBox').hidden = true; // f.eks. ingen nettilgang
 });
 
 $('updateBtn').addEventListener('click', () => window.hm.installUpdate());
@@ -1349,14 +1350,14 @@ $('sCheckUpdate').addEventListener('click', async () => {
   const res = await window.hm.checkUpdate();
   const naa = await window.hm.appVersion();
   if (!res.ok) {
-    btn.textContent = 'Sjå etter oppdatering';
+    btn.textContent = 'Se etter oppdatering';
     $('sInfo').textContent = res.error;
   } else if (res.version && res.version !== naa) {
-    btn.textContent = 'Lastar ned…';
-    $('sInfo').textContent = `Versjon ${res.version} blir lasta ned i bakgrunnen.`;
+    btn.textContent = 'Laster ned…';
+    $('sInfo').textContent = `Versjon ${res.version} lastes ned i bakgrunnen.`;
   } else {
-    btn.textContent = 'Sjå etter oppdatering';
-    $('sInfo').textContent = `Du har nyaste versjon (${naa}).`;
+    btn.textContent = 'Se etter oppdatering';
+    $('sInfo').textContent = `Du har nyeste versjon (${naa}).`;
   }
   btn.disabled = false;
 });
@@ -1368,8 +1369,8 @@ $('sCheckUpdate').addEventListener('click', async () => {
   data.overrides = data.overrides || {};
   data.icons = data.icons || {};
   data.deleted = data.deleted || [];
-  // Ikon lagra av eldre versjonar er berre 64 px og blir uskarpe i det store
-  // formatet. Vi kastar dei, så blir dei henta på nytt i full oppløysing.
+  // Ikoner lagret av eldre versjoner er bare 64 px og blir uskarpe i det store
+  // formatet. Vi kaster dem, så blir de hentet på nytt i full oppløsning.
   if (data.iconVersion !== 2) {
     data.icons = {};
     data.iconVersion = 2;
@@ -1388,7 +1389,7 @@ $('sCheckUpdate').addEventListener('click', async () => {
   $('version').textContent = 'Versjon ' + (await window.hm.appVersion()) + ' · Hva er nytt';
   // Første oppstart etter en oppdatering: vis hva som er nytt, én gang.
   const nytt = await window.hm.nyttStatus();
-  if (nytt.vis) apneNytt(nytt);
+  if (nytt.vis) åpneNytt(nytt);
   await window.hm.nyttSett();
   await refreshAdmin();
   await refreshLogins();

@@ -3,7 +3,7 @@ const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const { execFile } = require('child_process');
-const { lesDelt, flettUkjende } = require('./delt');
+const { lesDelt, flettUkjente } = require('./delt');
 const { hvaErNytt } = require('./nytt');
 const ENDRINGER = require('./endringer.json');
 
@@ -17,38 +17,38 @@ const sistSettFil = () => path.join(app.getPath('userData'), 'sist-sett.json');
 // forvekslet med en oppdatering.
 let hadDataVedOppstart = false;
 
-// Den felles sidelista. Rediger sider.json i GitHub-repoet, så får alle
-// installasjonane dei nye sidene automatisk ved neste synk.
+// Den felles sidelisten. Rediger sider.json i GitHub-repoet, så får alle
+// installasjonene de nye sidene automatisk ved neste synk.
 const SHARED_URL = 'https://raw.githubusercontent.com/thomashauge03/hauge-maskin-app/main/sider.json';
 
 const DEFAULT_DATA = {
-  // Ingen sider frå oss. Alt kjem frå den felles lista, og brukaren legg
-  // eventuelt til sine eigne.
+  // Ingen sider fra oss. Alt kommer fra den felles listen, og brukeren legger
+  // eventuelt til sine egne.
   pages: [],
   shared: [],
-  // Eigne sider som er sletta, men kan hentast tilbake
+  // Egne sider som er slettet, men kan hentes tilbake
   deleted: [],
-  // Lokale endringar på felles sider: { "shared:id": { name, url, group, color, image, hidden } }
+  // Lokale endringer på felles sider: { "shared:id": { name, url, group, color, image, hidden } }
   overrides: {},
   settings: { activeId: null, sharedUrl: SHARED_URL, syncMinutes: 15, lastSync: null }
 };
 
-// Ei fil som ikkje let seg lese må aldri føre til at oppsettet stille blir
-// bytt ut med standardlista – då kjem sider brukaren har fjerna tilbake, og
-// sider han har lagt til forsvinn.
+// En fil som ikke lar seg lese, må aldri føre til at oppsettet stille blir
+// byttet ut med standardlisten – da kommer sider brukeren har fjernet tilbake,
+// og sider brukeren har lagt til, forsvinner.
 function readData() {
   const fil = storeFile();
   if (!fs.existsSync(fil)) return JSON.parse(JSON.stringify(DEFAULT_DATA));
 
-  for (const kjelde of [fil, fil + '.bak']) {
-    const d = lesFil(kjelde);
+  for (const kilde of [fil, fil + '.bak']) {
+    const d = lesFil(kilde);
     if (d) return d;
   }
 
-  // Begge er ulesbare. Vi tek vare på fila i staden for å skrive over ho.
-  const berga = `${fil}.øydelagd-${Date.now()}`;
-  try { fs.copyFileSync(fil, berga); } catch { /* ingenting å berge */ }
-  console.error('pages.json kunne ikkje lesast. Kopi lagra som', path.basename(berga));
+  // Begge er uleselige. Vi tar vare på filen i stedet for å skrive over den.
+  const berget = `${fil}.ødelagt-${Date.now()}`;
+  try { fs.copyFileSync(fil, berget); } catch { /* ingenting å berge */ }
+  console.error('pages.json kunne ikke leses. Kopi lagret som', path.basename(berget));
   return JSON.parse(JSON.stringify(DEFAULT_DATA));
 }
 
@@ -61,19 +61,19 @@ function lesFil(fil) {
     data.overrides = (data.overrides && typeof data.overrides === 'object') ? data.overrides : {};
     data.deleted = Array.isArray(data.deleted) ? data.deleted : [];
     data.settings = Object.assign({}, DEFAULT_DATA.settings, data.settings || {});
-    // Tomt felt = bruk den felles lista (gjeld òg oppgraderingar frå eldre versjonar)
+    // Tomt felt = bruk den felles listen (gjelder også oppgraderinger fra eldre versjoner)
     if (!data.settings.sharedUrl) data.settings.sharedUrl = SHARED_URL;
     return data;
   } catch {
-    return null; // kallaren prøver reservekopien
+    return null; // den som kaller, prøver reservekopien
   }
 }
 
-// Hentar den delte sidelista. Alle som brukar appen peikar på same adressa,
-// så nye sider dukkar opp hjå alle utan at nokon må gjere noko.
+// Henter den delte sidelisten. Alle som bruker appen, peker på samme adresse,
+// så nye sider dukker opp hos alle uten at noen må gjøre noe.
 async function fetchShared(url) {
-  // raw.githubusercontent.com blir mellomlagra i nokre minutt. Har vi eit token,
-  // les vi heller direkte frå GitHub-API-et, som alltid gir den nyaste versjonen.
+  // raw.githubusercontent.com mellomlagres i noen minutter. Har vi et token,
+  // leser vi heller direkte fra GitHub-API-et, som alltid gir den nyeste versjonen.
   const token = readToken();
   const loc = token ? parseSharedUrl(url) : null;
 
@@ -89,17 +89,17 @@ async function fetchShared(url) {
     res = await fetch(fresh, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
   }
 
-  if (!res.ok) throw new Error(`Fekk ${res.status} frå tenaren`);
+  if (!res.ok) throw new Error(`Fikk ${res.status} fra serveren`);
   const json = await res.json();
   const list = Array.isArray(json) ? json : json.pages;
-  if (!Array.isArray(list)) throw new Error('Lista manglar feltet "pages"');
-  // Sjå delt.js: felt vi ikkje kjenner blir tekne vare på, ikkje kasta
+  if (!Array.isArray(list)) throw new Error('Listen mangler feltet "pages"');
+  // Se delt.js: felt vi ikke kjenner, blir tatt vare på, ikke kastet
   return lesDelt(list);
 }
 
-// Vi skriv til ei mellombels fil og byter ho inn til slutt. Da kan ikkje ei
-// avbroten skriving etterlate seg ei halv fil. Den førre gode versjonen blir
-// liggande som reservekopi.
+// Vi skriver til en midlertidig fil og bytter den inn til slutt. Da kan ikke en
+// avbrutt skriving etterlate seg en halv fil. Den forrige gode versjonen blir
+// liggende som reservekopi.
 function writeData(data) {
   const fil = storeFile();
   const tmp = fil + '.tmp';
@@ -107,7 +107,7 @@ function writeData(data) {
   const tekst = JSON.stringify(data, null, 2);
 
   fs.writeFileSync(tmp, tekst, 'utf8');
-  try { if (fs.existsSync(fil)) fs.copyFileSync(fil, bak); } catch { /* ingen kopi enno */ }
+  try { if (fs.existsSync(fil)) fs.copyFileSync(fil, bak); } catch { /* ingen kopi ennå */ }
   fs.renameSync(tmp, fil);
   return true;
 }
@@ -145,25 +145,25 @@ function createWindow() {
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
-// Lenker som opnar nytt vindu blir verande inne i appen. Sender vi dei ut til
-// systemnettlesaren, hamnar PDF-ar og andre filer utanfor appen, og
-// innloggingsvindauge (Google, GitHub) sluttar å verke.
+// Lenker som åpner nytt vindu, blir værende inne i appen. Sender vi dem ut til
+// systemnettleseren, havner PDF-er og andre filer utenfor appen, og
+// innloggingsvinduer (Google, GitHub) slutter å virke.
 app.on('web-contents-created', (_e, contents) => {
   contents.setWindowOpenHandler(({ url }) => {
-    // e-post og telefon høyrer heime i programma som handterer dei
+    // e-post og telefon hører hjemme i programmene som håndterer dem
     if (/^(mailto|tel|sms):/i.test(url)) {
       shell.openExternal(url);
       return { action: 'deny' };
     }
-    // Mange system lagar dokumentet i sida sjølv og opnar det som blob: eller
-    // data:. Det er alltid ei ferdig fil, så vi tek han rett inn i dra-menyen
-    // i staden for å opne eit vindauge som berre viser han.
+    // Mange systemer lager dokumentet i siden selv og åpner det som blob: eller
+    // data:. Det er alltid en ferdig fil, så vi tar den rett inn i dra-menyen
+    // i stedet for å åpne et vindu som bare viser den.
     if (/^(blob|data):/i.test(url)) {
       contents.downloadURL(url);
       return { action: 'deny' };
     }
-    // window.open("") blir brukt av system som byggjer dokumentet i eit tomt
-    // vindauge og skriv det ut. Nektar vi det, skjer det ingenting i det heile.
+    // window.open("") brukes av systemer som bygger dokumentet i et tomt
+    // vindu og skriver det ut. Nekter vi det, skjer det ingenting i det hele tatt.
     const tomt = !url || url === 'about:blank';
     if (!tomt && !/^(https?|file):/i.test(url)) return { action: 'deny' };
     return {
@@ -177,14 +177,14 @@ app.on('web-contents-created', (_e, contents) => {
         webPreferences: {
           contextIsolation: true,
           nodeIntegration: false,
-          plugins: true // så PDF-ar blir viste i staden for berre lasta ned
+          plugins: true // så PDF-er vises i stedet for bare å lastes ned
         }
       }
     };
   });
 
-  // Eit vindauge som berre vart opna for å laste ned ei fil, har ingenting
-  // å vise. Det lukkar vi sjølve.
+  // Et vindu som bare ble åpnet for å laste ned en fil, har ingenting
+  // å vise. Det lukker vi selv.
   contents.on('did-create-window', (vindu) => {
     fangUtskrift(vindu);
   });
@@ -203,10 +203,10 @@ if (!app.requestSingleInstanceLock()) {
 
 app.whenReady().then(async () => {
   hadDataVedOppstart = fs.existsSync(storeFile());
-  await lastHemmelegheiter();
+  await lastHemmeligheter();
   createWindow();
   setupAutoUpdate();
-  fangNedlastingar();
+  fangNedlastinger();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
@@ -217,10 +217,10 @@ app.on('window-all-closed', () => {
 });
 
 /* ---------- Kryptert lagring av token og passord ---------- */
-// Vi brukar Windows sin eigen DPAPI direkte, knytt til brukarkontoen. Då
-// overlever hemmelegheitene oppdateringar, ominstallasjonar og nye versjonar
-// av appen. (Electron sin safeStorage brukar ein nøkkel som ligg i
-// «Local State» inne i appmappa, og den kan gå tapt.)
+// Vi bruker Windows' egen DPAPI direkte, knyttet til brukerkontoen. Da
+// overlever hemmelighetene oppdateringer, ominstallasjoner og nye versjoner
+// av appen. (Electrons safeStorage bruker en nøkkel som ligger i
+// «Local State» inne i appmappen, og den kan gå tapt.)
 const PS_PROTECT = `Add-Type -AssemblyName System.Security
 $inn = [Console]::In.ReadToEnd()
 $b = [Text.Encoding]::UTF8.GetBytes($inn)
@@ -247,11 +247,11 @@ async function krypter(tekst) {
   try {
     return { mode: 'dpapi', data: await kjørPowerShell(PS_PROTECT, tekst) };
   } catch {
-    // Reserveløysing dersom PowerShell ikkje er tilgjengeleg
+    // Reserveløsning hvis PowerShell ikke er tilgjengelig
     if (safeStorage.isEncryptionAvailable()) {
       return { mode: 'safe', data: safeStorage.encryptString(tekst).toString('base64') };
     }
-    throw new Error('Fann ingen måte å kryptere på.');
+    throw new Error('Fant ingen måte å kryptere på.');
   }
 }
 
@@ -260,41 +260,41 @@ async function dekrypter(pakke) {
   return safeStorage.decryptString(Buffer.from(pakke.data, 'base64'));
 }
 
-async function lagreHemmeleg(fil, tekst) {
+async function lagreHemmelig(fil, tekst) {
   try {
     fs.writeFileSync(fil, JSON.stringify(await krypter(tekst)), 'utf8');
   } catch (err) {
-    console.error('Klarte ikkje lagre', path.basename(fil), err.message);
+    console.error('Klarte ikke å lagre', path.basename(fil), err.message);
   }
 }
 
-async function lesHemmeleg(fil) {
+async function lesHemmelig(fil) {
   if (!fs.existsSync(fil)) return null;
   try {
     return await dekrypter(JSON.parse(fs.readFileSync(fil, 'utf8')));
   } catch {
-    // Ei fil vi ikkje får opna er verdilaus – vi fjernar ho så brukaren får
-    // beskjed om å legge inn på nytt i staden for å møte ein taus feil
+    // En fil vi ikke får åpnet, er verdiløs – vi fjerner den så brukeren får
+    // beskjed om å legge inn på nytt i stedet for å møte en taus feil
     fs.rmSync(fil, { force: true });
     return null;
   }
 }
 
-async function lastHemmelegheiter() {
-  adminToken = await lesHemmeleg(tokenFile());
-  const tekst = await lesHemmeleg(loginFile());
+async function lastHemmeligheter() {
+  adminToken = await lesHemmelig(tokenFile());
+  const tekst = await lesHemmelig(loginFile());
   try { loginStore = tekst ? JSON.parse(tekst) : {}; } catch { loginStore = {}; }
 
-  // Rydd vekk det gamle formatet, som var avhengig av Chromium sin nøkkel
-  for (const gammal of ['admin.bin', 'logins.bin']) {
-    fs.rmSync(path.join(app.getPath('userData'), gammal), { force: true });
+  // Rydd bort det gamle formatet, som var avhengig av Chromiums nøkkel
+  for (const gammel of ['admin.bin', 'logins.bin']) {
+    fs.rmSync(path.join(app.getPath('userData'), gammel), { force: true });
   }
 }
 
-/* ---------- Vedlegg: filer lasta ned frå sidene ---------- */
-// Filer som blir lasta ned inne i appen hamnar ikkje i nedlastingsmappa, men i
-// ei eiga mappe som høyrer til appen. Derifrå kan dei dragast rett inn i ei
-// anna side, og blir sletta med det same dei er brukte.
+/* ---------- Vedlegg: filer lastet ned fra sidene ---------- */
+// Filer som lastes ned inne i appen, havner ikke i nedlastingsmappen, men i
+// en egen mappe som hører til appen. Derfra kan de dras rett inn i en
+// annen side, og blir slettet med det samme de er brukt.
 const attachDir = () => {
   const dir = path.join(app.getPath('userData'), 'vedlegg');
   fs.mkdirSync(dir, { recursive: true });
@@ -310,12 +310,12 @@ function sendVedlegg() {
 }
 
 function ryddVedlegg() {
-  // Filer som er borte frå disken skal ikkje henge att i lista
+  // Filer som er borte fra disken, skal ikke henge igjen i listen
   vedlegg = vedlegg.filter((v) => fs.existsSync(v.path));
 }
 
-function fangNedlastingar() {
-  // Sideøkta, og standardøkta for vindauge som blir opna frå ei side
+function fangNedlastinger() {
+  // Sideøkten, og standardøkten for vinduer som åpnes fra en side
   for (const ses of [session.fromPartition('persist:hm'), session.defaultSession]) {
     lyttPaaNedlasting(ses);
   }
@@ -323,29 +323,29 @@ function fangNedlastingar() {
 
 function lyttPaaNedlasting(ses) {
   ses.on('will-download', (_e, item) => {
-    const namn = item.getFilename();
-    const mål = path.join(attachDir(), `${Date.now()}-${namn}`);
+    const navn = item.getFilename();
+    const mål = path.join(attachDir(), `${Date.now()}-${navn}`);
     item.setSavePath(mål);
     item.once('done', (_ev, state) => {
       if (state !== 'completed') return;
-      leggTilVedlegg(mål, namn, item.getTotalBytes());
+      leggTilVedlegg(mål, navn, item.getTotalBytes());
     });
   });
 }
 
-function leggTilVedlegg(filPath, namn, storleik) {
-  vedlegg.unshift({ path: filPath, name: namn, size: storleik, time: Date.now() });
-  // Vi held på dei ti siste; eldre blir sletta så mappa ikkje veks
-  for (const gammal of vedlegg.slice(10)) {
-    try { fs.rmSync(gammal.path, { force: true }); } catch { /* alt sletta */ }
+function leggTilVedlegg(filPath, navn, størrelse) {
+  vedlegg.unshift({ path: filPath, name: navn, size: størrelse, time: Date.now() });
+  // Vi beholder de ti siste; eldre blir slettet så mappen ikke vokser
+  for (const gammel of vedlegg.slice(10)) {
+    try { fs.rmSync(gammel.path, { force: true }); } catch { /* allerede slettet */ }
   }
   vedlegg = vedlegg.slice(0, 10);
   sendVedlegg();
 }
 
-// Fleire system lagar dokumentet ved å skrive HTML i eit tomt vindauge og
-// kalle window.print(). Det er ikkje ei nedlasting, så fila ville aldri nå
-// dra-menyen. Vi tek over utskrifta og lagar PDF-en sjølve i staden.
+// Flere systemer lager dokumentet ved å skrive HTML i et tomt vindu og
+// kalle window.print(). Det er ikke en nedlasting, så filen ville aldri nå
+// dra-menyen. Vi tar over utskriften og lager PDF-en selv i stedet.
 const UTSKRIFT_SIGNAL = '__hm_skriv_ut__';
 
 function fangUtskrift(vindu) {
@@ -356,7 +356,7 @@ function fangUtskrift(vindu) {
     wc.executeJavaScript(
       `window.print = function () { console.log(${JSON.stringify(UTSKRIFT_SIGNAL)}); };`,
       true
-    ).catch(() => { /* sida er ikkje klar */ });
+    ).catch(() => { /* siden er ikke klar */ });
   };
   injiser();
   wc.on('dom-ready', injiser);
@@ -371,22 +371,22 @@ function fangUtskrift(vindu) {
         pageSize: 'A4',
         margins: { marginType: 'none' }
       });
-      const reint = (wc.getTitle() || 'dokument')
+      const rent = (wc.getTitle() || 'dokument')
         .replace(/[\\/:*?"<>|]/g, '-')
         .replace(/\s+/g, ' ')
         .trim()
         .slice(0, 80) || 'dokument';
-      const namn = reint.toLowerCase().endsWith('.pdf') ? reint : reint + '.pdf';
-      const mål = path.join(attachDir(), `${Date.now()}-${namn}`);
+      const navn = rent.toLowerCase().endsWith('.pdf') ? rent : rent + '.pdf';
+      const mål = path.join(attachDir(), `${Date.now()}-${navn}`);
       fs.writeFileSync(mål, pdf);
-      leggTilVedlegg(mål, namn, pdf.length);
+      leggTilVedlegg(mål, navn, pdf.length);
     } catch (err) {
-      console.error('Klarte ikkje lage PDF av utskrifta:', err.message);
+      console.error('Klarte ikke å lage PDF av utskriften:', err.message);
     }
     if (!vindu.isDestroyed()) vindu.close();
   };
 
-  // Signaturen på console-message er ulik mellom Electron-versjonar
+  // Signaturen på console-message er ulik mellom Electron-versjoner
   wc.on('console-message', (...args) => {
     const melding = typeof args[0] === 'object' && args[0] !== null && 'message' in args[0]
       ? args[0].message
@@ -394,7 +394,7 @@ function fangUtskrift(vindu) {
     if (String(melding).includes(UTSKRIFT_SIGNAL)) påUtskrift();
   });
 
-  // Eit tomt vindauge som aldri fekk innhald har ingenting å vise
+  // Et tomt vindu som aldri fikk innhold, har ingenting å vise
   setTimeout(() => {
     if (alt_gjort || vindu.isDestroyed()) return;
     const url = wc.getURL();
@@ -408,7 +408,7 @@ function fangUtskrift(vindu) {
 
 ipcMain.handle('attach:list', () => { ryddVedlegg(); return vedlegg; });
 
-// Dradraget må startast frå hovudprosessen medan hendinga går, difor send/on
+// Dradraget må startes fra hovedprosessen mens hendelsen pågår, derfor send/on
 ipcMain.on('attach:drag', (e, filPath) => {
   if (!vedlegg.some((v) => v.path === filPath) || !fs.existsSync(filPath)) return;
   e.sender.startDrag({
@@ -418,7 +418,7 @@ ipcMain.on('attach:drag', (e, filPath) => {
 });
 
 ipcMain.handle('attach:delete', (_e, filPath) => {
-  try { fs.rmSync(filPath, { force: true }); } catch { /* alt borte */ }
+  try { fs.rmSync(filPath, { force: true }); } catch { /* allerede borte */ }
   vedlegg = vedlegg.filter((v) => v.path !== filPath);
   sendVedlegg();
   return true;
@@ -435,11 +435,11 @@ ipcMain.handle('attach:reveal', (_e, filPath) => {
   return true;
 });
 
-/* ---------- Lagra innlogging ---------- */
-// Brukarnamn og passord blir krypterte med Windows sin eigen nøkkelkvelv og
-// ligg berre på maskina til den enkelte. Dei blir aldri sende til GitHub, blir
-// ikkje med i eksport, og blir aldri sende til grensesnittet – berre
-// hovudprosessen les dei, og berre for å fylle inn i rett innloggingsside.
+/* ---------- Lagret innlogging ---------- */
+// Brukernavn og passord krypteres med Windows' eget nøkkelhvelv og
+// ligger bare på maskinen til den enkelte. De sendes aldri til GitHub, blir
+// ikke med i eksport, og sendes aldri til grensesnittet – bare
+// hovedprosessen leser dem, og bare for å fylle inn i riktig innloggingsside.
 const loginFile = () => path.join(app.getPath('userData'), 'logins.dat');
 
 let loginStore = {};
@@ -447,14 +447,14 @@ const readLogins = () => loginStore;
 
 async function writeLogins(alle) {
   loginStore = alle;
-  await lagreHemmeleg(loginFile(), JSON.stringify(alle));
+  await lagreHemmelig(loginFile(), JSON.stringify(alle));
 }
 
 const originOf = (url) => { try { return new URL(url).origin; } catch { return null; } };
 
-// Ei felles innlogging gjeld alle sidene i appen. Ho er ikkje bunden til éin
-// nettstad, men blir berre brukt på sider som faktisk står i sidelista –
-// aldri på ei tilfeldig side brukaren har navigert seg fram til.
+// En felles innlogging gjelder alle sidene i appen. Den er ikke bundet til ett
+// nettsted, men brukes bare på sider som faktisk står i sidelisten –
+// aldri på en tilfeldig side brukeren har navigert seg frem til.
 const FELLES = '__felles__';
 
 function tillatteOrigin() {
@@ -465,7 +465,7 @@ function tillatteOrigin() {
     const o = originOf(p.url);
     if (o) sett.add(o);
   }
-  // Lokale overstyringar kan peike ein annan stad
+  // Lokale overstyringer kan peke et annet sted
   for (const o of Object.values(data.overrides || {})) {
     const org = o && o.url ? originOf(o.url) : null;
     if (org) sett.add(org);
@@ -475,7 +475,7 @@ function tillatteOrigin() {
 
 ipcMain.handle('login:list', () => {
   const alle = readLogins();
-  // Berre kva sider som har innlogging, og brukarnamnet – aldri passordet
+  // Bare hvilke sider som har innlogging, og brukernavnet – aldri passordet
   const ut = {};
   for (const [id, v] of Object.entries(alle)) ut[id] = { user: v.user || '', origin: v.origin || '' };
   return ut;
@@ -484,20 +484,20 @@ ipcMain.handle('login:list', () => {
 ipcMain.handle('login:setShared', async (_e, { user, pass }) => {
   const alle = readLogins();
   if (!user && !pass) { delete alle[FELLES]; await writeLogins(alle); return { ok: true, removed: true }; }
-  const gammal = alle[FELLES] || {};
-  alle[FELLES] = { user: user || gammal.user || '', pass: pass || gammal.pass || '' };
+  const gammel = alle[FELLES] || {};
+  alle[FELLES] = { user: user || gammel.user || '', pass: pass || gammel.pass || '' };
   await writeLogins(alle);
   return { ok: true };
 });
 
 ipcMain.handle('login:set', async (_e, { id, url, user, pass }) => {
   const origin = originOf(url);
-  if (!id || !origin) return { ok: false, error: 'Manglar side eller adresse.' };
+  if (!id || !origin) return { ok: false, error: 'Mangler side eller adresse.' };
   const alle = readLogins();
   if (!user && !pass) { delete alle[id]; await writeLogins(alle); return { ok: true, removed: true }; }
-  // Passord som ikkje blir endra, skal ikkje overskrivast med tomt
-  const gammal = alle[id] || {};
-  alle[id] = { origin, user: user || gammal.user || '', pass: pass || gammal.pass || '' };
+  // Passord som ikke endres, skal ikke overskrives med tomt
+  const gammel = alle[id] || {};
+  alle[id] = { origin, user: user || gammel.user || '', pass: pass || gammel.pass || '' };
   await writeLogins(alle);
   return { ok: true };
 });
@@ -509,9 +509,9 @@ ipcMain.handle('login:clear', async (_e, id) => {
   return { ok: true };
 });
 
-// Fyller inn brukarnamn og passord i sida. Vi sender aldri passordet til
-// grensesnittet – det går rett frå hovudprosessen inn i innloggingsskjemaet.
-// Vi trykkjer heller ikkje «logg inn» automatisk; det gjer brukaren sjølv.
+// Fyller inn brukernavn og passord i siden. Vi sender aldri passordet til
+// grensesnittet – det går rett fra hovedprosessen inn i innloggingsskjemaet.
+// Vi trykker heller ikke «logg inn» automatisk; det gjør brukeren selv.
 const FYLL_SKRIPT = `(function (bruker, passord) {
   function settVerdi(el, verdi) {
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
@@ -519,11 +519,11 @@ const FYLL_SKRIPT = `(function (bruker, passord) {
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }
-  function synleg(el) {
+  function synlig(el) {
     const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0 && !el.disabled && !el.readOnly;
   }
-  // Sørgje for at vi aldri skriv i eit søkefelt
+  // Sørg for at vi aldri skriver i et søkefelt
   const SØK = /(search|søk|sok|query|filter|finn)/i;
   function erSøkefelt(el) {
     if (el.type === 'search') return true;
@@ -532,20 +532,20 @@ const FYLL_SKRIPT = `(function (bruker, passord) {
     return SØK.test(tekst);
   }
 
-  // Utan eit passordfelt er dette ikkje ei innloggingsside, og vi rører ingenting
-  const passordFelt = [...document.querySelectorAll('input[type="password"]')].filter(synleg);
+  // Uten et passordfelt er dette ikke en innloggingsside, og vi rører ingenting
+  const passordFelt = [...document.querySelectorAll('input[type="password"]')].filter(synlig);
   if (!passordFelt.length) return 0;
   const pf = passordFelt[0];
 
-  // Brukarfeltet er det tekstfeltet som står rett før passordfeltet i skjemaet
+  // Brukerfeltet er det tekstfeltet som står rett før passordfeltet i skjemaet
   const område = pf.form || document;
-  const kandidatar = [...område.querySelectorAll(
+  const kandidater = [...område.querySelectorAll(
     'input[type="email"], input[type="text"], input[type="tel"], input:not([type])'
-  )].filter((el) => synleg(el) && !erSøkefelt(el));
+  )].filter((el) => synlig(el) && !erSøkefelt(el));
 
   const alle = [...document.querySelectorAll('input')];
   const posPassord = alle.indexOf(pf);
-  const før = kandidatar.filter((el) => alle.indexOf(el) < posPassord);
+  const før = kandidater.filter((el) => alle.indexOf(el) < posPassord);
   const bf = før.length ? før[før.length - 1] : null;
 
   let n = 0;
@@ -556,26 +556,26 @@ const FYLL_SKRIPT = `(function (bruker, passord) {
 
 ipcMain.handle('login:fill', async (_e, { id, webContentsId }) => {
   const alle = readLogins();
-  // Innlogging lagra for sjølve sida går føre den felles
-  const lagra = alle[id] || alle[FELLES];
-  if (!lagra) return { ok: false, error: 'Inga lagra innlogging.' };
+  // Innlogging lagret for selve siden går foran den felles
+  const lagret = alle[id] || alle[FELLES];
+  if (!lagret) return { ok: false, error: 'Ingen lagret innlogging.' };
 
   const wc = webContents.fromId(webContentsId);
-  if (!wc || wc.isDestroyed()) return { ok: false, error: 'Fann ikkje sida.' };
+  if (!wc || wc.isDestroyed()) return { ok: false, error: 'Fant ikke siden.' };
 
   const naa = originOf(wc.getURL());
   if (alle[id]) {
-    // Fyll berre inn på den nettstaden innlogginga vart lagra for
-    if (naa !== lagra.origin) {
-      return { ok: false, error: 'Adressa stemmer ikkje med den lagra innlogginga.' };
+    // Fyll bare inn på det nettstedet innloggingen ble lagret for
+    if (naa !== lagret.origin) {
+      return { ok: false, error: 'Adressen stemmer ikke med den lagrede innloggingen.' };
     }
   } else if (!naa || !tillatteOrigin().has(naa)) {
-    // Den felles innlogginga gjeld berre sidene som står i lista
-    return { ok: false, error: 'Denne adressa er ikkje ei av sidene i appen.' };
+    // Den felles innloggingen gjelder bare sidene som står i listen
+    return { ok: false, error: 'Denne adressen er ikke en av sidene i appen.' };
   }
 
   try {
-    const kall = `${FYLL_SKRIPT}(${JSON.stringify(lagra.user || '')}, ${JSON.stringify(lagra.pass || '')})`;
+    const kall = `${FYLL_SKRIPT}(${JSON.stringify(lagret.user || '')}, ${JSON.stringify(lagret.pass || '')})`;
     const felt = await wc.executeJavaScript(kall, true);
     return { ok: true, felt };
   } catch (err) {
@@ -583,9 +583,9 @@ ipcMain.handle('login:fill', async (_e, { id, webContentsId }) => {
   }
 });
 
-/* ---------- Admin: skrive til den felles lista ---------- */
-// Tokenet blir kryptert med Windows sin eigen nøkkelkvelv (DPAPI) og ligg berre
-// på denne maskina. Det følgjer aldri med i eksport eller synkronisering.
+/* ---------- Admin: skrive til den felles listen ---------- */
+// Tokenet krypteres med Windows' eget nøkkelhvelv (DPAPI) og ligger bare
+// på denne maskinen. Det følger aldri med i eksport eller synkronisering.
 const tokenFile = () => path.join(app.getPath('userData'), 'admin.dat');
 
 let adminToken = null;
@@ -594,11 +594,11 @@ const readToken = () => adminToken;
 async function writeToken(token) {
   adminToken = token || null;
   if (!token) { fs.rmSync(tokenFile(), { force: true }); return true; }
-  await lagreHemmeleg(tokenFile(), token);
+  await lagreHemmelig(tokenFile(), token);
   return true;
 }
 
-// Plukkar eigar, repo, gren og filnamn ut av raw-adressa til den delte lista
+// Plukker eier, repo, gren og filnavn ut av raw-adressen til den delte listen
 function parseSharedUrl(url) {
   const m = /^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/.exec(url || '');
   if (!m) return null;
@@ -621,14 +621,14 @@ ipcMain.handle('admin:status', async () => {
   if (!token) return { admin: false };
   try {
     const res = await gh(token, 'https://api.github.com/user');
-    // Berre eit avvist token betyr at vi ikkje lenger er admin. Er tenaren nede
-    // eller nettet borte, held vi på admin-statusen i staden for å «gløyme» han.
-    if (res.status === 401) return { admin: false, error: 'Tokenet er ikkje lenger gyldig. Lag eit nytt.' };
-    if (!res.ok) return { admin: true, offline: true, error: `Fekk ikkje kontakt med GitHub (${res.status}).` };
+    // Bare et avvist token betyr at vi ikke lenger er admin. Er serveren nede
+    // eller nettet borte, beholder vi admin-statusen i stedet for å «glemme» den.
+    if (res.status === 401) return { admin: false, error: 'Tokenet er ikke lenger gyldig. Lag et nytt.' };
+    if (!res.ok) return { admin: true, offline: true, error: `Fikk ikke kontakt med GitHub (${res.status}).` };
     const user = await res.json();
     return { admin: true, login: user.login };
   } catch {
-    return { admin: true, offline: true, error: 'Får ikkje kontakt med GitHub akkurat no.' };
+    return { admin: true, offline: true, error: 'Får ikke kontakt med GitHub akkurat nå.' };
   }
 });
 
@@ -637,7 +637,7 @@ ipcMain.handle('admin:setToken', async (_e, token) => {
   if (!clean) { await writeToken(null); return { ok: true, admin: false }; }
   try {
     const res = await gh(clean, 'https://api.github.com/user');
-    if (!res.ok) return { ok: false, error: `Tokenet blir ikkje godteke (${res.status}).` };
+    if (!res.ok) return { ok: false, error: `Tokenet blir ikke godtatt (${res.status}).` };
     const user = await res.json();
     await writeToken(clean);
     return { ok: true, admin: true, login: user.login };
@@ -646,43 +646,43 @@ ipcMain.handle('admin:setToken', async (_e, token) => {
   }
 });
 
-// Skriv heile den felles lista tilbake til GitHub
+// Skriver hele den felles listen tilbake til GitHub
 ipcMain.handle('shared:publish', async (_e, { pages, message }) => {
   const token = readToken();
-  if (!token) return { ok: false, error: 'Du er ikkje admin på denne maskina.' };
+  if (!token) return { ok: false, error: 'Du er ikke admin på denne maskinen.' };
 
   const data = readData();
   const loc = parseSharedUrl(data.settings.sharedUrl);
-  if (!loc) return { ok: false, error: 'Den delte lista ligg ikkje på GitHub, så ho kan ikkje endrast herifrå.' };
+  if (!loc) return { ok: false, error: 'Den delte listen ligger ikke på GitHub, så den kan ikke endres herfra.' };
 
   const api = `https://api.github.com/repos/${loc.owner}/${loc.repo}/contents/${loc.filePath}`;
   try {
-    // Hentar sha-en til den versjonen som ligg der no
+    // Henter sha-en til den versjonen som ligger der nå
     const cur = await gh(token, `${api}?ref=${loc.branch}`);
-    if (!cur.ok) return { ok: false, error: `Fann ikkje fila på GitHub (${cur.status}).` };
+    if (!cur.ok) return { ok: false, error: `Fant ikke filen på GitHub (${cur.status}).` };
     const fil = await cur.json();
     const sha = fil.sha;
 
-    // Felt appen ikkje kjenner (t.d. nokkel frå adminbordet) blir tekne frå
-    // fila slik ho ligg no, ikkje frå den mellomlagra lista. Sjå delt.js.
-    // GitHub sender innhaldet med når fila er under 1 MB; elles går vi vidare
-    // med lista slik ho er.
+    // Felt appen ikke kjenner (f.eks. nokkel fra adminbordet), blir tatt fra
+    // filen slik den ligger nå, ikke fra den mellomlagrede listen. Se delt.js.
+    // GitHub sender innholdet med når filen er under 1 MB; ellers går vi videre
+    // med listen slik den er.
     let ut = pages;
     if (fil.encoding === 'base64' && fil.content) {
       try {
-        const noverande = JSON.parse(Buffer.from(fil.content, 'base64').toString('utf8'));
-        ut = flettUkjende(pages, Array.isArray(noverande) ? noverande : noverande.pages);
-      } catch { /* uleseleg fil – publiser lista slik ho er */ }
+        const nåværende = JSON.parse(Buffer.from(fil.content, 'base64').toString('utf8'));
+        ut = flettUkjente(pages, Array.isArray(nåværende) ? nåværende : nåværende.pages);
+      } catch { /* uleselig fil – publiser listen slik den er */ }
     }
 
     const body = {
-      _om: 'Felles sideliste for Hauge Maskin-appen. Endringar herifrå går ut til alle appane.',
+      _om: 'Felles sideliste for Hauge Maskin-appen. Endringer herfra går ut til alle appene.',
       pages: ut
     };
     const res = await gh(token, api, {
       method: 'PUT',
       body: JSON.stringify({
-        message: message || 'Oppdater felles sideliste frå appen',
+        message: message || 'Oppdater felles sideliste fra appen',
         content: Buffer.from(JSON.stringify(body, null, 2) + '\n', 'utf8').toString('base64'),
         sha,
         branch: loc.branch
@@ -699,10 +699,10 @@ ipcMain.handle('shared:publish', async (_e, { pages, message }) => {
 });
 
 /* ---------- Automatisk oppdatering ---------- */
-// Appen ser etter nye versjonar på GitHub, lastar dei ned i bakgrunnen og
-// installerer dei når brukaren startar appen på nytt.
+// Appen ser etter nye versjoner på GitHub, laster dem ned i bakgrunnen og
+// installerer dem når brukeren starter appen på nytt.
 function setupAutoUpdate() {
-  if (!app.isPackaged) return; // gir berre meining i ein installert app
+  if (!app.isPackaged) return; // gir bare mening i en installert app
 
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
@@ -716,9 +716,9 @@ function setupAutoUpdate() {
   autoUpdater.on('update-downloaded', (info) => send('update:ready', { version: info.version }));
   autoUpdater.on('error', (err) => send('update:error', { message: String(err && err.message || err) }));
 
-  const check = () => autoUpdater.checkForUpdates().catch(() => { /* offline er ikkje ein feil */ });
+  const check = () => autoUpdater.checkForUpdates().catch(() => { /* offline er ikke en feil */ });
   check();
-  setInterval(check, 6 * 60 * 60 * 1000); // og kvar sjette time
+  setInterval(check, 6 * 60 * 60 * 1000); // og hver sjette time
 }
 
 ipcMain.handle('update:install', () => {
@@ -726,7 +726,7 @@ ipcMain.handle('update:install', () => {
 });
 
 ipcMain.handle('update:check', async () => {
-  if (!app.isPackaged) return { ok: false, error: 'Oppdatering verkar berre i den installerte appen.' };
+  if (!app.isPackaged) return { ok: false, error: 'Oppdatering virker bare i den installerte appen.' };
   try {
     const res = await autoUpdater.checkForUpdates();
     return { ok: true, version: res?.updateInfo?.version || null };
@@ -770,7 +770,7 @@ ipcMain.handle('window:close', () => mainWindow && mainWindow.close());
 ipcMain.handle('shared:sync', async () => {
   const data = readData();
   const url = (data.settings.sharedUrl || '').trim();
-  if (!url) return { ok: false, error: 'Inga delt sideliste er satt opp.' };
+  if (!url) return { ok: false, error: 'Ingen delt sideliste er satt opp.' };
   try {
     const shared = await fetchShared(url);
     data.shared = shared;
@@ -784,7 +784,7 @@ ipcMain.handle('shared:sync', async () => {
 
 ipcMain.handle('image:pick', async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
-    title: 'Vel bilde',
+    title: 'Velg bilde',
     properties: ['openFile'],
     filters: [{ name: 'Bilde', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico', 'bmp'] }]
   });

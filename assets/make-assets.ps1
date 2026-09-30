@@ -1,4 +1,4 @@
-# Lagar trimma logo + ikon ut frå assets/logo.png (originalen blir ikkje endra)
+# Lager trimmet logo + ikon ut fra assets/logo.png (originalen endres ikke)
 Add-Type -AssemblyName System.Drawing
 $dir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $src = [System.Drawing.Bitmap]::FromFile((Join-Path $dir 'logo.png'))
@@ -21,8 +21,8 @@ $minX = [Math]::Max(0, $minX - $pad); $minY = [Math]::Max(0, $minY - $pad)
 $maxX = [Math]::Min($src.Width - 1, $maxX + $pad); $maxY = [Math]::Min($src.Height - 1, $maxY + $pad)
 $w = $maxX - $minX + 1; $h = $maxY - $minY + 1
 
-# Trimma PNG. Berre den YTRE kvite bakgrunnen blir gjennomsiktig (flood fill frå kantane) –
-# det kvite inni H-en blir verande, så logoen ser nøyaktig ut som originalen.
+# Trimmet PNG. Bare den YTRE hvite bakgrunnen blir gjennomsiktig (flood fill fra kantene) –
+# det hvite inni H-en blir værende, så logoen ser nøyaktig ut som originalen.
 $trim = New-Object System.Drawing.Bitmap $w, $h, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
 $px = New-Object 'System.Drawing.Color[]' ($w * $h)
 for ($y = 0; $y -lt $h; $y++) {
