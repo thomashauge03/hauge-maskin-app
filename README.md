@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du brukar den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.6.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.6.1.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
-| [**Hauge-Maskin-2.6.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.6.1.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
+| [**Hauge-Maskin-Setup-2.7.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.7.0.exe) | **Tilrådd.** Vanleg installasjon, lagar snarveg på skrivebordet – og **oppdaterer seg sjølv**. |
+| [**Hauge-Maskin-2.7.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.7.0.exe) | Portabel, køyrer rett frå ein minnepinne. Oppdaterer seg **ikkje** sjølv. |
 
 Alle versjonar ligg under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -126,6 +126,8 @@ skal leite.
   «opne i nettlesar».
 - **Søk** – filtrer sidene med Ctrl+F.
 - **Import / eksport** – ta med sidene dine over til ei anna maskin (JSON-fil).
+- **Mobilappen** – knappen nedst i sidemenyen viser ein QR-kode. Skann han med
+  telefonen, så kjem du rett til nedlastingssida.
 - **Moderne mørkt design** i svart, kvitt og HM-raudt.
 
 ## Hjelpemeny
@@ -133,6 +135,24 @@ skal leite.
 Spørsmålsteiknet i verktøylinja (eller **F1**) opnar ei forklaring på kva sida
 du står på er, og ei liste over alle dei andre. Som admin skriv du teksten under
 **Forklaring** i sideredigeringa, og **Lagre for alle** sender han ut til alle.
+
+## Mobilappen
+
+Knappen **Mobilappen** nedst i sidemenyen opnar ein QR-kode til
+[nedlastingssida](https://thomashauge03.github.io/hauge-maskin-mobil/last-ned.html)
+for [hauge-maskin-mobil](https://github.com/thomashauge03/hauge-maskin-mobil).
+Sida viser rett framgangsmåte for Android og iPhone, og peikar alltid på den
+nyaste APK-en – så koden treng ikkje endrast når det kjem ein ny versjon.
+**Kopier lenke** i same dialog er for å sende adressa på SMS eller e-post.
+
+QR-koden er ei fast fil, `assets/mobil-qr.svg`. Flyttar nedlastingssida, lagar
+du ho på nytt og endrar adressa i `src/index.html` og `test/mobil.test.js`:
+
+```bash
+npx qrcode@1.5.4 -e M -o assets/mobil-qr.svg https://ny-adresse
+```
+
+`npm test` skannar koden og sjekkar at han leier dit dialogen seier.
 
 ## Lagra innlogging
 

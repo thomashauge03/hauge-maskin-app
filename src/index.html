@@ -72,6 +72,12 @@
           <button id="btnSettings" class="btn btn-ghost btn-sm" title="Innstillingar og delt sideliste">Innstillingar</button>
           <button id="btnSync" class="btn btn-ghost btn-sm" title="Hent delte sider på nytt">Synk</button>
         </div>
+        <div class="footer-row">
+          <button id="btnMobil" class="btn btn-ghost btn-sm" title="QR-kode for å få appen på telefonen">
+            <svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>
+            Mobilappen
+          </button>
+        </div>
         <div class="sync-status" id="syncStatus"></div>
         <div class="update-box" id="updateBox" hidden>
           <span id="updateText"></span>
@@ -281,6 +287,26 @@
         <div class="actions-left"></div>
         <div class="actions-right">
           <button id="helpClose" class="btn btn-primary">Lukk</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialog: mobilappen -->
+  <div class="modal-backdrop" id="mobilModal" hidden>
+    <div class="modal modal-mobil">
+      <h2>Hauge Maskin på telefonen</h2>
+      <img class="qr" id="mobilQr" src="../assets/mobil-qr.svg" alt="QR-kode til nedlastingssida for mobilappen" />
+      <p class="qr-tekst">
+        Skann koden med kameraet på telefonen. Sida viser korleis du får appen
+        på Android og iPhone.
+      </p>
+      <div class="qr-adresse" id="mobilAdresse">https://thomashauge03.github.io/hauge-maskin-mobil/last-ned.html</div>
+      <div class="modal-actions">
+        <div class="actions-left"></div>
+        <div class="actions-right">
+          <button id="mobilKopier" class="btn btn-ghost">Kopier lenke</button>
+          <button id="mobilLukk" class="btn btn-primary">Lukk</button>
         </div>
       </div>
     </div>

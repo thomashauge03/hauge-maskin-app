@@ -1,6 +1,6 @@
 {
   "name": "hauge-maskin-app",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "description": "Hauge Maskin – samlet skrivebordsapp for alle nettsider og verktøy",
   "main": "src/main.js",
   "author": "Hauge Maskin",
@@ -12,7 +12,8 @@
   },
   "devDependencies": {
     "electron": "^43.3.0",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "jsqr": "^1.4.0"
   },
   "build": {
     "appId": "no.haugemaskin.app",

@@ -1227,6 +1227,19 @@ $('helpModal').addEventListener('click', (e) => {
   if (e.target === $('helpModal')) $('helpModal').hidden = true;
 });
 
+// QR-koden til mobilappen. Lenka blir kopiert frå dialogen, så det er alltid
+// same adresse som står der – og som testen sjekkar at QR-koden leier til.
+$('btnMobil').addEventListener('click', () => { $('mobilModal').hidden = false; });
+$('mobilLukk').addEventListener('click', () => { $('mobilModal').hidden = true; });
+$('mobilModal').addEventListener('click', (e) => {
+  if (e.target === $('mobilModal')) $('mobilModal').hidden = true;
+});
+$('mobilKopier').addEventListener('click', async () => {
+  await navigator.clipboard.writeText($('mobilAdresse').textContent.trim());
+  $('mobilKopier').textContent = 'Kopiert';
+  setTimeout(() => { $('mobilKopier').textContent = 'Kopier lenke'; }, 1500);
+});
+
 $('btnMin').addEventListener('click', () => window.hm.minimize());
 $('btnMax').addEventListener('click', () => window.hm.toggleMaximize());
 $('btnClose').addEventListener('click', () => window.hm.close());
@@ -1264,6 +1277,7 @@ document.addEventListener('keydown', (e) => {
     if (!$('modal').hidden) closeModal();
     else if (!$('settingsModal').hidden) $('settingsModal').hidden = true;
     else if (!$('helpModal').hidden) $('helpModal').hidden = true;
+    else if (!$('mobilModal').hidden) $('mobilModal').hidden = true;
   }
   if (e.ctrlKey && e.key.toLowerCase() === 'r') { e.preventDefault(); activeWebview()?.reload(); }
   if (e.ctrlKey && e.key.toLowerCase() === 'f') { e.preventDefault(); $('search').focus(); }
