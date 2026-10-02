@@ -49,7 +49,7 @@
     {
       "id": "smartdok-pdf",
       "name": "Smartdok → PDF",
-      "url": "https://smartdok-to-pdf.lovable.app",
+      "url": "https://smartdok-to-pdf.vercel.app",
       "group": "System",
       "color": "#a855f7",
       "help": "Gjør om timelister og rapporter fra Smartdok til PDF, klare til utskrift eller utsending.",
