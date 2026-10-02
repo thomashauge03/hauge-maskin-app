@@ -5,6 +5,7 @@ const fs = require('fs');
 const { execFile } = require('child_process');
 const { lesDelt, flettUkjente } = require('./delt');
 const { hvaErNytt } = require('./nytt');
+const { UTSKRIFT_SIGNAL, UTSKRIFT_SKRIPT } = require('./utskrift');
 const ENDRINGER = require('./endringer.json');
 
 let mainWindow = null;
@@ -345,18 +346,14 @@ function leggTilVedlegg(filPath, navn, størrelse) {
 
 // Flere systemer lager dokumentet ved å skrive HTML i et tomt vindu og
 // kalle window.print(). Det er ikke en nedlasting, så filen ville aldri nå
-// dra-menyen. Vi tar over utskriften og lager PDF-en selv i stedet.
-const UTSKRIFT_SIGNAL = '__hm_skriv_ut__';
-
+// dra-menyen. Vi tar over utskriften og lager PDF-en selv i stedet (se
+// utskrift.js).
 function fangUtskrift(vindu) {
   const wc = vindu.webContents;
   let alt_gjort = false;
 
   const injiser = () => {
-    wc.executeJavaScript(
-      `window.print = function () { console.log(${JSON.stringify(UTSKRIFT_SIGNAL)}); };`,
-      true
-    ).catch(() => { /* siden er ikke klar */ });
+    wc.executeJavaScript(UTSKRIFT_SKRIPT, true).catch(() => { /* siden er ikke klar */ });
   };
   injiser();
   wc.on('dom-ready', injiser);

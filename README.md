@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du bruker den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.9.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.9.1.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
-| [**Hauge-Maskin-2.9.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.9.1.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
+| [**Hauge-Maskin-Setup-2.9.2.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.9.2.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
+| [**Hauge-Maskin-2.9.2.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.9.2.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
 
 Alle versjoner ligger under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 

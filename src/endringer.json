@@ -1,5 +1,12 @@
 [
   {
+    "versjon": "2.9.2",
+    "dato": "2026-10-02",
+    "punkt": [
+      "Utskrift fra QR-kodesiden blir nå en PDF som legger seg i dra-menyen nede til venstre, slik utskrift fra de andre systemene gjør. Før blinket utskriftsvinduet bare opp og forsvant uten at det kom noen fil."
+    ]
+  },
+  {
     "versjon": "2.9.1",
     "dato": "2026-09-30",
     "punkt": [
