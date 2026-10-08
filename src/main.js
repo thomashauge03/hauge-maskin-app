@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, webContents, session, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, webContents, session, nativeImage, Notification } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
@@ -145,6 +145,8 @@ function createWindow() {
   };
   mainWindow.on('maximize', sendState);
   mainWindow.on('unmaximize', sendState);
+  // Oppgavelinja blinker når noe haster (se vakta under Innboks), til vinduet får fokus.
+  mainWindow.on('focus', () => mainWindow.flashFrame(false));
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
@@ -210,6 +212,10 @@ app.on('web-contents-created', (_e, contents) => {
   });
 });
 
+// Windows knytter varslene til snarveien i Start-menyen gjennom denne id-en. Den må være lik
+// build.appId i package.json, ellers forsvinner varslene fra den installerte appen uten en lyd.
+app.setAppUserModelId('no.haugemaskin.app');
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
@@ -225,6 +231,7 @@ app.whenReady().then(async () => {
   hadDataVedOppstart = fs.existsSync(storeFile());
   await lastHemmeligheter();
   createWindow();
+  if (innboksKobling) vakt.start();
   setupAutoUpdate();
   fangNedlastinger();
   app.on('activate', () => {
@@ -889,6 +896,7 @@ async function lagreInnboksKobling(kobling) {
 }
 
 async function kobleFraInnboks() {
+  vakt.stopp();
   innboksKobling = null;
   fs.rmSync(innboksFil(), { force: true });
   settInnboksTilstand({ koblet: false, uleste: 0, haster: 0 });
@@ -918,6 +926,8 @@ ipcMain.handle('innboks-bro:koble', async (e, svar) => {
   }
   innboksKobling = v.kobling;
   settInnboksTilstand({ koblet: true });
+  vakt.stopp();
+  vakt.start();
   return { ok: true, enhetId: v.kobling.enhetId };
 });
 
@@ -959,3 +969,70 @@ ipcMain.handle('innboks:merke', (e, dataUrl) => {
   mainWindow.setOverlayIcon(nativeImage.createFromDataURL(dataUrl), n + (n === 1 ? ' ulest' : ' uleste') + ' i Innboks');
   return true;
 });
+
+// Holder varslene i live til de er lukket. Uten en referanse kan Notification-objektet ryddes
+// bort, og da skjer det ingenting når noen trykker på det.
+const innboksVarsler = new Set();
+
+const vakt = Innboks.lagVakt({
+  hent: () => Innboks.kallRpc(fetch, innboksKobling, 'enhet_hent', { p_nokkel: innboksKobling.nokkel }),
+  kvitter: (ider) => Innboks.kallRpc(fetch, innboksKobling, 'enhet_kvitter', { p_nokkel: innboksKobling.nokkel, p_ider: ider }),
+  vis: visInnboksVarsel,
+  tilstand: settInnboksTilstand,
+  blink: () => {
+    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isFocused()) mainWindow.flashFrame(true);
+  },
+  // Navet kjenner ikke nøkkelen lenger: enheten er fjernet i Innboks, eller personen er tatt ut.
+  frakoblet: () => { kobleFraInnboks().catch(() => { /* filen er alt borte */ }); },
+  planlegg: (fn, ms) => setTimeout(fn, ms),
+  avbryt: (t) => clearTimeout(t),
+});
+
+// Viser vinduet, også når det er skjult i systemstatusfeltet eller lukket helt. etterpaa kjøres
+// når grensesnittet kan ta imot meldinger.
+function visVindu(etterpaa) {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow();
+    mainWindow.webContents.once('did-finish-load', () => {
+      mainWindow.show();
+      if (etterpaa) etterpaa();
+    });
+    return;
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+  if (etterpaa) etterpaa();
+}
+
+function visInnboksVarsel(v) {
+  if (!Notification.isSupported()) return;
+  const varsel = new Notification({
+    title: String(v.tittel || 'Innboks').slice(0, 120),
+    body: String(v.tekst || '').slice(0, 240),
+    icon: path.join(__dirname, '..', 'assets', 'icon.png'),
+    silent: v.stille === true,
+    // Det som haster, blir liggende til noen har sett det.
+    timeoutType: v.haster ? 'never' : 'default',
+  });
+  innboksVarsler.add(varsel);
+  const glem = () => innboksVarsler.delete(varsel);
+  varsel.on('close', glem);
+  varsel.on('failed', glem);
+  varsel.on('click', () => {
+    glem();
+    aapneFraVarsel(v);
+  });
+  varsel.show();
+}
+
+// Klikket tar deg dit saken er, og merker den som lest for eieren av enheten. Tallet på knappen
+// hentes på nytt med en gang, ikke først om 15 sekunder.
+function aapneFraVarsel(v) {
+  visVindu(() => sendTilVindu('innboks:aapne', Lenke.maalForVarsel(v, readData())));
+  const k = innboksKobling;
+  if (!k || typeof v.sak_id !== 'string') return;
+  Innboks.kallRpc(fetch, k, 'enhet_les', { p_nokkel: k.nokkel, p_sak: v.sak_id })
+    .then(() => vakt.naa())
+    .catch(() => { /* saken står som ulest til den åpnes i Innboks */ });
+}
