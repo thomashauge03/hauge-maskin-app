@@ -1,5 +1,16 @@
 [
   {
+    "versjon": "2.10.0",
+    "dato": "2026-10-08",
+    "punkt": [
+      "Innboks har fått sin egen knapp øverst i menyen. Det røde tallet på knappen viser hvor mange saker du ikke har lest.",
+      "Du får varsel i Windows når noe nytt kommer inn i Innboks. Trykker du på varselet, åpner appen riktig side.",
+      "Trykker du «Åpne i …» inne i Innboks, bytter appen til den siden i systemet.",
+      "Appen blir liggende nede til høyre ved klokka og starter sammen med Windows, så lenge Innboks er koblet til. Begge deler kan slås av under Innstillinger.",
+      "I selve Innboks (nettsiden) står uleste saker med fet skrift og en rød prikk. Du kan merke saker som ferdige, og ferdige saker flyttes til «Ferdig»."
+    ]
+  },
+  {
     "versjon": "2.9.2",
     "dato": "2026-10-02",
     "punkt": [
