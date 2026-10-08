@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, webContents, session, nativeImage, Notification } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, webContents, session, nativeImage, Notification, Tray, Menu } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
@@ -9,8 +9,14 @@ const { UTSKRIFT_SIGNAL, UTSKRIFT_SKRIPT } = require('./utskrift');
 const ENDRINGER = require('./endringer.json');
 const Lenke = require('./innboks-felles');
 const Innboks = require('./innboks');
+const Bakgrunn = require('./bakgrunn');
 
 let mainWindow = null;
+// Settes når appen faktisk skal avslutte: Avslutt i systemstatusfeltet, en oppdatering, eller
+// Windows som logger av. Ellers betyr lukk bare skjul, mens Innboks er koblet til.
+let avslutter = false;
+// Startet av Windows med --skjult: vinduet lages, men vises ikke før noen ber om det.
+let skjultVedStart = false;
 
 const storeFile = () => path.join(app.getPath('userData'), 'pages.json');
 
@@ -33,7 +39,7 @@ const DEFAULT_DATA = {
   deleted: [],
   // Lokale endringer på felles sider: { "shared:id": { name, url, group, color, image, hidden } }
   overrides: {},
-  settings: { activeId: null, sharedUrl: SHARED_URL, syncMinutes: 15, lastSync: null }
+  settings: { activeId: null, sharedUrl: SHARED_URL, syncMinutes: 15, lastSync: null, lukkTilStatusfelt: true, startMedWindows: true }
 };
 
 // En fil som ikke lar seg lese, må aldri føre til at oppsettet stille blir
@@ -136,7 +142,16 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  const skjul = skjultVedStart;
+  skjultVedStart = false;
+  mainWindow.once('ready-to-show', () => { if (!skjul) mainWindow.show(); });
+  mainWindow.on('close', (e) => {
+    if (avslutter || !gjeldendeBakgrunn().lukkTilStatusfelt) return;
+    e.preventDefault();
+    mainWindow.hide();
+  });
+  // Windows som logger av eller slår seg av, skal ikke stoppes av at lukk betyr skjul.
+  mainWindow.on('session-end', () => { avslutter = true; });
 
   const sendState = () => {
     if (!mainWindow.isDestroyed()) {
@@ -219,25 +234,29 @@ app.setAppUserModelId('no.haugemaskin.app');
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
-    }
+  // Autostart med --skjult mens appen alt kjører, skal ikke dra vinduet fram. Alt annet viser det,
+  // også når det ligger skjult i systemstatusfeltet.
+  app.on('second-instance', (_e, argv) => {
+    if (Bakgrunn.startSkjult(argv, true)) return;
+    visVindu();
   });
 }
 
 app.whenReady().then(async () => {
   hadDataVedOppstart = fs.existsSync(storeFile());
   await lastHemmeligheter();
+  skjultVedStart = Bakgrunn.startSkjult(process.argv, !!innboksKobling);
   createWindow();
   if (innboksKobling) vakt.start();
+  brukBakgrunn();
   setupAutoUpdate();
   fangNedlastinger();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
+
+app.on('before-quit', () => { avslutter = true; });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
@@ -782,7 +801,11 @@ ipcMain.handle('nytt:sett', () => {
 });
 
 ipcMain.handle('data:load', () => readData());
-ipcMain.handle('data:save', (_e, data) => writeData(data));
+ipcMain.handle('data:save', (_e, data) => {
+  const ok = writeData(data);
+  brukBakgrunn();
+  return ok;
+});
 ipcMain.handle('shell:open', (_e, url) => shell.openExternal(url));
 
 ipcMain.handle('window:minimize', () => mainWindow && mainWindow.minimize());
@@ -870,8 +893,12 @@ function sendTilVindu(kanal, nyttelast) {
 }
 
 function settInnboksTilstand(ny) {
+  const varKoblet = innboksTilstand.koblet;
   innboksTilstand = { ...innboksTilstand, ...ny };
   sendTilVindu('innboks:tilstand', { ...innboksTilstand, portabel: PORTABEL });
+  // Kobling og frakobling endrer statusfelt og autostart. Ellers er det bare teksten.
+  if (varKoblet !== innboksTilstand.koblet) brukBakgrunn();
+  else if (statusfelt) statusfelt.setToolTip(Bakgrunn.statusfeltTekst(innboksTilstand));
 }
 
 async function lastInnboksKobling() {
@@ -1035,4 +1062,46 @@ function aapneFraVarsel(v) {
   Innboks.kallRpc(fetch, k, 'enhet_les', { p_nokkel: k.nokkel, p_sak: v.sak_id })
     .then(() => vakt.naa())
     .catch(() => { /* saken står som ulest til den åpnes i Innboks */ });
+}
+
+/* ---------- I bakgrunnen ---------- */
+let statusfelt = null;
+let sisteInnlogging = null;
+
+function gjeldendeBakgrunn() {
+  return Bakgrunn.bakgrunnsvalg(readData().settings, {
+    koblet: !!innboksKobling,
+    pakket: app.isPackaged,
+    exe: process.execPath,
+    portabelFil: process.env.PORTABLE_EXECUTABLE_FILE || null,
+  });
+}
+
+function brukBakgrunn() {
+  const valg = gjeldendeBakgrunn();
+  // Registeret skrives bare når noe har endret seg; data:save kommer ved hvert sidebytte.
+  if (valg.innlogging) {
+    const nokkel = JSON.stringify(valg.innlogging);
+    if (nokkel !== sisteInnlogging) {
+      app.setLoginItemSettings(valg.innlogging);
+      sisteInnlogging = nokkel;
+    }
+  }
+  if (valg.statusfelt && !statusfelt) lagStatusfelt();
+  if (!valg.statusfelt && statusfelt) {
+    statusfelt.destroy();
+    statusfelt = null;
+  }
+  if (statusfelt) statusfelt.setToolTip(Bakgrunn.statusfeltTekst(innboksTilstand));
+}
+
+function lagStatusfelt() {
+  statusfelt = new Tray(path.join(__dirname, '..', 'assets', 'icon.ico'));
+  statusfelt.setContextMenu(Menu.buildFromTemplate([
+    { label: 'Åpne Hauge Maskin', click: () => visVindu() },
+    { label: 'Åpne Innboks', click: () => visVindu(() => sendTilVindu('innboks:aapne', { sideId: Lenke.INNBOKS_ID, lenke: null })) },
+    { type: 'separator' },
+    { label: 'Avslutt', click: () => { avslutter = true; app.quit(); } },
+  ]));
+  statusfelt.on('click', () => visVindu());
 }

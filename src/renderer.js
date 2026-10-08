@@ -1117,6 +1117,9 @@ function restartSyncTimer() {
 function openSettings() {
   $('sSharedUrl').value = data.settings.sharedUrl || '';
   $('sInterval').value = String(data.settings.syncMinutes ?? 15);
+  $('sLukkTilStatusfelt').checked = data.settings.lukkTilStatusfelt !== false;
+  $('sStartMedWindows').checked = data.settings.startMedWindows !== false;
+  $('sPortabel').hidden = !innboks.portabel;
   const endret = Object.values(data.overrides || {}).filter((o) => !o.hidden).length;
   $('sInfo').textContent =
     `${(data.shared || []).length} felles sider · ${lastSyncText()}` +
@@ -1132,6 +1135,8 @@ async function saveSettings() {
   const url = $('sSharedUrl').value.trim();
   data.settings.sharedUrl = url ? normalizeUrl(url) : '';
   data.settings.syncMinutes = Number($('sInterval').value);
+  data.settings.lukkTilStatusfelt = $('sLukkTilStatusfelt').checked;
+  data.settings.startMedWindows = $('sStartMedWindows').checked;
   if (!data.settings.sharedUrl) data.shared = [];
   await persist();
   $('settingsModal').hidden = true;

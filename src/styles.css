@@ -486,3 +486,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
   border-radius: 9px; background: var(--red); color: #fff;
   font-size: 11px; font-weight: 800; line-height: 18px; text-align: center;
 }
+
+/* Innboks i bakgrunnen, i innstillingene */
+.modal label.sjekk { display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: 500; margin-bottom: 8px; cursor: pointer; }
+.modal label.sjekk input { width: 16px; height: 16px; margin: 0; accent-color: var(--red); }
+.innboks-box { margin-bottom: 4px; }
+.innboks-box .hint.advarsel { color: #ffb4b4; }

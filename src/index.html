@@ -251,6 +251,21 @@
         <div class="settings-info" id="sLoginState"></div>
       </div>
 
+      <div class="login-box innboks-box">
+        <div class="hidden-label">Innboks i bakgrunnen</div>
+        <p class="hint small">
+          Gjelder bare når Innboks er koblet til. Uten dette kommer ingen varsler
+          når vinduet er lukket.
+        </p>
+        <label class="sjekk"><input id="sLukkTilStatusfelt" type="checkbox" /> Lukk til systemstatusfeltet i stedet for å avslutte</label>
+        <label class="sjekk"><input id="sStartMedWindows" type="checkbox" /> Start skjult når Windows starter</label>
+        <p class="hint small advarsel" id="sPortabel" hidden>
+          Du bruker den frittstående versjonen av appen. Den har ingen snarvei i
+          Start-menyen, og da kan Windows la være å vise varslene. Installer appen
+          med Hauge-Maskin-Setup for å være sikker på å få dem.
+        </p>
+      </div>
+
       <div class="admin-box">
         <div class="hidden-label">Admin</div>
         <div id="adminState" class="settings-info">Ikke admin på denne maskinen.</div>
