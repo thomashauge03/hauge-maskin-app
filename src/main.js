@@ -7,6 +7,8 @@ const { lesDelt, flettUkjente } = require('./delt');
 const { hvaErNytt } = require('./nytt');
 const { UTSKRIFT_SIGNAL, UTSKRIFT_SKRIPT } = require('./utskrift');
 const ENDRINGER = require('./endringer.json');
+const Lenke = require('./innboks-felles');
+const Innboks = require('./innboks');
 
 let mainWindow = null;
 
@@ -189,6 +191,23 @@ app.on('web-contents-created', (_e, contents) => {
   contents.on('did-create-window', (vindu) => {
     fangUtskrift(vindu);
   });
+
+  // Herding. Ingen fane får andre forhåndslastere enn Innboks-broen, og ingen får Node eller
+  // slipper ut av sandkassen, uansett hva som står på webview-taggen. Broen legges bare på en
+  // fane som starter på Innboksens opphav; hovedprosessen sjekker opphavet igjen ved hvert kall.
+  contents.on('will-attach-webview', (_ev, webPreferences, params) => {
+    delete webPreferences.preload;
+    delete webPreferences.preloadURL;
+    webPreferences.nodeIntegration = false;
+    webPreferences.nodeIntegrationInSubFrames = false;
+    webPreferences.contextIsolation = true;
+    webPreferences.sandbox = true;
+    webPreferences.webSecurity = true;
+    webPreferences.allowRunningInsecureContent = false;
+    if (Lenke.broSkalMed(params.src, Lenke.innboksOpphav(readData()))) {
+      webPreferences.preload = path.join(__dirname, 'innboks-bro.js');
+    }
+  });
 });
 
 if (!app.requestSingleInstanceLock()) {
@@ -290,6 +309,9 @@ async function lastHemmeligheter() {
   for (const gammel of ['admin.bin', 'logins.bin']) {
     fs.rmSync(path.join(app.getPath('userData'), gammel), { force: true });
   }
+
+  innboksKobling = await lastInnboksKobling();
+  innboksTilstand = { ...innboksTilstand, koblet: !!innboksKobling };
 }
 
 /* ---------- Vedlegg: filer lastet ned fra sidene ---------- */
@@ -822,4 +844,96 @@ ipcMain.handle('data:import', async () => {
   } catch {
     return null;
   }
+});
+
+/* ---------- Innboks ---------- */
+// Innboks-fanen kobler appen til Innboks over broen (innboks-bro.js). Nøkkelen den får, er det
+// eneste appen trenger for å hente varsler, og den krypteres med DPAPI, som innloggingene.
+const innboksFil = () => path.join(app.getPath('userData'), 'innboks.dat');
+// Den frittstående versjonen har ingen snarvei i Start-menyen, og da kan Windows la være å vise
+// varslene. Innstillingene sier fra om det.
+const PORTABEL = !!process.env.PORTABLE_EXECUTABLE_FILE;
+const AVVIST = { ok: false, feil: 'Bare Innboks kan bruke dette.' };
+
+let innboksKobling = null; // { enhetId, nokkel, url, anonNokkel }, bare i hovedprosessen
+let innboksTilstand = { koblet: false, uleste: 0, haster: 0 };
+
+function sendTilVindu(kanal, nyttelast) {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(kanal, nyttelast);
+}
+
+function settInnboksTilstand(ny) {
+  innboksTilstand = { ...innboksTilstand, ...ny };
+  sendTilVindu('innboks:tilstand', { ...innboksTilstand, portabel: PORTABEL });
+}
+
+async function lastInnboksKobling() {
+  const tekst = await lesHemmelig(innboksFil());
+  if (!tekst) return null;
+  try {
+    const k = JSON.parse(tekst);
+    const v = Innboks.validerKobling({ id: k.enhetId, nokkel: k.nokkel, url: k.url, anonNokkel: k.anonNokkel });
+    return v.ok ? v.kobling : null;
+  } catch {
+    return null;
+  }
+}
+
+// Ikke lagreHemmelig: den svelger feilen, og da ville Innboks fått beskjed om at appen er
+// koblet, mens nøkkelen var borte ved neste start.
+async function lagreInnboksKobling(kobling) {
+  const pakke = await krypter(JSON.stringify(kobling));
+  const tmp = innboksFil() + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(pakke), 'utf8');
+  fs.renameSync(tmp, innboksFil());
+}
+
+async function kobleFraInnboks() {
+  innboksKobling = null;
+  fs.rmSync(innboksFil(), { force: true });
+  settInnboksTilstand({ koblet: false, uleste: 0, haster: 0 });
+}
+
+// Bare toppramma i en webview med Innboksens opphav slipper gjennom. Fanen kan ha navigert bort
+// etter at den fikk broen, så opphavet sjekkes ved hvert kall og ikke bare når fanen lages.
+function fraInnboks(e) {
+  const ramme = e.senderFrame;
+  if (!ramme || typeof e.sender.getType !== 'function' || e.sender.getType() !== 'webview') return false;
+  return Lenke.broTillatt({ opphav: ramme.origin, toppramme: ramme.parent === null }, Lenke.innboksOpphav(readData()));
+}
+
+ipcMain.handle('innboks-bro:status', (e) => {
+  if (!fraInnboks(e)) return { koblet: false };
+  return { koblet: !!innboksKobling, enhetId: innboksKobling ? innboksKobling.enhetId : null };
+});
+
+ipcMain.handle('innboks-bro:koble', async (e, svar) => {
+  if (!fraInnboks(e)) return AVVIST;
+  const v = Innboks.validerKobling(svar);
+  if (!v.ok) return { ok: false, feil: v.feil };
+  try {
+    await lagreInnboksKobling(v.kobling);
+  } catch {
+    return { ok: false, feil: 'Kunne ikke lagre nøkkelen kryptert på denne PC-en.' };
+  }
+  innboksKobling = v.kobling;
+  settInnboksTilstand({ koblet: true });
+  return { ok: true, enhetId: v.kobling.enhetId };
+});
+
+ipcMain.handle('innboks-bro:frakoble', async (e) => {
+  if (!fraInnboks(e)) return AVVIST;
+  const enhetId = innboksKobling ? innboksKobling.enhetId : null;
+  await kobleFraInnboks();
+  return { ok: true, enhetId };
+});
+
+// «Åpne i …» inne i Innboks. Lenken åpnes bare i en side som står i menyen; ellers svarer vi
+// nei, og Innboks åpner den som før.
+ipcMain.handle('innboks-bro:aapne', (e, lenke) => {
+  if (!fraInnboks(e)) return AVVIST;
+  const maal = Lenke.maalForLenke(lenke, readData());
+  if (!maal) return { ok: false, feil: 'Ingen side i appen passer til lenken.' };
+  sendTilVindu('innboks:aapne', maal);
+  return { ok: true };
 });
