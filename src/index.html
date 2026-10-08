@@ -24,20 +24,28 @@
   <div class="app">
     <!-- Sidemeny -->
     <aside class="sidebar" id="sidebar">
-      <div class="brand" id="brandDefault">
-        <img class="logo" src="../assets/logo-trim.png" alt="Hauge Maskin" />
-        <div class="brand-text">
-          <strong>HAUGE</strong><span>MASKIN</span>
+      <div class="brand-rad">
+        <div class="brand" id="brandDefault">
+          <img class="logo" src="../assets/logo-trim.png" alt="Hauge Maskin" />
+          <div class="brand-text">
+            <strong>HAUGE</strong><span>MASKIN</span>
+          </div>
         </div>
-      </div>
 
-      <!-- Viser hvilken side som er åpen -->
-      <div class="brand brand-active" id="brandActive" hidden>
-        <div class="active-icon" id="activeIcon"></div>
-        <div class="active-text">
-          <strong id="activeName"></strong>
-          <span id="activeGroup"></span>
+        <!-- Viser hvilken side som er åpen -->
+        <div class="brand brand-active" id="brandActive" hidden>
+          <div class="active-icon" id="activeIcon"></div>
+          <div class="active-text">
+            <strong id="activeName"></strong>
+            <span id="activeGroup"></span>
+          </div>
         </div>
+
+        <!-- Innboks har sin egen knapp, synlig hele tiden -->
+        <button id="btnInnboks" class="innboks-knapp" type="button" title="Innboks" aria-label="Innboks">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>
+          <span class="innboks-tall" id="innboksTall" hidden></span>
+        </button>
       </div>
 
       <div class="search-wrap">
@@ -327,6 +335,7 @@
   </div>
 
   <script src="delt.js"></script>
+  <script src="innboks-felles.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

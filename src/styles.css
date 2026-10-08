@@ -466,3 +466,23 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .actions-left:empty { display: none; }
 .modal-actions .btn { white-space: nowrap; }
 .spacer { flex: 1; }
+
+/* ---------- Innboks ---------- */
+/* Knappen står fast til høyre i toppen, uansett hvilken side som er åpen */
+.brand-rad { display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+.brand-rad .brand { flex: 1 1 auto; min-width: 0; border-bottom: 0; }
+.innboks-knapp {
+  position: relative; flex: 0 0 auto; width: 40px; height: 40px; margin-right: 14px;
+  display: grid; place-items: center; border-radius: 10px; cursor: pointer;
+  background: #ffffff0d; border: 1px solid var(--line); color: var(--text);
+}
+.innboks-knapp:hover, .innboks-knapp.aktiv { border-color: var(--red); color: #fff; }
+.innboks-knapp svg {
+  width: 20px; height: 20px; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round;
+}
+.innboks-tall {
+  position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 9px; background: var(--red); color: #fff;
+  font-size: 11px; font-weight: 800; line-height: 18px; text-align: center;
+}

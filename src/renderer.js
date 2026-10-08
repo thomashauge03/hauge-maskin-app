@@ -11,6 +11,8 @@ let isAdmin = false;
 const $ = (id) => document.getElementById(id);
 const viewport = $('viewport');
 const nav = $('nav');
+// Innboks har sin egen knapp i toppen og står ikke i den vanlige listen (se innboks-felles.js).
+const { INNBOKS_ID, innboksSide, synligeSider, merkeTekst } = window.HM_INNBOKS;
 
 /* ---------- Hjelpere ---------- */
 function normalizeUrl(raw) {
@@ -35,13 +37,11 @@ function applyOverride(p) {
 // Delte sider først, deretter dine egne
 const barePaaMobil = (p) => p.plattform === 'mobil';
 
-const allPages = () =>
-  [
-    ...(data.shared || []).map(applyOverride).filter((p) => !p.hidden && !barePaaMobil(p)),
-    ...data.pages
-  ];
+const allPages = () => synligeSider(data);
 
+// Innboks-siden finnes også når den felles listen mangler den, da med standardadressen.
 const findPage = (id) =>
+  (id === INNBOKS_ID ? innboksSide(data) : null) ||
   allPages().find((p) => p.id === id) ||
   (data.shared || []).map(applyOverride).find((p) => p.id === id);
 const hiddenShared = () =>
@@ -126,6 +126,7 @@ function colorDot(p) {
 
 // Toppen av sidemenyen viser siden som er åpen, med ikonet i stort format
 function renderBrand() {
+  $('btnInnboks').classList.toggle('aktiv', activeId === INNBOKS_ID);
   const page = activeId ? findPage(activeId) : null;
   $('brandDefault').hidden = !!page;
   $('brandActive').hidden = !page;
@@ -285,13 +286,13 @@ async function gjenopprettSide(id) {
 }
 
 /* ---------- Webviews ---------- */
-function webviewFor(page, create = false) {
+function webviewFor(page, create = false, startUrl = null) {
   let wv = viewport.querySelector(`webview[data-id="${CSS.escape(page.id)}"]`);
   if (wv || !create) return wv;
 
   wv = document.createElement('webview');
   wv.dataset.id = page.id;
-  wv.setAttribute('src', normalizeUrl(page.url));
+  wv.setAttribute('src', startUrl || normalizeUrl(page.url));
   wv.setAttribute('allowpopups', '');
   wv.setAttribute('partition', 'persist:hm');
   wv.setAttribute('plugins', ''); // innebygd PDF-visning
@@ -323,14 +324,27 @@ function webviewFor(page, create = false) {
   return wv;
 }
 
-function openPage(id) {
+// lenke: en adresse inne i siden, fra et varsel eller «Åpne i …» i Innboks. Uten lenke vises
+// siden der den var.
+function openPage(id, lenke = null) {
   const page = findPage(id);
   if (!page) return;
   activeId = id;
 
   $('empty').style.display = 'none';
   viewport.querySelectorAll('webview').forEach((w) => w.classList.remove('active'));
-  webviewFor(page, true).classList.add('active');
+  const fantes = !!webviewFor(page);
+  const wv = webviewFor(page, true, lenke);
+  wv.classList.add('active');
+  // En ny fane har alt fått lenken som src. En fane som finnes, må navigere dit. loadURL kaster
+  // før fanen er klar (dom-ready), og da gjør src-attributtet samme jobb.
+  if (lenke && fantes) {
+    try {
+      wv.loadURL(lenke).catch(() => { /* avbrutt av en ny navigering */ });
+    } catch {
+      wv.setAttribute('src', lenke);
+    }
+  }
 
   renderNav();
   syncToolbar();
@@ -1362,6 +1376,56 @@ $('sCheckUpdate').addEventListener('click', async () => {
   btn.disabled = false;
 });
 
+/* ---------- Innboks ---------- */
+let innboks = { koblet: false, uleste: 0, haster: 0, portabel: false };
+let sisteOverlay = null;
+// Et varsel kan bli trykket på før sidene er lastet. Da venter lenken til init er ferdig.
+let klar = false;
+let ventendeMaal = null;
+
+function visInnboks(t) {
+  innboks = { ...innboks, ...(t || {}) };
+  const tekst = innboks.koblet ? merkeTekst(innboks.uleste) : '';
+  const tall = $('innboksTall');
+  tall.textContent = tekst;
+  tall.hidden = !tekst;
+  const navn = tekst ? `Innboks: ${innboks.uleste} ${innboks.uleste === 1 ? 'ulest' : 'uleste'}` : 'Innboks';
+  $('btnInnboks').title = navn;
+  $('btnInnboks').setAttribute('aria-label', navn);
+  tegnOverlay(tekst);
+}
+
+// Merket på ikonet i oppgavelinja. Tegnes bare når tallet endrer seg, ikke hvert 15. sekund.
+function tegnOverlay(tekst) {
+  if (tekst === sisteOverlay) return;
+  sisteOverlay = tekst;
+  if (!tekst) { window.hm.innboksMerke(null); return; }
+  const c = document.createElement('canvas');
+  c.width = 32;
+  c.height = 32;
+  const g = c.getContext('2d');
+  g.fillStyle = '#e2001a';
+  g.beginPath();
+  g.arc(16, 16, 16, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = '#ffffff';
+  g.font = `800 ${tekst.length > 1 ? 15 : 20}px "Segoe UI", sans-serif`;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(tekst, 16, 17);
+  window.hm.innboksMerke(c.toDataURL('image/png'));
+}
+
+function aapneMaal(maal) {
+  if (!maal || typeof maal.sideId !== 'string') return;
+  if (!klar) { ventendeMaal = maal; return; }
+  openPage(maal.sideId, typeof maal.lenke === 'string' ? maal.lenke : null);
+}
+
+$('btnInnboks').addEventListener('click', () => openPage(INNBOKS_ID));
+window.hm.onInnboksTilstand(visInnboks);
+window.hm.onInnboksAapne(aapneMaal);
+
 /* ---------- Oppstart ---------- */
 (async function init() {
   data = await window.hm.loadData();
@@ -1382,6 +1446,12 @@ $('sCheckUpdate').addEventListener('click', async () => {
 
   const start = data.settings?.activeId;
   if (start && findPage(start)) openPage(start);
+
+  klar = true;
+  const venter = ventendeMaal;
+  ventendeMaal = null;
+  if (venter) aapneMaal(venter);
+  visInnboks(await window.hm.innboksTilstand());
 
   restartSyncTimer();
   if ((data.settings.sharedUrl || '').trim()) doSync(true);

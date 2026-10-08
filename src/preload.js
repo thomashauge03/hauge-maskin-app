@@ -34,6 +34,11 @@ contextBridge.exposeInMainWorld('hm', {
   nyttSett: () => ipcRenderer.invoke('nytt:sett'),
   checkUpdate: () => ipcRenderer.invoke('update:check'),
   installUpdate: () => ipcRenderer.invoke('update:install'),
+
+  innboksTilstand: () => ipcRenderer.invoke('innboks:hent-tilstand'),
+  onInnboksTilstand: (cb) => ipcRenderer.on('innboks:tilstand', (_e, t) => cb(t)),
+  onInnboksAapne: (cb) => ipcRenderer.on('innboks:aapne', (_e, maal) => cb(maal)),
+  innboksMerke: (dataUrl) => ipcRenderer.invoke('innboks:merke', dataUrl),
   onUpdate: (cb) => {
     ipcRenderer.on('update:available', (_e, d) => cb('available', d));
     ipcRenderer.on('update:progress', (_e, d) => cb('progress', d));

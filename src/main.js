@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, webContents, session } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, safeStorage, webContents, session, nativeImage } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
@@ -936,4 +936,26 @@ ipcMain.handle('innboks-bro:aapne', (e, lenke) => {
   if (!maal) return { ok: false, feil: 'Ingen side i appen passer til lenken.' };
   sendTilVindu('innboks:aapne', maal);
   return { ok: true };
+});
+
+// Kanalene under er for hovedvinduet alene. En fane med broen skal ikke kunne sette merket.
+const fraHovedvinduet = (e) => !!mainWindow && !mainWindow.isDestroyed() && e.sender === mainWindow.webContents;
+
+ipcMain.handle('innboks:hent-tilstand', (e) => {
+  if (!fraHovedvinduet(e)) return null;
+  return { ...innboksTilstand, portabel: PORTABEL };
+});
+
+// Windows har ikke tall på ikonet i oppgavelinja, bare et lite overleggsbilde. Grensesnittet
+// tegner det (det har canvas og skrift), hovedprosessen setter det.
+ipcMain.handle('innboks:merke', (e, dataUrl) => {
+  if (!fraHovedvinduet(e)) return false;
+  if (dataUrl === null) {
+    mainWindow.setOverlayIcon(null, '');
+    return true;
+  }
+  if (typeof dataUrl !== 'string' || dataUrl.length > 100000 || !/^data:image\/png;base64,[A-Za-z0-9+/]+=*$/.test(dataUrl)) return false;
+  const n = innboksTilstand.uleste;
+  mainWindow.setOverlayIcon(nativeImage.createFromDataURL(dataUrl), n + (n === 1 ? ' ulest' : ' uleste') + ' i Innboks');
+  return true;
 });
