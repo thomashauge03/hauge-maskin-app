@@ -62,5 +62,13 @@ test('alle faner får herdede innstillinger, og bare Innboks får broen', () => 
   assert.match(MAIN, /webPreferences\.nodeIntegration = false;/);
   assert.match(MAIN, /webPreferences\.contextIsolation = true;/);
   assert.match(MAIN, /webPreferences\.sandbox = true;/);
-  assert.match(MAIN, /if \(Lenke\.broSkalMed\(params\.src, Lenke\.innboksOpphav\(readData\(\)\)\)\) \{\s+webPreferences\.preload = path\.join\(__dirname, 'innboks-bro\.js'\);/);
+  assert.match(MAIN, /if \(Lenke\.broSkalMed\(params\.src\)\) \{\s+webPreferences\.preload = path\.join\(__dirname, 'innboks-bro\.js'\);/);
+});
+
+/* Adressen i sider.json kan endres uten en ny versjon av appen. Broen og kanalene skal bare
+   følge det faste opphavet i innboks-felles.js. */
+test('broen og kanalene bruker det faste opphavet, aldri adressen fra sider.json', () => {
+  assert.doesNotMatch(MAIN, /broSkalMed\([^)]*innboksOpphav/);
+  assert.doesNotMatch(MAIN, /broTillatt\([^;]*innboksOpphav/);
+  assert.match(MAIN, /Lenke\.broTillatt\(\{ opphav: ramme\.origin, toppramme: ramme\.parent === null \}\);/);
 });

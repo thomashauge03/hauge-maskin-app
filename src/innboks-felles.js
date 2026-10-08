@@ -112,17 +112,21 @@
     return { sideId: INNBOKS_ID, lenke: saksLenke(data, v.sak_id) };
   }
 
+  /* Broen gir tilgang til enhetsnøkkelen. Adressen til Innboks-siden kan endres i sider.json og
+     lokalt uten en ny versjon av appen, så broen følger ikke den, men står fast i koden. Peker
+     siden et annet sted, vises den, men uten bro. */
+  const BRO_OPPHAV = INNBOKS_STANDARD;
+
   // Broen legges bare på en fane som starter på Innboksens eget opphav, over https.
-  function broSkalMed(src, opphav) {
+  function broSkalMed(src) {
     const u = lenkeUrl(src);
-    return !!u && u.protocol === 'https:' && u.origin === opphav;
+    return !!u && u.protocol === 'https:' && u.origin === BRO_OPPHAV;
   }
 
   // Hvert kall over broen sjekkes på nytt, fordi fanen kan ha navigert bort etter at den fikk
   // broen. Bare toppramma teller, aldri en iframe inne i siden.
-  function broTillatt(ramme, opphav) {
-    return !!ramme && ramme.toppramme === true && typeof opphav === 'string' &&
-      opphav.startsWith('https://') && ramme.opphav === opphav;
+  function broTillatt(ramme) {
+    return !!ramme && ramme.toppramme === true && ramme.opphav === BRO_OPPHAV;
   }
 
   // Tallet på knappen og ikonet. Over ni blir det «9+», ellers blir merket uleselig.
@@ -132,7 +136,7 @@
   }
 
   eksporter({
-    INNBOKS_ID, INNBOKS_STANDARD, innboksSide, innboksOpphav, synligeSider, rutesider, finnSide,
+    INNBOKS_ID, INNBOKS_STANDARD, BRO_OPPHAV, innboksSide, innboksOpphav, synligeSider, rutesider, finnSide,
     saksLenke, maalForLenke, maalForVarsel, broSkalMed, broTillatt, merkeTekst
   });
 })(typeof module !== 'undefined' && module.exports

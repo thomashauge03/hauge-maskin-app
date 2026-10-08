@@ -69,6 +69,26 @@ test('kallRpc gir null når navet svarer null, som for en ukjent nøkkel', async
   assert.equal(await kallRpc(fetchFn, KOBLING, 'enhet_hent', {}), null);
 });
 
+/* Bare en bokstavelig null betyr «ukjent nøkkel». Et tomt svar er en nettglipp eller en proxy som
+   svarer 200 eller 204 uten innhold, og det skal gi en vanlig feil med ventetid, ikke koble fra PC-en. */
+test('kallRpc kaster en feil med bare status for et tomt svar, også ved 204', async () => {
+  for (const status of [200, 204]) {
+    const tomt = async () => ({ ok: true, status, text: async () => '' });
+    await assert.rejects(kallRpc(tomt, KOBLING, 'enhet_hent', {}),
+      (e) => e.status === status && !e.message.includes(KOBLING.nokkel) && !e.message.includes(ANON), String(status));
+  }
+});
+
+test('et tomt svar fra navet kobler ikke fra, men gir ny runde med lengre ventetid', async () => {
+  const { avh, logg } = lagFalsk([]);
+  avh.hent = () => kallRpc(async () => ({ ok: true, status: 204, text: async () => '' }), KOBLING, 'enhet_hent', {});
+  const vakt = lagVakt(avh);
+  await vakt.start();
+  assert.equal(logg.frakoblet, 0);
+  assert.equal(vakt.erAktiv(), true);
+  assert.equal(sist(logg).ms, 30000);
+});
+
 test('feil fra navet har status, men aldri nøklene i meldingen', async () => {
   const avvist = async () => ({ ok: false, status: 401, text: async () => KOBLING.nokkel });
   await assert.rejects(kallRpc(avvist, KOBLING, 'enhet_hent', {}),
@@ -201,4 +221,42 @@ test('et eldre svar uten uleste bruker apne, og ugyldige id-er hoppes over', asy
   assert.deepEqual(logg.tilstand, [{ koblet: true, uleste: 4, haster: 1 }]);
   assert.deepEqual(logg.vist, [ID1]);
   assert.deepEqual(logg.kvittert, [[ID1]]);
+});
+
+/* Et varsel som ikke kunne vises, skal ikke kvitteres. Da er det borte for godt, uten at noen
+   har sett det. Det skal komme igjen i neste runde, og de andre varslene skal vises likevel. */
+test('et varsel som feiler i vis, kvitteres ikke og vises i neste runde, og de andre vises likevel', async () => {
+  const { avh, logg } = lagFalsk([
+    { uleste: 2, haster: 0, varsler: [varsel(ID1), varsel(ID2)] },
+    { uleste: 2, haster: 0, varsler: [varsel(ID1), varsel(ID2)] },
+  ]);
+  let feilForste = true;
+  avh.vis = (v) => {
+    if (v.id === ID1 && feilForste) { feilForste = false; throw new Error('varselet kunne ikke lages'); }
+    logg.vist.push(v.id);
+  };
+  await lagVakt(avh).start();
+  assert.deepEqual(logg.vist, [ID2]);
+  assert.deepEqual(logg.kvittert, [[ID2]]);
+  await sist(logg).fn();
+  assert.deepEqual(logg.vist, [ID2, ID1], 'ID1 vises nå, og ID2 vises ikke to ganger');
+  assert.deepEqual(logg.kvittert, [[ID2], [ID1, ID2]]);
+});
+
+test('et varsel som haster, men feiler i vis, får ikke oppgavelinja til å blinke', async () => {
+  const { avh, logg } = lagFalsk([{ uleste: 1, haster: 1, varsler: [varsel(ID1, { haster: true })] }]);
+  avh.vis = () => { throw new Error('varselet kunne ikke lages'); };
+  await lagVakt(avh).start();
+  assert.equal(logg.blink, 0);
+  assert.deepEqual(logg.kvittert, []);
+});
+
+test('lagHusk kan glemme én bestemt verdi', () => {
+  const h = lagHusk(3);
+  for (const id of ['a', 'b', 'c']) h.legg(id);
+  h.fjern('b');
+  assert.equal(h.har('b'), false);
+  assert.equal(h.storrelse(), 2);
+  h.fjern('finnes-ikke');
+  assert.equal(h.storrelse(), 2);
 });

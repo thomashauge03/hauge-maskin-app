@@ -88,7 +88,10 @@ async function kallRpc(fetchFn, kobling, navn, args) {
   } catch {
     throw lagFeil('Ingen kontakt med Innboks.', 0);
   }
-  if (!tekst) return null;
+  /* Bare en bokstavelig null fra RPC-en betyr «ukjent nøkkel», og den kobler PC-en fra. Et tomt
+     svar (200 eller 204 fra en proxy eller en nettglipp) er en vanlig feil, så vakta venter og
+     prøver igjen i stedet. Ingen av RPC-ene i navet svarer med en tom kropp. */
+  if (!tekst) throw lagFeil('Uventet svar fra Innboks.', svar.status);
   try {
     return JSON.parse(tekst);
   } catch {
@@ -96,7 +99,8 @@ async function kallRpc(fetchFn, kobling, navn, args) {
   }
 }
 
-// Id-ene til varslene som er vist. Bare de siste, så minnet ikke vokser i en app som står på i uker.
+// Id-ene til varslene som er vist, og i main.js varselobjektene selv. Bare de siste, så minnet
+// ikke vokser i en app som står på i uker.
 function lagHusk(maks = 500) {
   const sett = new Set();
   return {
@@ -105,6 +109,7 @@ function lagHusk(maks = 500) {
       sett.add(id);
       while (sett.size > maks) sett.delete(sett.values().next().value);
     },
+    fjern: (id) => { sett.delete(id); },
     storrelse: () => sett.size,
   };
 }
@@ -147,13 +152,20 @@ function lagVakt(avh) {
       avh.tilstand({ koblet: true, uleste: heltall(svar.uleste !== undefined ? svar.uleste : svar.apne), haster: heltall(svar.haster) });
       let haster = false;
       const ider = [];
+      /* Et varsel huskes og kvitteres først når det er vist. Feiler vis, kommer det igjen i neste
+         runde, og ett varsel som feiler, stopper ikke de andre. */
       for (const v of svar.varsler) {
         if (!v || typeof v.id !== 'string' || !UUID.test(v.id)) continue;
+        if (!husk.har(v.id)) {
+          try {
+            avh.vis(v);
+          } catch {
+            continue;
+          }
+          husk.legg(v.id);
+          if (v.haster) haster = true;
+        }
         ider.push(v.id);
-        if (husk.har(v.id)) continue;
-        husk.legg(v.id);
-        avh.vis(v);
-        if (v.haster) haster = true;
       }
       if (haster) avh.blink();
       if (ider.length) await avh.kvitter(ider);

@@ -88,19 +88,39 @@ test('«Åpne i …» finner siden, eller sier fra at ingen passer', () => {
 });
 
 test('broen legges bare på en fane med nøyaktig Innboksens opphav over https', () => {
-  assert.equal(F.broSkalMed(OPPHAV + '/#/sak/' + SAK, OPPHAV), true);
+  assert.equal(F.broSkalMed(OPPHAV + '/#/sak/' + SAK), true);
   for (const src of ['http://innboks-hauge-maskin.vercel.app/', 'https://innboks-hauge-maskin.vercel.app.evil.no/',
     'https://innboks-hauge-maskin.vercel.app@evil.no/', 'https://evil.no/?https://innboks-hauge-maskin.vercel.app', '', undefined]) {
-    assert.equal(F.broSkalMed(src, OPPHAV), false, String(src));
+    assert.equal(F.broSkalMed(src), false, String(src));
   }
 });
 
 test('broen godtar bare kall fra toppramma på Innboksens opphav', () => {
-  assert.equal(F.broTillatt({ opphav: OPPHAV, toppramme: true }, OPPHAV), true);
-  assert.equal(F.broTillatt({ opphav: OPPHAV, toppramme: false }, OPPHAV), false);
-  assert.equal(F.broTillatt({ opphav: 'https://evil.no', toppramme: true }, OPPHAV), false);
-  assert.equal(F.broTillatt(null, OPPHAV), false);
-  assert.equal(F.broTillatt({ opphav: 'http://x.no', toppramme: true }, 'http://x.no'), false);
+  assert.equal(F.broTillatt({ opphav: OPPHAV, toppramme: true }), true);
+  assert.equal(F.broTillatt({ opphav: OPPHAV, toppramme: false }), false);
+  assert.equal(F.broTillatt({ opphav: 'https://evil.no', toppramme: true }), false);
+  assert.equal(F.broTillatt(null), false);
+  assert.equal(F.broTillatt({ opphav: 'http://innboks-hauge-maskin.vercel.app', toppramme: true }), false);
+});
+
+/* Adressen til Innboks-siden kan komme fra sider.json eller fra en lokal endring, og begge kan
+   endres uten en ny versjon av appen. Broen gir tilgang til enhetsnøkkelen, så den er festet til
+   standardadressen i koden og følger aldri adressen i listen. */
+test('broen er festet til standardadressen, selv når sider.json eller en lokal endring peker et annet sted', () => {
+  const ANNEN = 'https://annen-innboks.example';
+  const fraListe = data({ shared: [RORLAGER, side('shared:innboks', ANNEN + '/')] });
+  const fraOverstyring = data({ overrides: { [INNBOKS.id]: { url: ANNEN + '/' } } });
+  for (const d of [fraListe, fraOverstyring]) {
+    assert.equal(F.innboksSide(d).url, ANNEN + '/', 'sideadressen kan fortsatt komme fra listen');
+    assert.equal(F.broSkalMed(ANNEN + '/'), false);
+    assert.equal(F.broTillatt({ opphav: ANNEN, toppramme: true }), false);
+    assert.equal(F.broSkalMed(OPPHAV + '/'), true);
+    assert.equal(F.broTillatt({ opphav: OPPHAV, toppramme: true }), true);
+  }
+  // Et opphav som sendes med som før, overstyrer ikke festet.
+  assert.equal(F.broSkalMed(ANNEN + '/', ANNEN), false);
+  assert.equal(F.broTillatt({ opphav: ANNEN, toppramme: true }, ANNEN), false);
+  assert.equal(F.BRO_OPPHAV, F.INNBOKS_STANDARD);
 });
 
 test('merketallet', () => {

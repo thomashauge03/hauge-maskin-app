@@ -209,9 +209,15 @@ app.on('web-contents-created', (_e, contents) => {
     fangUtskrift(vindu);
   });
 
+  // En side med ulagrede endringer kan stoppe lukkingen med beforeunload, og da stopper også
+  // avslutningen. Appen lever videre, og lukk skal igjen bety skjul. Ellers ville neste klikk på
+  // lukk avsluttet appen, og varslene fra Innboks ville stoppet.
+  contents.on('will-prevent-unload', () => { avslutter = false; });
+
   // Herding. Ingen fane får andre forhåndslastere enn Innboks-broen, og ingen får Node eller
   // slipper ut av sandkassen, uansett hva som står på webview-taggen. Broen legges bare på en
-  // fane som starter på Innboksens opphav; hovedprosessen sjekker opphavet igjen ved hvert kall.
+  // fane som starter på Innboksens faste opphav (Lenke.BRO_OPPHAV, aldri adressen i sider.json);
+  // hovedprosessen sjekker opphavet igjen ved hvert kall.
   contents.on('will-attach-webview', (_ev, webPreferences, params) => {
     delete webPreferences.preload;
     delete webPreferences.preloadURL;
@@ -221,7 +227,7 @@ app.on('web-contents-created', (_e, contents) => {
     webPreferences.sandbox = true;
     webPreferences.webSecurity = true;
     webPreferences.allowRunningInsecureContent = false;
-    if (Lenke.broSkalMed(params.src, Lenke.innboksOpphav(readData()))) {
+    if (Lenke.broSkalMed(params.src)) {
       webPreferences.preload = path.join(__dirname, 'innboks-bro.js');
     }
   });
@@ -922,11 +928,19 @@ async function lagreInnboksKobling(kobling) {
   fs.renameSync(tmp, innboksFil());
 }
 
+// Filen slettes før nøkkelen glemmes i minnet. Feiler slettingen, er appen fortsatt koblet, og
+// det skal den si, ellers kommer nøkkelen tilbake ved neste start uten at noen vet hvorfor.
+// Feilmeldingen nevner aldri nøkkelen eller filen.
 async function kobleFraInnboks() {
   vakt.stopp();
+  try {
+    fs.rmSync(innboksFil(), { force: true });
+  } catch {
+    return { ok: false, feil: 'Kunne ikke slette nøkkelen på denne PC-en.' };
+  }
   innboksKobling = null;
-  fs.rmSync(innboksFil(), { force: true });
   settInnboksTilstand({ koblet: false, uleste: 0, haster: 0 });
+  return { ok: true };
 }
 
 // Bare toppramma i en webview med Innboksens opphav slipper gjennom. Fanen kan ha navigert bort
@@ -934,7 +948,7 @@ async function kobleFraInnboks() {
 function fraInnboks(e) {
   const ramme = e.senderFrame;
   if (!ramme || typeof e.sender.getType !== 'function' || e.sender.getType() !== 'webview') return false;
-  return Lenke.broTillatt({ opphav: ramme.origin, toppramme: ramme.parent === null }, Lenke.innboksOpphav(readData()));
+  return Lenke.broTillatt({ opphav: ramme.origin, toppramme: ramme.parent === null });
 }
 
 ipcMain.handle('innboks-bro:status', (e) => {
@@ -961,7 +975,12 @@ ipcMain.handle('innboks-bro:koble', async (e, svar) => {
 ipcMain.handle('innboks-bro:frakoble', async (e) => {
   if (!fraInnboks(e)) return AVVIST;
   const enhetId = innboksKobling ? innboksKobling.enhetId : null;
-  await kobleFraInnboks();
+  const r = await kobleFraInnboks();
+  if (!r.ok) {
+    // Fortsatt koblet, så varslene skal fortsette å komme.
+    if (innboksKobling) vakt.start();
+    return r;
+  }
   return { ok: true, enhetId };
 });
 
@@ -997,9 +1016,11 @@ ipcMain.handle('innboks:merke', (e, dataUrl) => {
   return true;
 });
 
-// Holder varslene i live til de er lukket. Uten en referanse kan Notification-objektet ryddes
-// bort, og da skjer det ingenting når noen trykker på det.
-const innboksVarsler = new Set();
+// Holder varslene i live. Uten en referanse kan Notification-objektet ryddes bort, og da skjer
+// det ingenting når noen trykker på det. 'close' kommer også når varselet glir ut av skjermen og
+// blir liggende i varslingssenteret, så det slippes bare ved klikk og feil. De 50 nyeste holdes,
+// så minnet ikke vokser i en app som står på i uker.
+const innboksVarsler = Innboks.lagHusk(50);
 
 const vakt = Innboks.lagVakt({
   hent: () => Innboks.kallRpc(fetch, innboksKobling, 'enhet_hent', { p_nokkel: innboksKobling.nokkel }),
@@ -1010,7 +1031,9 @@ const vakt = Innboks.lagVakt({
     if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isFocused()) mainWindow.flashFrame(true);
   },
   // Navet kjenner ikke nøkkelen lenger: enheten er fjernet i Innboks, eller personen er tatt ut.
-  frakoblet: () => { kobleFraInnboks().catch(() => { /* filen er alt borte */ }); },
+  // Feiler slettingen, står vakta stille til neste start, og da får navet spørsmålet på nytt.
+  // Å starte den igjen her ville gitt en ny avvisning med en gang, i en løkke.
+  frakoblet: () => { kobleFraInnboks().catch(() => { /* ingenting mer å gjøre før neste start */ }); },
   planlegg: (fn, ms) => setTimeout(fn, ms),
   avbryt: (t) => clearTimeout(t),
 });
@@ -1029,7 +1052,10 @@ function visVindu(etterpaa) {
   if (mainWindow.isMinimized()) mainWindow.restore();
   mainWindow.show();
   mainWindow.focus();
-  if (etterpaa) etterpaa();
+  if (!etterpaa) return;
+  // Laster grensesnittet fortsatt, ville meldingen gått tapt.
+  if (mainWindow.webContents.isLoading()) mainWindow.webContents.once('did-finish-load', etterpaa);
+  else etterpaa();
 }
 
 function visInnboksVarsel(v) {
@@ -1042,9 +1068,8 @@ function visInnboksVarsel(v) {
     // Det som haster, blir liggende til noen har sett det.
     timeoutType: v.haster ? 'never' : 'default',
   });
-  innboksVarsler.add(varsel);
-  const glem = () => innboksVarsler.delete(varsel);
-  varsel.on('close', glem);
+  innboksVarsler.legg(varsel);
+  const glem = () => innboksVarsler.fjern(varsel);
   varsel.on('failed', glem);
   varsel.on('click', () => {
     glem();
@@ -1091,6 +1116,9 @@ function brukBakgrunn() {
   if (!valg.statusfelt && statusfelt) {
     statusfelt.destroy();
     statusfelt = null;
+    // Uten ikon i systemstatusfeltet og uten synlig vindu kjører appen usynlig, uten noen vei
+    // tilbake. Det skjer når navet avviser nøkkelen mens vinduet er skjult.
+    if (!avslutter && (!mainWindow || mainWindow.isDestroyed() || !mainWindow.isVisible())) visVindu();
   }
   if (statusfelt) statusfelt.setToolTip(Bakgrunn.statusfeltTekst(innboksTilstand));
 }
