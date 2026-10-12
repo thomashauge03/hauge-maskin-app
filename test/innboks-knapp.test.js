@@ -60,6 +60,123 @@ test('grensesnittet setter klassen, lar merket hoppe på nytt og bruker navnet f
   assert.match(kropp, /tegnOverlay\(tekst\);/, 'merket på ikonet i oppgavelinja er som før');
 });
 
+/* De røde tallene på systemene i menyen. */
+const kroppTil = (navn) => {
+  const i = RENDERER.indexOf('function ' + navn + '(');
+  assert.ok(i !== -1, 'mangler ' + navn);
+  return RENDERER.slice(i, RENDERER.indexOf('\n}', i));
+};
+
+test('tallet i menyen ser ut som merket på Innboks-knappen, og står til høyre i raden', () => {
+  const tall = regel('.nav-tall');
+  assert.match(tall, /background: var\(--red\)/);
+  assert.match(tall, /color: #fff/);
+  assert.match(tall, /font-weight: 800/);
+  assert.match(tall, /box-shadow: 0 0 0 [\d.]+px #fff/, 'samme hvite kant som merket på knappen');
+  assert.match(tall, /flex: 0 0 auto/);
+  assert.match(regel('.nav-name'), /flex: 1/, 'navnet fyller raden, så tallet havner ytterst til høyre');
+  assert.match(regel('.nav-tall.hopp'), /animation: innboks-hopp/);
+});
+
+test('uten bevegelse hopper ikke tallene i menyen', () => {
+  const blokker = CSS.split('@media (prefers-reduced-motion: reduce)').slice(1).map((b) => b.slice(0, b.indexOf('\n}')));
+  assert.ok(blokker.some((b) => /\.nav-tall\.hopp \{ animation: none; \}/.test(b)));
+});
+
+test('menyen tegner tallet med vistAntall, «99+» og navnet for skjermlesere', () => {
+  const kropp = kroppTil('tegnSideTall');
+  assert.match(kropp, /const n = vistAntall\(innboks\.koblet, antall\);/, 'uten kobling vises ingen tall');
+  assert.match(kropp, /tall\.textContent = sideTallTekst\(n\);/);
+  assert.match(kropp, /setAttribute\('aria-label', sideTallNavn\(btn\.dataset\.navn, n\)\)/);
+  assert.match(kropp, /setAttribute\('aria-hidden', 'true'\)/);
+  assert.match(kropp, /classList\.remove\('hopp'\);\s+void tall\.offsetWidth;\s+tall\.classList\.add\('hopp'\);/);
+  assert.match(kropp, /removeAttribute\('aria-label'\)/, 'navnet blir vanlig igjen når tallet forsvinner');
+});
+
+test('menyen røres bare når et tall endrer seg, og tallet hopper bare når det øker', () => {
+  const kropp = kroppTil('oppdaterSideTall');
+  assert.match(kropp, /if \(nokkel === sideTallNokkel\) return;/);
+  assert.match(kropp, /skalHoppe\(forrige\[id\] \|\| 0, nye\[id\] \|\| 0\)/);
+  assert.doesNotMatch(kropp, /renderNav\(/, 'hele menyen tegnes ikke på nytt');
+  assert.match(kroppTil('beregnSideTall'), /innboks\.koblet \? antallPerSide\(allPages\(\), innboks\.ulestePerKilde, innboks\.kildeRot\) : \{\}/);
+  assert.match(kroppTil('visInnboks'), /oppdaterSideTall\(\);/);
+  const nav = kroppTil('renderNav');
+  assert.match(nav, /sideTall = beregnSideTall\(\);/);
+  assert.match(nav, /btn\.dataset\.id = p\.id;\s+btn\.dataset\.navn = p\.name;\s+tegnSideTall\(btn, sideTall\[p\.id\] \|\| 0, false\);/);
+});
+
+/* Grensesnittet kjørt for seg, med en liten falsk DOM: tallene kommer og går med tilstanden fra
+   vakta, og samme tilstand to ganger rører ikke menyen. */
+test('tallene i menyen følger tilstanden fra vakta', () => {
+  const F = require('../src/innboks-felles.js');
+  const lagEl = (tag) => {
+    const el = {
+      tag, barn: [], attr: {}, dataset: {}, klasser: new Set(), textContent: '', offsetWidth: 0, forelder: null,
+      classList: {
+        add: (k) => el.klasser.add(k), remove: (k) => el.klasser.delete(k), contains: (k) => el.klasser.has(k),
+      },
+      setAttribute: (k, v) => { el.attr[k] = String(v); },
+      removeAttribute: (k) => { delete el.attr[k]; },
+      appendChild: (b) => { b.forelder = el; el.barn.push(b); endringer += 1; return b; },
+      remove: () => { const f = el.forelder; f.barn = f.barn.filter((b) => b !== el); endringer += 1; },
+      querySelector: (v) => el.barn.find((b) => '.' + b.className === v) || null,
+    };
+    return el;
+  };
+  let endringer = 0;
+  const rader = ['shared:utleie', 'shared:utleie-kundeside', 'shared:r-rlager'].map((id) => {
+    const r = lagEl('button');
+    r.dataset.id = id;
+    r.dataset.navn = id.slice(7);
+    return r;
+  });
+  const nav = { querySelectorAll: () => rader };
+  const sider = [
+    { id: 'shared:utleie', name: 'Utleie', url: 'https://utleie-hauge-maskin.vercel.app/admin' },
+    { id: 'shared:utleie-kundeside', name: 'Utleie Kundeside', url: 'https://utleie-hauge-maskin.vercel.app/' },
+    { id: 'shared:r-rlager', name: 'Rørlager', url: 'https://rorlager.vercel.app/admin' },
+  ];
+  const start = RENDERER.indexOf('let sideTall = {};');
+  const slutt = RENDERER.indexOf('function renderNav(');
+  const kode = 'let innboks = { koblet: false };\n' + RENDERER.slice(start, slutt) +
+    '\n;({ sett: (t) => { innboks = t; oppdaterSideTall(); } })';
+  const ctx = {
+    document: { createElement: lagEl }, nav, allPages: () => sider,
+    vistAntall: F.vistAntall, skalHoppe: F.skalHoppe, antallPerSide: F.antallPerSide,
+    sideTallTekst: F.sideTallTekst, sideTallNavn: F.sideTallNavn,
+  };
+  const { sett } = vm.runInNewContext(kode, ctx, { filename: 'renderer.js' });
+  const rot = { utleie: 'https://utleie-hauge-maskin.vercel.app/admin/', rorlager: 'https://rorlager.vercel.app/admin' };
+  const tall = (r) => (r.barn.find((b) => b.className === 'nav-tall') || {}).textContent;
+
+  sett({ koblet: true, ulestePerKilde: { utleie: 3 }, kildeRot: rot });
+  assert.equal(tall(rader[0]), '3');
+  assert.equal(rader[0].attr['aria-label'], 'utleie, 3 nye i Innboks');
+  assert.ok(rader[0].barn[0].klasser.has('hopp'), 'tallet hopper når det dukker opp');
+  assert.equal(tall(rader[1]), undefined, 'kundesiden får ikke tallet til admin-siden');
+  assert.equal(tall(rader[2]), undefined);
+
+  const foer = endringer;
+  sett({ koblet: true, ulestePerKilde: { utleie: 3 }, kildeRot: rot });
+  assert.equal(endringer, foer,'samme tall hvert 15. sekund rører ikke menyen');
+
+  rader[0].barn[0].klasser.delete('hopp');
+  sett({ koblet: true, ulestePerKilde: { utleie: 150, rorlager: 1 }, kildeRot: rot });
+  assert.equal(tall(rader[0]), '99+');
+  assert.equal(rader[0].attr['aria-label'], 'utleie, 150 nye i Innboks');
+  assert.ok(rader[0].barn[0].klasser.has('hopp'), 'tallet hopper når det øker');
+  assert.equal(tall(rader[2]), '1');
+
+  rader[0].barn[0].klasser.delete('hopp');
+  sett({ koblet: true, ulestePerKilde: { utleie: 2, rorlager: 1 }, kildeRot: rot });
+  assert.equal(tall(rader[0]), '2');
+  assert.ok(!rader[0].barn[0].klasser.has('hopp'), 'et tall som går ned, hopper ikke');
+
+  sett({ koblet: false, ulestePerKilde: { utleie: 2, rorlager: 1 }, kildeRot: rot });
+  assert.deepEqual(rader.map(tall), [undefined, undefined, undefined], 'uten kobling ingen tall');
+  assert.equal(rader[0].attr['aria-label'], undefined);
+});
+
 test('innboks-felles.js lastes før renderer.js, som bruker den', () => {
   const felles = HTML.indexOf('<script src="innboks-felles.js"></script>');
   assert.ok(felles !== -1 && felles < HTML.indexOf('<script src="renderer.js"></script>'));

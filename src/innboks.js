@@ -116,6 +116,44 @@ function lagHusk(maks = 500) {
 
 const heltall = (x) => (Number.isInteger(x) && x >= 0 ? x : 0);
 
+/* Tallet per system og rotadressen til hvert system, fra enhet_hent. Svaret går videre til
+   grensesnittet og styrer hva som står i menyen, så alt som ikke ser riktig ut, kastes: et felt
+   som ikke er et vanlig objekt, blir tomt, og en oppføring med ukjent form faller bort. Taket på
+   50 holder et feilaktig svar fra å fylle minnet eller menyen. */
+const KILDE_SLUG = /^[a-z0-9_-]{1,40}$/;
+const MAKS_KILDER = 50;
+
+function vanligObjekt(x) {
+  if (!x || typeof x !== 'object' || Array.isArray(x)) return false;
+  const proto = Object.getPrototypeOf(x);
+  return proto === Object.prototype || proto === null;
+}
+
+// Object.fromEntries lager egne egenskaper, så en slug som __proto__ aldri blir prototypen.
+function rensKilder(x, gyldig) {
+  if (!vanligObjekt(x)) return {};
+  const ut = [];
+  for (const slug of Object.keys(x)) {
+    if (ut.length >= MAKS_KILDER) break;
+    if (!KILDE_SLUG.test(slug) || !gyldig(x[slug])) continue;
+    ut.push([slug, x[slug]]);
+  }
+  return Object.fromEntries(ut);
+}
+
+const gyldigAntall = (n) => Number.isSafeInteger(n) && n >= 0;
+
+function gyldigRot(rot) {
+  if (rot === null) return true;
+  if (typeof rot !== 'string' || rot.length > 2048) return false;
+  let u;
+  try { u = new URL(rot); } catch { return false; }
+  return u.protocol === 'https:' && !u.username && !u.password;
+}
+
+const rensUlestePerKilde = (x) => rensKilder(x, gyldigAntall);
+const rensKildeRot = (x) => rensKilder(x, gyldigRot);
+
 /* avh: { hent, kvitter, vis, tilstand, blink, frakoblet, planlegg, avbryt }.
 
    Én runde om gangen. Kommer naa() midt i en runde, tas en ny runde rett etter. stopp() øker
@@ -149,7 +187,13 @@ function lagVakt(avh) {
         return;
       }
       if (!svar || typeof svar !== 'object' || !Array.isArray(svar.varsler)) throw new Error('Uventet svar fra Innboks.');
-      avh.tilstand({ koblet: true, uleste: heltall(svar.uleste !== undefined ? svar.uleste : svar.apne), haster: heltall(svar.haster) });
+      avh.tilstand({
+        koblet: true,
+        uleste: heltall(svar.uleste !== undefined ? svar.uleste : svar.apne),
+        haster: heltall(svar.haster),
+        ulestePerKilde: rensUlestePerKilde(svar.uleste_per_kilde),
+        kildeRot: rensKildeRot(svar.kilde_rot),
+      });
       let haster = false;
       const ider = [];
       /* Et varsel huskes og kvitteres først når det er vist. Feiler vis, kommer det igjen i neste
@@ -208,4 +252,7 @@ function lagVakt(avh) {
   };
 }
 
-module.exports = { INTERVALL_MS, MAKS_VENT_MS, NAV_URL, nesteVent, gyldigAnonNokkel, validerKobling, kallRpc, lagHusk, lagVakt };
+module.exports = {
+  INTERVALL_MS, MAKS_VENT_MS, NAV_URL, nesteVent, gyldigAnonNokkel, validerKobling, kallRpc, lagHusk, lagVakt,
+  rensUlestePerKilde, rensKildeRot,
+};

@@ -892,7 +892,7 @@ const PORTABEL = !!process.env.PORTABLE_EXECUTABLE_FILE;
 const AVVIST = { ok: false, feil: 'Bare Innboks kan bruke dette.' };
 
 let innboksKobling = null; // { enhetId, nokkel, url, anonNokkel }, bare i hovedprosessen
-let innboksTilstand = { koblet: false, uleste: 0, haster: 0 };
+let innboksTilstand = { koblet: false, uleste: 0, haster: 0, ulestePerKilde: {}, kildeRot: {} };
 
 function sendTilVindu(kanal, nyttelast) {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(kanal, nyttelast);
@@ -939,7 +939,7 @@ async function kobleFraInnboks() {
     return { ok: false, feil: 'Kunne ikke slette nøkkelen på denne PC-en.' };
   }
   innboksKobling = null;
-  settInnboksTilstand({ koblet: false, uleste: 0, haster: 0 });
+  settInnboksTilstand({ koblet: false, uleste: 0, haster: 0, ulestePerKilde: {}, kildeRot: {} });
   return { ok: true };
 }
 

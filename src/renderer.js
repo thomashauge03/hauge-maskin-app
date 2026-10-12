@@ -12,7 +12,10 @@ const $ = (id) => document.getElementById(id);
 const viewport = $('viewport');
 const nav = $('nav');
 // Innboks har sin egen knapp i toppen og står ikke i den vanlige listen (se innboks-felles.js).
-const { INNBOKS_ID, innboksSide, synligeSider, merkeTekst, vistAntall, skalHoppe, knappNavn } = window.HM_INNBOKS;
+const {
+  INNBOKS_ID, innboksSide, synligeSider, merkeTekst, vistAntall, skalHoppe, knappNavn,
+  antallPerSide, sideTallTekst, sideTallNavn
+} = window.HM_INNBOKS;
 
 /* ---------- Hjelpere ---------- */
 function normalizeUrl(raw) {
@@ -157,8 +160,60 @@ function letterFor(page) {
   return span;
 }
 
+/* Røde tall på systemene i menyen: hvor mange nye hvert system har i Innboks. Tallene kommer
+   med tilstanden fra vakta hvert 15. sekund, men menyen røres bare når et tall endrer seg. */
+let sideTall = {};
+let sideTallNokkel = '';
+
+function beregnSideTall() {
+  return innboks.koblet ? antallPerSide(allPages(), innboks.ulestePerKilde, innboks.kildeRot) : {};
+}
+
+const tallNokkel = (t) => Object.keys(t).sort().map((id) => id + '=' + t[id]).join('|');
+
+function tegnSideTall(btn, antall, hopp) {
+  const n = vistAntall(innboks.koblet, antall);
+  let tall = btn.querySelector('.nav-tall');
+  if (!n) {
+    if (tall) tall.remove();
+    btn.removeAttribute('aria-label');
+    return;
+  }
+  if (!tall) {
+    tall = document.createElement('span');
+    tall.className = 'nav-tall';
+    // Skjermlesere får tallet fra navnet på knappen, og skal ikke høre det to ganger.
+    tall.setAttribute('aria-hidden', 'true');
+    btn.appendChild(tall);
+  }
+  tall.textContent = sideTallTekst(n);
+  btn.setAttribute('aria-label', sideTallNavn(btn.dataset.navn, n));
+  if (hopp) {
+    // Animasjonen starter bare på nytt når klassen kommer tilbake etter en omtegning.
+    tall.classList.remove('hopp');
+    void tall.offsetWidth;
+    tall.classList.add('hopp');
+  }
+}
+
+function oppdaterSideTall() {
+  const nye = beregnSideTall();
+  const nokkel = tallNokkel(nye);
+  if (nokkel === sideTallNokkel) return;
+  const forrige = sideTall;
+  sideTall = nye;
+  sideTallNokkel = nokkel;
+  for (const btn of nav.querySelectorAll('.nav-item[data-id]')) {
+    const id = btn.dataset.id;
+    tegnSideTall(btn, nye[id] || 0, skalHoppe(forrige[id] || 0, nye[id] || 0));
+  }
+}
+
 function renderNav() {
   renderBrand();
+  // Sidene kan ha endret seg, og da kan en kilde i Innboks høre til en annen side enn før.
+  sideTall = beregnSideTall();
+  sideTallNokkel = tallNokkel(sideTall);
   const q = $('search').value.trim().toLowerCase();
   const pages = allPages().filter(
     (p) => !q || p.name.toLowerCase().includes(q) || p.url.toLowerCase().includes(q)
@@ -206,6 +261,9 @@ function renderNav() {
         mark.title = 'Endret på denne maskinen';
         btn.appendChild(mark);
       }
+      btn.dataset.id = p.id;
+      btn.dataset.navn = p.name;
+      tegnSideTall(btn, sideTall[p.id] || 0, false);
       btn.addEventListener('click', () => openPage(p.id));
       btn.addEventListener('contextmenu', (e) => { e.preventDefault(); openModal(p.id); });
       nav.appendChild(btn);
@@ -1382,7 +1440,7 @@ $('sCheckUpdate').addEventListener('click', async () => {
 });
 
 /* ---------- Innboks ---------- */
-let innboks = { koblet: false, uleste: 0, haster: 0, portabel: false };
+let innboks = { koblet: false, uleste: 0, haster: 0, ulestePerKilde: {}, kildeRot: {}, portabel: false };
 let sisteOverlay = null;
 // Et varsel kan bli trykket på før sidene er lastet. Da venter lenken til init er ferdig.
 let klar = false;
@@ -1411,6 +1469,7 @@ function visInnboks(t) {
   knapp.title = navn;
   knapp.setAttribute('aria-label', navn);
   tegnOverlay(tekst);
+  oppdaterSideTall();
 }
 
 // Merket på ikonet i oppgavelinja. Tegnes bare når tallet endrer seg, ikke hvert 15. sekund.

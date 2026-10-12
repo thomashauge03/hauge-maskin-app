@@ -1,4 +1,4 @@
-/* Innboks i appen: hvilken side en lenke hører til, hvem som får broen, og tallet på knappen.
+/* Innboks i appen: hvilken side en lenke hører til, hvem som får broen, og tallene på knappen og i menyen.
 
    Brukes både i hovedprosessen (require) og i grensesnittet (window.HM_INNBOKS), og testes med
    `npm test` (test/innboks-felles.test.js). Ren logikk: ingen Electron, ingen filer, ikke nett. */
@@ -146,6 +146,37 @@
     return naa > 0 && naa > forrige;
   }
 
+  /* Hvor mange nye hvert system i menyen har, som { [sideId]: antall }. Hver kilde i Innboks
+     legges på siden som passer best til kildens rotadresse, etter samme regel som lenkene
+     (finnSide). Rørlager og Utleie har både en admin-side og en kundeside på samme opphav, og
+     stien avgjør hvilken som får tallet. Flere kilder på samme side legges sammen. En kilde uten
+     side i menyen faller bort her, men er fortsatt med i tallet på Innboks-knappen. */
+  function antallPerSide(sider, ulestePerKilde, kildeRot) {
+    const ut = {};
+    const tall = ulestePerKilde && typeof ulestePerKilde === 'object' ? ulestePerKilde : {};
+    const rot = kildeRot && typeof kildeRot === 'object' ? kildeRot : {};
+    for (const slug of Object.keys(tall)) {
+      const n = tall[slug];
+      if (!Number.isSafeInteger(n) || n <= 0) continue;
+      if (!Object.prototype.hasOwnProperty.call(rot, slug)) continue;
+      const side = finnSide(rot[slug], sider);
+      if (!side) continue;
+      ut[side.id] = (ut[side.id] || 0) + n;
+    }
+    return ut;
+  }
+
+  // Tallet i menyen har plass til to sifre. Over 99 blir det «99+».
+  function sideTallTekst(n) {
+    if (!Number.isInteger(n) || n <= 0) return '';
+    return n > 99 ? '99+' : String(n);
+  }
+
+  // Det skjermlesere hører for et system med nye saker. Hele tallet, ikke 99+.
+  function sideTallNavn(navn, n) {
+    return `${navn}, ${n} ${n === 1 ? 'ny' : 'nye'} i Innboks`;
+  }
+
   // Navnet på knappen, både som verktøytips og for skjermlesere. Uten kobling sier knappen hva som skal til
   // for å se tallet, i stedet for å se ut som om ingenting er ulest.
   function knappNavn(koblet, uleste) {
@@ -156,7 +187,8 @@
 
   eksporter({
     INNBOKS_ID, INNBOKS_STANDARD, BRO_OPPHAV, innboksSide, innboksOpphav, synligeSider, rutesider, finnSide,
-    saksLenke, maalForLenke, maalForVarsel, broSkalMed, broTillatt, merkeTekst, vistAntall, skalHoppe, knappNavn
+    saksLenke, maalForLenke, maalForVarsel, broSkalMed, broTillatt, merkeTekst, vistAntall, skalHoppe, knappNavn,
+    antallPerSide, sideTallTekst, sideTallNavn
   });
 })(typeof module !== 'undefined' && module.exports
   ? (x) => { module.exports = x; }

@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du bruker den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.10.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.10.1.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
-| [**Hauge-Maskin-2.10.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.10.1.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
+| [**Hauge-Maskin-Setup-2.11.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.11.0.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
+| [**Hauge-Maskin-2.11.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.11.0.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
 
 Alle versjoner ligger under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -142,6 +142,10 @@ sin egen knapp øverst i menyen, ved siden av navnet på siden som er åpen.
 - **Rødt tall** på knappen viser hvor mange saker du ikke har lest. Knappen får
   rød ramme og pulserer så lenge noe er ulest, og tallet hopper når det kommer
   noe nytt. Tallet står også på ikonet i oppgavelinja.
+- **Rødt tall på hvert system** i menyen viser hvor det nye har kommet inn, for
+  eksempel 3 på Utleie og 1 på Rørlager. Tallet følger adressen til systemet, så
+  admin-siden og kundesiden til samme system får hvert sitt tall. Systemer som
+  ikke står i menyen, telles bare på Innboks-knappen.
 - **Varsler i Windows** kommer når noe nytt kommer inn, også når vinduet er
   lukket. Trykker du på varselet, åpner appen riktig side.
 - **«Åpne i …»** inne i Innboks bytter til den siden i systemet.

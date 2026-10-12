@@ -153,6 +153,94 @@ test('navnet på knappen sier hvor mange som er uleste, og hva som skal til uten
   assert.equal(F.knappNavn(true, 14), 'Innboks: 14 uleste', 'navnet har det hele tallet, ikke 9+');
 });
 
+/* Tallene i menyen, prøvd mot den ekte sidelisten slik appen leser den (sider.json gjennom
+   lesDelt og synligeSider), så testen merker det hvis en adresse i listen endres. */
+const MENY = F.synligeSider({ shared: require('../src/delt.js').lesDelt(require('../sider.json').pages), pages: [], overrides: {} });
+const menyId = (id) => {
+  assert.ok(MENY.some((p) => p.id === id), 'menyen mangler ' + id);
+  return id;
+};
+
+test('antallPerSide: Utleie sin rotadresse /admin/ gir tallet til Utleie, ikke kundesiden', () => {
+  assert.deepEqual(F.antallPerSide(MENY, { utleie: 3 }, { utleie: 'https://utleie-hauge-maskin.vercel.app/admin/' }),
+    { [menyId('shared:utleie')]: 3 });
+  assert.deepEqual(F.antallPerSide(MENY, { kunde: 2 }, { kunde: 'https://utleie-hauge-maskin.vercel.app/' }),
+    { [menyId('shared:utleie-kundeside')]: 2 });
+});
+
+test('antallPerSide: to kilder på samme opphav, men ulik sti, havner på hver sin side', () => {
+  const ut = F.antallPerSide(MENY,
+    { rorlager: 4, rorlager_kunder: 1, grus: 2, grus_kunder: 5 },
+    {
+      rorlager: 'https://rorlager.vercel.app/admin', rorlager_kunder: 'https://rorlager.vercel.app/',
+      grus: 'https://haugemaskin-grus.vercel.app/admin/', grus_kunder: 'https://haugemaskin-grus.vercel.app',
+    });
+  assert.deepEqual(ut, {
+    [menyId('shared:r-rlager')]: 4, [menyId('shared:roerlager-kunder')]: 1,
+    [menyId('shared:leveringseddel')]: 2, [menyId('shared:leveringseddel-2')]: 5,
+  });
+});
+
+test('antallPerSide legger sammen kilder som hører til samme side', () => {
+  assert.deepEqual(F.antallPerSide(MENY,
+    { utleie: 3, utleie_service: 4, varsling: 1 },
+    { utleie: 'https://utleie-hauge-maskin.vercel.app/admin', utleie_service: 'https://utleie-hauge-maskin.vercel.app/admin/service',
+      varsling: 'https://varslingskontroll.vercel.app/' }),
+  { 'shared:utleie': 7, [menyId('shared:varslingskontroll')]: 1 });
+});
+
+test('antallPerSide: en rot på samme opphav, men utenfor sidens sti, går likevel til den siden', () => {
+  // Tilbudssystemet står i menyen med /dashboard, mens kilden kan ha roten /.
+  assert.deepEqual(F.antallPerSide(MENY, { tilbud: 2 }, { tilbud: 'https://tilbudssystem-mal.vercel.app/' }),
+    { [menyId('shared:tilbudssystem')]: 2 });
+});
+
+test('antallPerSide hopper over kilder uten side i menyen, uten rot, med null som rot og med ugyldige tall', () => {
+  const ut = F.antallPerSide(MENY,
+    { ukjent: 3, uten_rot: 2, null_rot: 1, null_tall: 0, minus: -2, desimal: 1.5, tekst: '4', skjult: 6, innboks: 9, ondsinnet: 1 },
+    {
+      ukjent: 'https://ukjent.no/', null_rot: null, null_tall: 'https://rorlager.vercel.app/',
+      minus: 'https://rorlager.vercel.app/', desimal: 'https://rorlager.vercel.app/', tekst: 'https://rorlager.vercel.app/',
+      skjema: 'https://rorlager.vercel.app/',
+      skjult: 'https://hauge-maskin-adminbord.vercel.app/', innboks: 'https://innboks-hauge-maskin.vercel.app/',
+      ondsinnet: 'https://rorlager.vercel.app.evil.no/',
+    });
+  assert.deepEqual(ut, {}, 'adminbordet er bare for mobil, og Innboks har sin egen knapp');
+});
+
+test('antallPerSide tåler manglende og rare argumenter', () => {
+  for (const [sider, tall, rot] of [[MENY, undefined, undefined], [MENY, null, {}], [[], { utleie: 1 }, { utleie: 'https://utleie-hauge-maskin.vercel.app/admin' }],
+    [undefined, { utleie: 1 }, { utleie: 'https://utleie-hauge-maskin.vercel.app/admin' }], [MENY, 'tull', 'tull']]) {
+    assert.deepEqual(F.antallPerSide(sider, tall, rot), {});
+  }
+  // En nøkkel som bare finnes i prototypen, regnes ikke som en rot.
+  assert.deepEqual(F.antallPerSide(MENY, { toString: 1 }, {}), {});
+});
+
+test('antallPerSide følger lokale endringer av en felles side', () => {
+  const meny = F.synligeSider({
+    shared: require('../src/delt.js').lesDelt(require('../sider.json').pages),
+    pages: [side('p1', 'https://egen.no/')],
+    overrides: { 'shared:utleie': { url: 'https://utleie-hauge-maskin.vercel.app/admin/maskiner' } },
+  });
+  assert.deepEqual(F.antallPerSide(meny, { utleie: 3, egen: 1 },
+    { utleie: 'https://utleie-hauge-maskin.vercel.app/admin/', egen: 'https://egen.no/' }),
+  { 'shared:utleie': 3, p1: 1 });
+});
+
+test('tallet i menyen: to sifre, så «99+»', () => {
+  assert.deepEqual([0, 1, 9, 10, 99, 100, 250, -1, 1.5, NaN, undefined].map((n) => F.sideTallTekst(n)),
+    ['', '1', '9', '10', '99', '99+', '99+', '', '', '', '']);
+  assert.equal(F.sideTallTekst(F.vistAntall(false, 5)), '', 'uten kobling vises ingen tall');
+  assert.equal(F.sideTallTekst(F.vistAntall(true, 120)), '99+');
+});
+
+test('navnet skjermlesere hører for et system med nye saker', () => {
+  assert.equal(F.sideTallNavn('Utleie', 3), 'Utleie, 3 nye i Innboks');
+  assert.equal(F.sideTallNavn('Utleie', 1), 'Utleie, 1 ny i Innboks');
+  assert.equal(F.sideTallNavn('Rørlager', 140), 'Rørlager, 140 nye i Innboks', 'hele tallet, ikke 99+');
+});
+
 test('sider.json har Innboks-siden for både PC og mobil, på standardadressen', () => {
   const delt = require('../sider.json');
   const p = delt.pages.find((x) => x.id === 'innboks');

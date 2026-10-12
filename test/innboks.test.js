@@ -3,7 +3,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  nesteVent, gyldigAnonNokkel, validerKobling, kallRpc, lagHusk, lagVakt, NAV_URL,
+  nesteVent, gyldigAnonNokkel, validerKobling, kallRpc, lagHusk, lagVakt, NAV_URL, rensUlestePerKilde, rensKildeRot,
 } = require('../src/innboks.js');
 
 const jwt = (nyttelast) => ['eyJhbGciOiJIUzI1NiJ9', Buffer.from(JSON.stringify(nyttelast)).toString('base64url'), 'signatur'].join('.');
@@ -133,7 +133,64 @@ test('første runde viser hvert nye varsel, kvitterer alle og sender tallet for 
   await lagVakt(avh).start();
   assert.deepEqual(logg.vist, [ID1, ID2]);
   assert.deepEqual(logg.kvittert, [[ID1, ID2]]);
-  assert.deepEqual(logg.tilstand, [{ koblet: true, uleste: 3, haster: 0 }]);
+  assert.deepEqual(logg.tilstand, [{ koblet: true, uleste: 3, haster: 0, ulestePerKilde: {}, kildeRot: {} }]);
+  assert.equal(sist(logg).ms, 15000);
+});
+
+test('tallet per system og rotadressene går videre i tilstanden', async () => {
+  const { avh, logg } = lagFalsk([{
+    uleste: 5, haster: 0, varsler: [],
+    uleste_per_kilde: { utleie: 3, rorlager: 2 },
+    kilde_rot: { utleie: 'https://utleie-hauge-maskin.vercel.app/admin/', rorlager: 'https://rorlager.vercel.app/admin', skjema: null },
+  }]);
+  await lagVakt(avh).start();
+  assert.deepEqual(logg.tilstand, [{
+    koblet: true, uleste: 5, haster: 0,
+    ulestePerKilde: { utleie: 3, rorlager: 2 },
+    kildeRot: { utleie: 'https://utleie-hauge-maskin.vercel.app/admin/', rorlager: 'https://rorlager.vercel.app/admin', skjema: null },
+  }]);
+});
+
+test('tallet per system: bare vanlige objekter, gyldige navn og hele tall fra null og opp', () => {
+  for (const x of [undefined, null, 3, 'utleie', [], [['utleie', 3]], new Map([['utleie', 3]]), new Date()]) {
+    assert.deepEqual(rensUlestePerKilde(x), {}, String(x));
+  }
+  assert.deepEqual(rensUlestePerKilde({
+    utleie: 3, 'r-rlager_2': 0, ok: 7,
+    Utleie: 1, 'med mellomrom': 1, 'æøå': 1, '': 1, ['x'.repeat(41)]: 1,
+    minus: -1, desimal: 1.5, tekst: '3', nan: NaN, uendelig: Infinity, stor: 2 ** 53, null: null, objekt: { n: 1 },
+  }), { utleie: 3, 'r-rlager_2': 0, ok: 7 });
+  assert.deepEqual(rensUlestePerKilde({ ['x'.repeat(40)]: 1 }), { ['x'.repeat(40)]: 1 }, '40 tegn er lov');
+});
+
+test('rotadressene: bare https eller null, aldri innlogging i adressen', () => {
+  assert.deepEqual(rensKildeRot({
+    utleie: 'https://utleie-hauge-maskin.vercel.app/admin/', skjema: null,
+    http: 'http://rorlager.vercel.app/', js: 'javascript:alert(1)', fil: 'file:///C:/Windows/win.ini',
+    relativ: '/admin', tom: '', tall: 3, innlogget: 'https://ola:hemmelig@rorlager.vercel.app/',
+    lang: 'https://x.no/' + 'a'.repeat(2048), udefinert: undefined,
+  }), { utleie: 'https://utleie-hauge-maskin.vercel.app/admin/', skjema: null });
+  assert.deepEqual(rensKildeRot([]), {});
+  assert.deepEqual(rensKildeRot('https://x.no/'), {});
+});
+
+test('tallet per system tar høyst 50 kilder, og __proto__ blir aldri prototypen', () => {
+  const mange = Object.fromEntries(Array.from({ length: 80 }, (_, i) => ['k' + i, 1]));
+  const ut = rensUlestePerKilde(mange);
+  assert.equal(Object.keys(ut).length, 50);
+  assert.equal(ut.k0, 1);
+  assert.equal(ut.k50, undefined);
+  const lur = rensUlestePerKilde(JSON.parse('{"__proto__": 4, "utleie": 1}'));
+  assert.equal(Object.getPrototypeOf(lur), Object.prototype);
+  assert.equal(lur.utleie, 1);
+  assert.equal({}.utleie, undefined);
+});
+
+test('et svar uten feltene for system gir tomme objekter, ikke en feil', async () => {
+  const { avh, logg } = lagFalsk([{ uleste: 1, haster: 0, varsler: [], uleste_per_kilde: [1, 2], kilde_rot: 'tull' }]);
+  await lagVakt(avh).start();
+  assert.deepEqual(logg.tilstand[0].ulestePerKilde, {});
+  assert.deepEqual(logg.tilstand[0].kildeRot, {});
   assert.equal(sist(logg).ms, 15000);
 });
 
@@ -218,7 +275,7 @@ test('naa midt i en runde gir en ny runde rett etter', async () => {
 test('et eldre svar uten uleste bruker apne, og ugyldige id-er hoppes over', async () => {
   const { avh, logg } = lagFalsk([{ apne: 4, haster: 1, varsler: [{ id: 'x' }, null, varsel(ID1)] }]);
   await lagVakt(avh).start();
-  assert.deepEqual(logg.tilstand, [{ koblet: true, uleste: 4, haster: 1 }]);
+  assert.deepEqual(logg.tilstand, [{ koblet: true, uleste: 4, haster: 1, ulestePerKilde: {}, kildeRot: {} }]);
   assert.deepEqual(logg.vist, [ID1]);
   assert.deepEqual(logg.kvittert, [[ID1]]);
 });

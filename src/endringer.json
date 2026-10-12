@@ -1,5 +1,12 @@
 [
   {
+    "versjon": "2.11.0",
+    "dato": "2026-10-12",
+    "punkt": [
+      "Hvert system i menyen viser et rødt tall når det har kommet noe nytt i Innboks."
+    ]
+  },
+  {
     "versjon": "2.10.1",
     "dato": "2026-10-12",
     "punkt": [
