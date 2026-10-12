@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du bruker den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.10.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.10.0.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
-| [**Hauge-Maskin-2.10.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.10.0.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
+| [**Hauge-Maskin-Setup-2.10.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.10.1.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
+| [**Hauge-Maskin-2.10.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.10.1.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
 
 Alle versjoner ligger under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -139,8 +139,9 @@ skal lete.
 Innboks samler alt kundene sender inn til systemene på ett sted. I appen har den
 sin egen knapp øverst i menyen, ved siden av navnet på siden som er åpen.
 
-- **Rødt tall** på knappen viser hvor mange saker du ikke har lest. Tallet står
-  også på ikonet i oppgavelinja.
+- **Rødt tall** på knappen viser hvor mange saker du ikke har lest. Knappen får
+  rød ramme og pulserer så lenge noe er ulest, og tallet hopper når det kommer
+  noe nytt. Tallet står også på ikonet i oppgavelinja.
 - **Varsler i Windows** kommer når noe nytt kommer inn, også når vinduet er
   lukket. Trykker du på varselet, åpner appen riktig side.
 - **«Åpne i …»** inne i Innboks bytter til den siden i systemet.
@@ -148,8 +149,9 @@ sin egen knapp øverst i menyen, ved siden av navnet på siden som er åpen.
   starter sammen med Windows. Dette skjer bare så lenge Innboks er koblet til.
   Begge deler kan slås av under **Innstillinger**. Vil du avslutte helt,
   høyreklikker du på ikonet nede til høyre og velger **Avslutt**.
-- **Slå på varsler:** logg inn i Innboks og velg Innstillinger, Windows-appen,
-  «Slå på varsler i Windows-appen».
+- **Kobles til av seg selv:** logg inn i Innboks inne i appen, så kobles appen
+  til. Har du koblet den fra, slår du den på igjen under Innstillinger,
+  Windows-appen, «Slå på varsler i Windows-appen».
 - **I selve Innboks** (nettsiden) står uleste saker med fet skrift og en rød prikk.
   Du kan merke saker som ferdige, og ferdige saker flyttes til «Ferdig».
 

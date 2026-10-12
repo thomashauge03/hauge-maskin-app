@@ -1,5 +1,13 @@
 [
   {
+    "versjon": "2.10.1",
+    "dato": "2026-10-12",
+    "punkt": [
+      "Innboks-knappen viser nå tydelig hvor mange som er uleste, med animasjon.",
+      "Appen kobler seg til Innboks av seg selv når du logger inn."
+    ]
+  },
+  {
     "versjon": "2.10.0",
     "dato": "2026-10-08",
     "punkt": [

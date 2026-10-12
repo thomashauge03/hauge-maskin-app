@@ -127,6 +127,32 @@ test('merketallet', () => {
   assert.deepEqual([0, 1, 9, 10, 250, -1, 1.5, NaN, undefined].map((n) => F.merkeTekst(n)), ['', '1', '9', '9+', '9+', '', '', '', '']);
 });
 
+test('tallet som vises, er null uten kobling og når merket er tomt', () => {
+  assert.equal(F.vistAntall(true, 3), 3);
+  assert.equal(F.vistAntall(true, 25), 25, 'merket sier 9+, men økningen fra 25 til 26 skal merkes');
+  assert.equal(F.vistAntall(false, 3), 0);
+  for (const n of [0, -1, 1.5, NaN, undefined]) assert.equal(F.vistAntall(true, n), 0, String(n));
+});
+
+test('merket hopper når det dukker opp og når tallet øker, ikke når det står stille eller går ned', () => {
+  assert.equal(F.skalHoppe(0, 1), true, 'dukker opp');
+  assert.equal(F.skalHoppe(2, 3), true, 'øker');
+  assert.equal(F.skalHoppe(12, 13), true, 'øker over ni, selv om merket fortsatt sier 9+');
+  assert.equal(F.skalHoppe(3, 3), false, 'samme tall hvert 15. sekund');
+  assert.equal(F.skalHoppe(3, 2), false, 'går ned');
+  assert.equal(F.skalHoppe(3, 0), false, 'forsvinner');
+  assert.equal(F.skalHoppe(0, 0), false);
+});
+
+test('navnet på knappen sier hvor mange som er uleste, og hva som skal til uten kobling', () => {
+  assert.equal(F.knappNavn(false, 0), 'Innboks: logg inn for å se uleste');
+  assert.equal(F.knappNavn(false, 5), 'Innboks: logg inn for å se uleste', 'uten kobling er tallet ikke til å stole på');
+  assert.equal(F.knappNavn(true, 0), 'Innboks');
+  assert.equal(F.knappNavn(true, 1), 'Innboks: 1 ulest');
+  assert.equal(F.knappNavn(true, 9), 'Innboks: 9 uleste');
+  assert.equal(F.knappNavn(true, 14), 'Innboks: 14 uleste', 'navnet har det hele tallet, ikke 9+');
+});
+
 test('sider.json har Innboks-siden for både PC og mobil, på standardadressen', () => {
   const delt = require('../sider.json');
   const p = delt.pages.find((x) => x.id === 'innboks');

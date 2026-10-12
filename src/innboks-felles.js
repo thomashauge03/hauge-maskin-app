@@ -135,9 +135,28 @@
     return n > 9 ? '9+' : String(n);
   }
 
+  // Tallet som faktisk vises på knappen. Uten kobling vet appen ikke hva som er ulest, og da vises ingenting.
+  function vistAntall(koblet, uleste) {
+    return koblet && merkeTekst(uleste) ? uleste : 0;
+  }
+
+  // Merket hopper når det dukker opp, og når tallet øker, så nye saker merkes selv om knappen alt var rød.
+  // Et tall som går ned, er noe brukeren har gjort selv, og skal ikke rope.
+  function skalHoppe(forrige, naa) {
+    return naa > 0 && naa > forrige;
+  }
+
+  // Navnet på knappen, både som verktøytips og for skjermlesere. Uten kobling sier knappen hva som skal til
+  // for å se tallet, i stedet for å se ut som om ingenting er ulest.
+  function knappNavn(koblet, uleste) {
+    if (!koblet) return 'Innboks: logg inn for å se uleste';
+    const n = vistAntall(koblet, uleste);
+    return n ? `Innboks: ${n} ${n === 1 ? 'ulest' : 'uleste'}` : 'Innboks';
+  }
+
   eksporter({
     INNBOKS_ID, INNBOKS_STANDARD, BRO_OPPHAV, innboksSide, innboksOpphav, synligeSider, rutesider, finnSide,
-    saksLenke, maalForLenke, maalForVarsel, broSkalMed, broTillatt, merkeTekst
+    saksLenke, maalForLenke, maalForVarsel, broSkalMed, broTillatt, merkeTekst, vistAntall, skalHoppe, knappNavn
   });
 })(typeof module !== 'undefined' && module.exports
   ? (x) => { module.exports = x; }

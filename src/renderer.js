@@ -12,7 +12,7 @@ const $ = (id) => document.getElementById(id);
 const viewport = $('viewport');
 const nav = $('nav');
 // Innboks har sin egen knapp i toppen og står ikke i den vanlige listen (se innboks-felles.js).
-const { INNBOKS_ID, innboksSide, synligeSider, merkeTekst } = window.HM_INNBOKS;
+const { INNBOKS_ID, innboksSide, synligeSider, merkeTekst, vistAntall, skalHoppe, knappNavn } = window.HM_INNBOKS;
 
 /* ---------- Hjelpere ---------- */
 function normalizeUrl(raw) {
@@ -1388,15 +1388,28 @@ let sisteOverlay = null;
 let klar = false;
 let ventendeMaal = null;
 
+// Tallet som sist ble vist, så merket bare hopper når det dukker opp eller øker (se skalHoppe).
+let forrigeVist = 0;
+
 function visInnboks(t) {
   innboks = { ...innboks, ...(t || {}) };
   const tekst = innboks.koblet ? merkeTekst(innboks.uleste) : '';
+  const vist = vistAntall(innboks.koblet, innboks.uleste);
   const tall = $('innboksTall');
+  const knapp = $('btnInnboks');
   tall.textContent = tekst;
   tall.hidden = !tekst;
-  const navn = tekst ? `Innboks: ${innboks.uleste} ${innboks.uleste === 1 ? 'ulest' : 'uleste'}` : 'Innboks';
-  $('btnInnboks').title = navn;
-  $('btnInnboks').setAttribute('aria-label', navn);
+  knapp.classList.toggle('har-uleste', !!tekst);
+  if (skalHoppe(forrigeVist, vist)) {
+    // Animasjonen starter bare på nytt når klassen kommer tilbake etter en omtegning.
+    tall.classList.remove('hopp');
+    void tall.offsetWidth;
+    tall.classList.add('hopp');
+  }
+  forrigeVist = vist;
+  const navn = knappNavn(innboks.koblet, innboks.uleste);
+  knapp.title = navn;
+  knapp.setAttribute('aria-label', navn);
   tegnOverlay(tekst);
 }
 
