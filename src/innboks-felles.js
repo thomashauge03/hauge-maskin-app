@@ -146,10 +146,33 @@
     return naa > 0 && naa > forrige;
   }
 
+  /* Siden i menyen som skal ha tallet for en kilde. Innboks er for de ansatte, og sakene lenker
+     til adminsiden. Rørlager og Leveringseddel har likevel roten / i Innboks, og da ville finnSide
+     gitt tallet til kundesiden på / (Rørlager Kunder, Leveringseddel). Derfor vinner den dypeste
+     siden som ligger under roten, ved likt den som står først i menyen. Ligger ingen side under
+     roten (Tilbudssystemet har /dashboard og roten /, Hjemmesiden roten /admin/ og siden /),
+     gjelder samme regel som for lenkene. */
+  function sideForKilde(rot, sider) {
+    const u = lenkeUrl(rot);
+    if (!u) return null;
+    const rotLedd = segmenter(u.pathname);
+    let beste = null;
+    let besteDybde = -1;
+    for (const side of sider || []) {
+      const s = side ? sideUrl(side.url) : null;
+      if (!s || s.origin !== u.origin) continue;
+      const sideLedd = segmenter(s.pathname);
+      if (!rotLedd.every((ledd, i) => sideLedd[i] === ledd)) continue;
+      if (sideLedd.length > besteDybde) {
+        beste = side;
+        besteDybde = sideLedd.length;
+      }
+    }
+    return beste || finnSide(rot, sider);
+  }
+
   /* Hvor mange nye hvert system i menyen har, som { [sideId]: antall }. Hver kilde i Innboks
-     legges på siden som passer best til kildens rotadresse, etter samme regel som lenkene
-     (finnSide). Rørlager og Utleie har både en admin-side og en kundeside på samme opphav, og
-     stien avgjør hvilken som får tallet. Flere kilder på samme side legges sammen. En kilde uten
+     legges på siden sideForKilde velger. Flere kilder på samme side legges sammen. En kilde uten
      side i menyen faller bort her, men er fortsatt med i tallet på Innboks-knappen. */
   function antallPerSide(sider, ulestePerKilde, kildeRot) {
     const ut = {};
@@ -159,7 +182,7 @@
       const n = tall[slug];
       if (!Number.isSafeInteger(n) || n <= 0) continue;
       if (!Object.prototype.hasOwnProperty.call(rot, slug)) continue;
-      const side = finnSide(rot[slug], sider);
+      const side = sideForKilde(rot[slug], sider);
       if (!side) continue;
       ut[side.id] = (ut[side.id] || 0) + n;
     }

@@ -161,24 +161,28 @@ const menyId = (id) => {
   return id;
 };
 
-test('antallPerSide: Utleie sin rotadresse /admin/ gir tallet til Utleie, ikke kundesiden', () => {
-  assert.deepEqual(F.antallPerSide(MENY, { utleie: 3 }, { utleie: 'https://utleie-hauge-maskin.vercel.app/admin/' }),
-    { [menyId('shared:utleie')]: 3 });
-  assert.deepEqual(F.antallPerSide(MENY, { kunde: 2 }, { kunde: 'https://utleie-hauge-maskin.vercel.app/' }),
-    { [menyId('shared:utleie-kundeside')]: 2 });
+test('antallPerSide: Utleie, Rørlager og Leveringseddel får tallet på adminsiden, ikke kundesiden', () => {
+  // Rotadressene som står i Innboks (verktoy/koble-kilde.js i innboks-repoet).
+  const ut = F.antallPerSide(MENY, { utleie: 3, rorlager: 4, leveringseddel: 2 }, {
+    utleie: 'https://utleie-hauge-maskin.vercel.app/admin/',
+    rorlager: 'https://rorlager.vercel.app/',
+    leveringseddel: 'https://haugemaskin-grus.vercel.app/',
+  });
+  assert.deepEqual(ut, {
+    [menyId('shared:utleie')]: 3, [menyId('shared:r-rlager')]: 4, [menyId('shared:leveringseddel')]: 2,
+  });
+  for (const id of ['shared:utleie-kundeside', 'shared:roerlager-kunder', 'shared:leveringseddel-2']) menyId(id);
 });
 
-test('antallPerSide: to kilder på samme opphav, men ulik sti, havner på hver sin side', () => {
-  const ut = F.antallPerSide(MENY,
-    { rorlager: 4, rorlager_kunder: 1, grus: 2, grus_kunder: 5 },
-    {
-      rorlager: 'https://rorlager.vercel.app/admin', rorlager_kunder: 'https://rorlager.vercel.app/',
-      grus: 'https://haugemaskin-grus.vercel.app/admin/', grus_kunder: 'https://haugemaskin-grus.vercel.app',
-    });
-  assert.deepEqual(ut, {
-    [menyId('shared:r-rlager')]: 4, [menyId('shared:roerlager-kunder')]: 1,
-    [menyId('shared:leveringseddel')]: 2, [menyId('shared:leveringseddel-2')]: 5,
-  });
+test('antallPerSide: en rot uten / til slutt, eller med /admin, gir også adminsiden', () => {
+  assert.deepEqual(F.antallPerSide(MENY, { a: 1, b: 2, c: 3 }, {
+    a: 'https://rorlager.vercel.app/admin', b: 'https://haugemaskin-grus.vercel.app', c: 'https://utleie-hauge-maskin.vercel.app/',
+  }), { 'shared:r-rlager': 1, 'shared:leveringseddel': 2, 'shared:utleie': 3 });
+});
+
+test('antallPerSide: Hjemmesiden med roten /admin/ går til siden på /, som før', () => {
+  assert.deepEqual(F.antallPerSide(MENY, { heimeside: 2 }, { heimeside: 'https://haugemaskin.vercel.app/admin/' }),
+    { [menyId('shared:hm-web')]: 2 });
 });
 
 test('antallPerSide legger sammen kilder som hører til samme side', () => {
