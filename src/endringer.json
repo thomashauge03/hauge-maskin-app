@@ -1,5 +1,12 @@
 [
   {
+    "versjon": "2.11.1",
+    "dato": "2026-10-20",
+    "punkt": [
+      "Det røde tallet for Leveringseddel, Rørlager og Utleie står nå på systemsiden, ikke på kundesiden."
+    ]
+  },
+  {
     "versjon": "2.11.0",
     "dato": "2026-10-12",
     "punkt": [
