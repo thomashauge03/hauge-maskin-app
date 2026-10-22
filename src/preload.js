@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('hm', {
   setAdminToken: (token) => ipcRenderer.invoke('admin:setToken', token),
   publishShared: (payload) => ipcRenderer.invoke('shared:publish', payload),
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
+  startFjernhjelp: () => ipcRenderer.invoke('fjernhjelp:start'),
   minimize: () => ipcRenderer.invoke('window:minimize'),
   toggleMaximize: () => ipcRenderer.invoke('window:maximize'),
   close: () => ipcRenderer.invoke('window:close'),

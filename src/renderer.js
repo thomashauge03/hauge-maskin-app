@@ -1312,6 +1312,33 @@ $('mobilLukk').addEventListener('click', () => { $('mobilModal').hidden = true; 
 $('mobilModal').addEventListener('click', (e) => {
   if (e.target === $('mobilModal')) $('mobilModal').hidden = true;
 });
+// Få hjelp: Hurtighjelp. Hovedprosessen finner den og sier hvordan det gikk.
+function lukkFjernhjelp() {
+  $('fjernhjelpModal').hidden = true;
+  $('fjernhjelpStatus').hidden = true;
+}
+$('btnFjernhjelp').addEventListener('click', () => { $('fjernhjelpModal').hidden = false; });
+$('fjernhjelpLukk').addEventListener('click', lukkFjernhjelp);
+$('fjernhjelpModal').addEventListener('click', (e) => {
+  if (e.target === $('fjernhjelpModal')) lukkFjernhjelp();
+});
+$('fjernhjelpStart').addEventListener('click', async () => {
+  const knapp = $('fjernhjelpStart');
+  const status = $('fjernhjelpStatus');
+  knapp.disabled = true;
+  status.hidden = false;
+  status.textContent = 'Åpner Hurtighjelp…';
+  try {
+    const slag = await window.hm.startFjernhjelp();
+    status.textContent = slag === 'butikk'
+      ? 'Hurtighjelp er ikke installert. Microsoft Store er åpnet: trykk Hent, og så Start Hurtighjelp her igjen.'
+      : 'Hurtighjelp åpnes i et eget vindu. Skriv inn koden der.';
+  } catch {
+    status.textContent = 'Fikk ikke åpnet Hurtighjelp. Søk etter «Hurtighjelp» i Start-menyen.';
+  }
+  knapp.disabled = false;
+});
+
 $('mobilKopier').addEventListener('click', async () => {
   await navigator.clipboard.writeText($('mobilAdresse').textContent.trim());
   $('mobilKopier').textContent = 'Kopiert';
@@ -1395,6 +1422,7 @@ document.addEventListener('keydown', (e) => {
     else if (!$('settingsModal').hidden) $('settingsModal').hidden = true;
     else if (!$('helpModal').hidden) $('helpModal').hidden = true;
     else if (!$('mobilModal').hidden) $('mobilModal').hidden = true;
+    else if (!$('fjernhjelpModal').hidden) lukkFjernhjelp();
     else if (!$('nyttModal').hidden) $('nyttModal').hidden = true;
   }
   if (e.ctrlKey && e.key.toLowerCase() === 'r') { e.preventDefault(); activeWebview()?.reload(); }

@@ -10,6 +10,7 @@ const ENDRINGER = require('./endringer.json');
 const Lenke = require('./innboks-felles');
 const Innboks = require('./innboks');
 const Bakgrunn = require('./bakgrunn');
+const Fjernhjelp = require('./fjernhjelp');
 
 let mainWindow = null;
 // Settes når appen faktisk skal avslutte: Avslutt i systemstatusfeltet, en oppdatering, eller
@@ -813,6 +814,23 @@ ipcMain.handle('data:save', (_e, data) => {
   return ok;
 });
 ipcMain.handle('shell:open', (_e, url) => shell.openExternal(url));
+
+// Få hjelp: finner Hurtighjelp på maskinen og starter den. Svarer med hvordan
+// det gikk, så dialogen kan si fra når Store må installere den først.
+ipcMain.handle('fjernhjelp:start', async () => {
+  const harPakke = await new Promise((ferdig) => execFile(
+    'powershell.exe',
+    ['-NoProfile', '-NonInteractive', '-Command', `Get-AppxPackage ${Fjernhjelp.PAKKE} | Select-Object -ExpandProperty Name`],
+    { windowsHide: true },
+    (err, ut) => ferdig(!err && ut.includes(Fjernhjelp.PAKKE))
+  ));
+  const gammelFil = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'quickassist.exe');
+  const m = Fjernhjelp.startmaate({ harPakke, gammel: fs.existsSync(gammelFil) ? gammelFil : null });
+  if (m.url) await shell.openExternal(m.url);
+  // explorer.exe svarer med feilkode også når appen starter, så svaret sier ingenting
+  else execFile(m.fil, m.args, () => {});
+  return m.slag;
+});
 
 ipcMain.handle('window:minimize', () => mainWindow && mainWindow.minimize());
 ipcMain.handle('window:maximize', () => {

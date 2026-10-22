@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du bruker den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.11.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.11.1.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
-| [**Hauge-Maskin-2.11.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.11.1.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
+| [**Hauge-Maskin-Setup-2.12.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.12.0.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
+| [**Hauge-Maskin-2.12.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.12.0.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
 
 Alle versjoner ligger under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -188,6 +188,21 @@ npx qrcode@1.5.4 -e M -o assets/mobil-qr.svg https://ny-adresse
 ```
 
 `npm test` skanner koden og sjekker at den leder dit dialogen sier.
+
+## Få hjelp
+
+Knappen **Få hjelp** nederst i sidemenyen starter Windows Hurtighjelp (Quick
+Assist), så du kan se og styre skjermen til den du hjelper. Det er gratis og
+følger med Windows 10 og 11.
+
+1. Du åpner Hurtighjelp, velger **Hjelp noen** og får en kode. Du trenger en
+   gratis Microsoft-konto.
+2. Den andre trykker **Få hjelp → Start Hurtighjelp** og skriver inn koden.
+3. De godtar selv at du får se skjermen, og eventuelt styre den.
+
+Mangler Hurtighjelp på maskinen, åpner appen Microsoft Store på riktig side.
+Mobilappen har det samme under **Om → Få hjelp på skjermen**: RustDesk på
+Android og FaceTime på iPhone.
 
 ## Hva er nytt
 

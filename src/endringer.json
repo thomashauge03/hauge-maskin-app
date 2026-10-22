@@ -1,5 +1,12 @@
 [
   {
+    "versjon": "2.12.0",
+    "dato": "2026-10-22",
+    "punkt": [
+      "Ny knapp nederst i menyen: Få hjelp. Den åpner Windows Hurtighjelp, så Hauge Maskin kan se og styre skjermen din når du trenger hjelp. Gratis, og du godtar selv hver gang."
+    ]
+  },
+  {
     "versjon": "2.11.1",
     "dato": "2026-10-20",
     "punkt": [

@@ -85,6 +85,10 @@
             <svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>
             Mobilappen
           </button>
+          <button id="btnFjernhjelp" class="btn btn-ghost btn-sm" title="La Hauge Maskin se og styre skjermen din med Hurtighjelp">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+            Få hjelp
+          </button>
         </div>
         <div class="sync-status" id="syncStatus"></div>
         <div class="update-box" id="updateBox" hidden>
@@ -316,6 +320,33 @@
   </div>
 
   <!-- Dialog: mobilappen -->
+  <!-- Få hjelp: Windows Hurtighjelp. Se fjernhjelp.js. -->
+  <div class="modal-backdrop" id="fjernhjelpModal" hidden>
+    <div class="modal modal-fjernhjelp">
+      <h2>Få hjelp på skjermen</h2>
+      <ol class="fjernhjelp-steg">
+        <li>Ring den som skal hjelpe deg. De gir deg en kode på seks tegn.</li>
+        <li>Trykk <b>Start Hurtighjelp</b> og skriv inn koden.</li>
+        <li>Godta at de får se skjermen din, og eventuelt styre den.</li>
+      </ol>
+      <p class="fjernhjelp-merk">
+        Du ser alt som skjer, og avslutter når du vil. Gi aldri koden eller
+        skjermen til noen som ringer deg uoppfordret.
+      </p>
+      <p class="fjernhjelp-merk">
+        Skal du hjelpe noen? Trykk Start Hurtighjelp og velg <b>Hjelp noen</b>.
+      </p>
+      <div class="fjernhjelp-status" id="fjernhjelpStatus" hidden></div>
+      <div class="modal-actions">
+        <div class="actions-left"></div>
+        <div class="actions-right">
+          <button id="fjernhjelpLukk" class="btn btn-ghost">Lukk</button>
+          <button id="fjernhjelpStart" class="btn btn-primary">Start Hurtighjelp</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="mobilModal" hidden>
     <div class="modal modal-mobil">
       <h2>Hauge Maskin på telefonen</h2>
