@@ -1,5 +1,12 @@
 [
   {
+    "versjon": "2.12.2",
+    "dato": "2026-10-22",
+    "punkt": [
+      "Få hjelp er flyttet til en rød knapp øverst til høyre, så den er lett å finne."
+    ]
+  },
+  {
     "versjon": "2.12.1",
     "dato": "2026-10-22",
     "punkt": [

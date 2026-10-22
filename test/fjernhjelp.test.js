@@ -27,12 +27,18 @@ test('ingen Hurtighjelp på maskinen: Microsoft Store åpnes på Hurtighjelp', (
   assert.match(BUTIKK, /^ms-windows-store:\/\/pdp\/\?productid=9P7BP5VNWKX5$/);
 });
 
-test('«Få hjelp» står ved siden av Mobilappen nederst i sidemenyen', () => {
-  const mobil = HTML.indexOf('id="btnMobil"');
+test('«Få hjelp» står øverst til høyre i tittellinja, rett før vindusknappene', () => {
   const hjelp = HTML.indexOf('id="btnFjernhjelp"');
   assert.ok(hjelp !== -1, 'mangler btnFjernhjelp');
-  const rad = HTML.lastIndexOf('class="footer-row"', mobil);
-  assert.equal(HTML.lastIndexOf('class="footer-row"', hjelp), rad, 'skal stå i samme rad som Mobilappen');
+  assert.equal(HTML.indexOf('id="btnFjernhjelp"', hjelp + 1), -1, 'bare én knapp');
+  const tittel = HTML.indexOf('class="titlebar"');
+  const dra = HTML.indexOf('class="titlebar-drag"');
+  const vindu = HTML.indexOf('class="window-controls"');
+  assert.ok(tittel < dra && dra < hjelp && hjelp < vindu, 'feil plass');
+  // Tittellinja kan dras i. Uten no-drag tar Windows klikket, og knappen virker ikke.
+  const css = les('styles.css');
+  const regel = css.slice(css.indexOf('.titlebar-hjelp {'), css.indexOf('}', css.indexOf('.titlebar-hjelp {')));
+  assert.match(regel, /-webkit-app-region: no-drag/);
 });
 
 test('dialogen har en startknapp, en lukkeknapp og en statuslinje', () => {
