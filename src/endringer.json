@@ -1,5 +1,13 @@
 [
   {
+    "versjon": "2.12.1",
+    "dato": "2026-10-22",
+    "punkt": [
+      "Få hjelp viser hvem du ringer: Thomas Hauge, 413 48 333.",
+      "Adminbordet har fått en Hurtighjelp-knapp øverst når det er åpnet her i appen."
+    ]
+  },
+  {
     "versjon": "2.12.0",
     "dato": "2026-10-22",
     "punkt": [

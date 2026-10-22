@@ -22,4 +22,21 @@ function startmaate({ harPakke, gammel }) {
   return { slag: 'butikk', url: BUTIKK };
 }
 
-module.exports = { PAKKE, BUTIKK, startmaate };
+/* Adminbordet kan starte Hurtighjelp selv, over broen i adminbord-bro.js. Den starter et program
+   på PC-en, så den står fast på adminbordets opphav – ikke adressen i sider.json, som kan endres
+   uten en ny versjon av appen. */
+const BRO_OPPHAV = 'https://hauge-maskin-adminbord.vercel.app';
+
+function broSkalMed(src) {
+  if (typeof src !== 'string') return false;
+  let u;
+  try { u = new URL(src); } catch { return false; }
+  return u.protocol === 'https:' && !u.username && !u.password && u.origin === BRO_OPPHAV;
+}
+
+// Fanen kan ha navigert bort etter at den fikk broen, og en iframe inne i siden teller ikke.
+function broTillatt(ramme) {
+  return !!ramme && ramme.toppramme === true && ramme.opphav === BRO_OPPHAV;
+}
+
+module.exports = { PAKKE, BUTIKK, BRO_OPPHAV, startmaate, broSkalMed, broTillatt };

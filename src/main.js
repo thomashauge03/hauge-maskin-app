@@ -230,6 +230,8 @@ app.on('web-contents-created', (_e, contents) => {
     webPreferences.allowRunningInsecureContent = false;
     if (Lenke.broSkalMed(params.src)) {
       webPreferences.preload = path.join(__dirname, 'innboks-bro.js');
+    } else if (Fjernhjelp.broSkalMed(params.src)) {
+      webPreferences.preload = path.join(__dirname, 'adminbord-bro.js');
     }
   });
 });
@@ -817,7 +819,7 @@ ipcMain.handle('shell:open', (_e, url) => shell.openExternal(url));
 
 // Få hjelp: finner Hurtighjelp på maskinen og starter den. Svarer med hvordan
 // det gikk, så dialogen kan si fra når Store må installere den først.
-ipcMain.handle('fjernhjelp:start', async () => {
+async function startHurtighjelp() {
   const harPakke = await new Promise((ferdig) => execFile(
     'powershell.exe',
     ['-NoProfile', '-NonInteractive', '-Command', `Get-AppxPackage ${Fjernhjelp.PAKKE} | Select-Object -ExpandProperty Name`],
@@ -830,6 +832,21 @@ ipcMain.handle('fjernhjelp:start', async () => {
   // explorer.exe svarer med feilkode også når appen starter, så svaret sier ingenting
   else execFile(m.fil, m.args, () => {});
   return m.slag;
+}
+
+ipcMain.handle('fjernhjelp:start', () => startHurtighjelp());
+
+// Adminbordet starter Hurtighjelp over broen i adminbord-bro.js. Opphavet sjekkes ved hvert
+// kall, som for Innboks: fanen kan ha navigert bort etter at den fikk broen.
+function fraAdminbord(e) {
+  const ramme = e.senderFrame;
+  if (!ramme || typeof e.sender.getType !== 'function' || e.sender.getType() !== 'webview') return false;
+  return Fjernhjelp.broTillatt({ opphav: ramme.origin, toppramme: ramme.parent === null });
+}
+
+ipcMain.handle('adminbord-bro:hurtighjelp', (e) => {
+  if (!fraAdminbord(e)) return { ok: false, feil: 'Bare adminbordet kan bruke dette.' };
+  return startHurtighjelp();
 });
 
 ipcMain.handle('window:minimize', () => mainWindow && mainWindow.minimize());

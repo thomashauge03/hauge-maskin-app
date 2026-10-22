@@ -10,8 +10,8 @@ nettadresser når som helst.
 
 | Fil | Når du bruker den |
 | --- | --- |
-| [**Hauge-Maskin-Setup-2.12.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.12.0.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
-| [**Hauge-Maskin-2.12.0.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.12.0.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
+| [**Hauge-Maskin-Setup-2.12.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-Setup-2.12.1.exe) | **Anbefalt.** Vanlig installasjon, lager snarvei på skrivebordet – og **oppdaterer seg selv**. |
+| [**Hauge-Maskin-2.12.1.exe**](https://github.com/thomashauge03/hauge-maskin-app/releases/latest/download/Hauge-Maskin-2.12.1.exe) | Portabel, kjører rett fra en minnepinne. Oppdaterer seg **ikke** selv. |
 
 Alle versjoner ligger under [Releases](https://github.com/thomashauge03/hauge-maskin-app/releases).
 
@@ -196,11 +196,17 @@ Assist), så du kan se og styre skjermen til den du hjelper. Det er gratis og
 følger med Windows 10 og 11.
 
 1. Du åpner Hurtighjelp, velger **Hjelp noen** og får en kode. Du trenger en
-   gratis Microsoft-konto.
+   gratis Microsoft-konto. Knappen **Hurtighjelp** øverst i adminbordet gjør
+   det samme, men bare når adminbordet er åpnet i appen.
 2. Den andre trykker **Få hjelp → Start Hurtighjelp** og skriver inn koden.
 3. De godtar selv at du får se skjermen, og eventuelt styre den.
 
 Mangler Hurtighjelp på maskinen, åpner appen Microsoft Store på riktig side.
+
+Adminbordet når appen gjennom en egen bro, `src/adminbord-bro.js`, som bare kan
+starte Hurtighjelp. Den legges bare på en fane som åpner
+`https://hauge-maskin-adminbord.vercel.app`, og opphavet sjekkes på nytt ved
+hvert kall, slik broen til Innboks gjør.
 Mobilappen har det samme under **Om → Få hjelp på skjermen**: RustDesk på
 Android og FaceTime på iPhone.
 

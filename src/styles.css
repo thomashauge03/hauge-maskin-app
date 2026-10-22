@@ -357,6 +357,13 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 
 /* Få hjelp */
 .modal-fjernhjelp { width: 440px; }
+.fjernhjelp-kontakt {
+  display: flex; align-items: baseline; gap: 10px; margin: 0 0 16px;
+  padding: 12px 14px; border-radius: 10px; background: rgba(255, 255, 255, .05);
+}
+.fjernhjelp-kontakt span { font-size: 12px; color: var(--muted); }
+.fjernhjelp-kontakt strong { font-size: 14px; }
+.fjernhjelp-kontakt b { margin-left: auto; font-size: 16px; letter-spacing: .02em; user-select: text; }
 .fjernhjelp-steg { margin: 0 0 14px; padding-left: 20px; font-size: 13.5px; line-height: 1.6; color: #c9c9d3; }
 .fjernhjelp-steg li + li { margin-top: 4px; }
 .fjernhjelp-merk { margin: 0 0 8px; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
