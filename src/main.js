@@ -94,7 +94,10 @@ async function fetchShared(url) {
       `https://api.github.com/repos/${loc.owner}/${loc.repo}/contents/${loc.filePath}?ref=${loc.branch}`,
       { headers: { Accept: 'application/vnd.github.raw' } }
     );
-  } else {
+  }
+  // Et utløpt eller tilbaketrukket token skal ikke stoppe synken. Listen er
+  // offentlig, så vi henter den som alle andre. Admin-panelet sier fra om tokenet.
+  if (!res || res.status === 401) {
     const fresh = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
     res = await fetch(fresh, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
   }
@@ -713,6 +716,7 @@ ipcMain.handle('shared:publish', async (_e, { pages, message }) => {
   try {
     // Henter sha-en til den versjonen som ligger der nå
     const cur = await gh(token, `${api}?ref=${loc.branch}`);
+    if (cur.status === 401) return { ok: false, error: 'Tokenet er ikke lenger gyldig. Lag et nytt.' };
     if (!cur.ok) return { ok: false, error: `Fant ikke filen på GitHub (${cur.status}).` };
     const fil = await cur.json();
     const sha = fil.sha;

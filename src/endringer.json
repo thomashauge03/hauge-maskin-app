@@ -1,5 +1,12 @@
 [
   {
+    "versjon": "2.12.3",
+    "dato": "2026-11-03",
+    "punkt": [
+      "Synken stopper ikke lenger med «Fikk 401 fra serveren» når admin-tokenet er utløpt. Sidelisten hentes da som vanlig, og Innstillinger sier fra om at tokenet må byttes."
+    ]
+  },
+  {
     "versjon": "2.12.2",
     "dato": "2026-10-22",
     "punkt": [
